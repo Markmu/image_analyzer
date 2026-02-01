@@ -1,0 +1,1044 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>image_analyzer - 设计方向 2（优化版 v3）</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400&family=Open+Sans:wght@400;500;600&family=Poppins:wght@600;700&display=swap" rel="stylesheet">
+    <style>
+        /* ===== CSS 变量（设计 Token）===== */
+        :root {
+            /* 新手模式 - 温暖友好 */
+            --bg-primary: #F8FAFC;
+            --bg-secondary: #FFFFFF;
+            --text-primary: #1E293B;
+            --text-secondary: #64748B;
+            --accent-soft: #BFDBFE;
+            --border-subtle: #E2E8F0;
+            --shadow-soft: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            --radius-lg: 16px;
+            --radius-md: 12px;
+        }
+
+        [data-theme="professional"] {
+            /* 专业模式 - 高对比度 */
+            --bg-primary: #0F172A;
+            --bg-secondary: #1E293B;
+            --text-primary: #F8FAFC;
+            --text-secondary: #CBD5E1;
+            --accent-tech: #22C55E;
+            --border-sharp: #334155;
+            --shadow-sharp: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
+            --radius-lg: 8px;
+            --radius-md: 6px;
+        }
+
+        /* ===== 基础样式 ===== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Open Sans', 'PingFang SC', sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.5;
+            transition: background 0.3s ease, color 0.3s ease;
+        }
+
+        h1, h2, h3, h4 {
+            font-family: 'Poppins', 'PingFang SC', sans-serif;
+        }
+
+        code {
+            font-family: 'JetBrains Mono', 'PingFang SC', monospace;
+        }
+
+        /* ===== 玻璃态卡片 ===== */
+        .glass-card {
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        [data-theme="beginner"] .glass-card {
+            background: rgba(255, 255, 255, 0.8);
+            border: 1px solid rgba(226, 232, 240, 0.6);
+            box-shadow: var(--shadow-soft);
+        }
+
+        .glass-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+        }
+
+        /* ===== 布局 ===== */
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 32px 16px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 48px;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 16px;
+            letter-spacing: -0.02em;
+        }
+
+        .header p {
+            font-size: 1.125rem;
+            color: var(--text-secondary);
+        }
+
+        /* ===== 模式切换 ===== */
+        .mode-switch {
+            display: flex;
+            justify-content: center;
+            gap: 16px;
+            margin-bottom: 32px;
+        }
+
+        .mode-btn {
+            padding: 12px 24px;
+            border: 2px solid transparent;
+            border-radius: var(--radius-lg);
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            font-family: 'Poppins', sans-serif;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .mode-btn:hover {
+            border-color: var(--accent-tech, #22C55E);
+            transform: translateY(-2px);
+        }
+
+        .mode-btn.active {
+            background: #22C55E;
+            color: white;
+            border-color: #22C55E;
+        }
+
+        /* ===== 优化说明 ===== */
+        .optimization-note {
+            background: rgba(34, 197, 94, 0.1);
+            border-left: 4px solid #22C55E;
+            padding: 16px 20px;
+            margin-bottom: 32px;
+            border-radius: 0 8px 8px 0;
+        }
+
+        .optimization-note h3 {
+            font-size: 1.125rem;
+            margin-bottom: 8px;
+            color: #22C55E;
+        }
+
+        .optimization-note ul {
+            margin-top: 12px;
+            padding-left: 20px;
+        }
+
+        .optimization-note li {
+            font-size: 0.875rem;
+            margin-bottom: 4px;
+            color: var(--text-secondary);
+        }
+
+        /* ===== 主界面布局（优化版）===== */
+        .main-layout {
+            display: grid;
+            grid-template-columns: 120px 1fr 1fr;
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        @media (max-width: 1024px) {
+            .main-layout {
+                grid-template-columns: 100px 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .main-layout {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* ===== 参考图片缩略图 ===== */
+        .reference-thumbnail {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .thumbnail-card {
+            position: relative;
+            border-radius: 8px;
+            overflow: hidden;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .thumbnail-card img {
+            width: 100%;
+            aspect-ratio: 1;
+            object-fit: cover;
+            display: block;
+        }
+
+        .thumbnail-card:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 12px rgba(34, 197, 94, 0.3);
+        }
+
+        .thumbnail-card.active {
+            outline: 2px solid #22C55E;
+            outline-offset: 2px;
+        }
+
+        .thumbnail-label {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            font-size: 0.625rem;
+            padding: 4px;
+            text-align: center;
+        }
+
+        /* ===== 分析结果卡片（放大）===== */
+        .analysis-result {
+            padding: 24px;
+        }
+
+        .quality-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            background: rgba(34, 197, 94, 0.1);
+            border: 1px solid #22C55E;
+            border-radius: 9999px;
+            color: #22C55E;
+            font-size: 0.875rem;
+            font-weight: 600;
+            margin-bottom: 16px;
+        }
+
+        .quality-badge .icon {
+            width: 20px;
+            height: 20px;
+        }
+
+        .style-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+
+        .style-tag {
+            padding: 4px 12px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 9999px;
+            font-size: 0.875rem;
+        }
+
+        [data-theme="beginner"] .style-tag {
+            background: rgba(30, 41, 59, 0.1);
+            border-color: rgba(30, 41, 59, 0.2);
+        }
+
+        /* ===== 四维度分析 ===== */
+        .four-dimensions {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-top: 16px;
+        }
+
+        .dimension-card {
+            padding: 12px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            text-align: center;
+            font-size: 0.875rem;
+        }
+
+        [data-theme="beginner"] .dimension-card {
+            background: rgba(30, 41, 59, 0.05);
+            border-color: rgba(30, 41, 59, 0.1);
+        }
+
+        .dimension-card .icon {
+            font-size: 1.5rem;
+            margin-bottom: 8px;
+        }
+
+        .dimension-card .term {
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 600;
+            color: var(--accent-tech, #22C55E);
+        }
+
+        /* ===== 模版卡片（放大）===== */
+        .template-card {
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .template-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+        }
+
+        .template-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+        }
+
+        .completeness-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 8px;
+            background: rgba(34, 197, 94, 0.1);
+            border-radius: 4px;
+            color: #22C55E;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .template-content {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 16px;
+            flex-grow: 1;
+        }
+
+        [data-theme="beginner"] .template-content {
+            background: rgba(30, 41, 59, 0.05);
+            border-color: rgba(30, 41, 59, 0.1);
+        }
+
+        .template-content code {
+            display: block;
+            font-size: 0.875rem;
+            line-height: 1.6;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+
+        .copy-btn {
+            width: 100%;
+            padding: 12px 24px;
+            background: #22C55E;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-family: 'Poppins', sans-serif;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .copy-btn:hover {
+            background: #16A34A;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(34, 197, 94, 0.3);
+        }
+
+        .copy-btn:active {
+            transform: translateY(0);
+        }
+
+        /* ===== 用户反馈 ===== */
+        .feedback-section {
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        [data-theme="beginner"] .feedback-section {
+            border-top-color: rgba(30, 41, 59, 0.1);
+        }
+
+        .feedback-text {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+        }
+
+        .feedback-buttons {
+            display: flex;
+            gap: 8px;
+        }
+
+        .feedback-btn {
+            padding: 8px 16px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 6px;
+            color: var(--text-primary);
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        [data-theme="beginner"] .feedback-btn {
+            background: rgba(30, 41, 59, 0.05);
+            border-color: rgba(30, 41, 59, 0.1);
+        }
+
+        .feedback-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .feedback-btn.active {
+            background: #22C55E;
+            border-color: #22C55E;
+        }
+
+        /* ===== 生成结果展示区（新增）===== */
+        .generated-results {
+            margin-top: 24px;
+        }
+
+        .generated-results-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+        }
+
+        .generated-results-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+
+        .generated-results-subtitle {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+
+        .generated-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 16px;
+        }
+
+        @media (max-width: 768px) {
+            .generated-grid {
+                grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+                gap: 12px;
+            }
+        }
+
+        .generated-card {
+            position: relative;
+            border-radius: 8px;
+            overflow: hidden;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .generated-card img {
+            width: 100%;
+            aspect-ratio: 1;
+            object-fit: cover;
+            display: block;
+        }
+
+        .generated-card:hover {
+            transform: scale(1.05);
+            box-shadow: 0 8px 16px rgba(34, 197, 94, 0.2);
+        }
+
+        .generated-overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(to top, rgba(0, 0, 0, 0.8), transparent);
+            padding: 32px 12px 12px;
+            color: white;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+        }
+
+        .generated-card:hover .generated-overlay {
+            opacity: 1;
+        }
+
+        .generated-user {
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .generated-time {
+            font-size: 0.625rem;
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        /* ===== Toast 通知 ===== */
+        .toast {
+            position: fixed;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: #22C55E;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            font-weight: 600;
+            opacity: 0;
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+
+        .toast.show {
+            transform: translateX(-50%) translateY(0);
+            opacity: 1;
+        }
+
+        /* ===== 响应式无障碍 ===== */
+        @media (prefers-reduced-motion: reduce) {
+            *,
+            *::before,
+            *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+
+        /* ===== 键盘焦点可见 ===== */
+        button:focus-visible,
+        .thumbnail-card:focus-visible,
+        .generated-card:focus-visible {
+            outline: 2px solid #22C55E;
+            outline-offset: 2px;
+        }
+
+        /* ===== 移动端优化 ===== */
+        @media (max-width: 767px) {
+            .header h1 {
+                font-size: 1.75rem;
+            }
+
+            .mode-btn {
+                padding: 10px 16px;
+                font-size: 0.875rem;
+            }
+
+            .reference-thumbnail {
+                flex-direction: row;
+                overflow-x: auto;
+                padding-bottom: 8px;
+            }
+
+            .thumbnail-card {
+                min-width: 80px;
+                max-width: 80px;
+            }
+
+            .four-dimensions {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        /* ===== 加载动画 ===== */
+        @keyframes spin {
+            from {
+                transform: rotate(0deg);
+            }
+            to {
+                transform: rotate(360deg);
+            }
+        }
+    </style>
+</head>
+<body data-theme="professional">
+    <div class="container">
+        <!-- 页头 -->
+        <header class="header">
+            <h1>image_analyzer - 设计方向 2（优化版 v2）</h1>
+            <p>参考图片缩略化 + 分析结果/模版区域扩大 + 实时预览生成 + 生成结果展示</p>
+        </header>
+
+        <!-- 模式切换 -->
+        <div class="mode-switch">
+            <button class="mode-btn" onclick="setTheme('beginner')" aria-label="切换到新手模式">
+                新手模式
+            </button>
+            <button class="mode-btn active" onclick="setTheme('professional')" aria-label="切换到专业模式">
+                专业模式
+            </button>
+        </div>
+
+        <!-- 优化说明 -->
+        <div class="optimization-note glass-card">
+            <h3>🎨 优化要点（v3 - 焦点小组改进）</h3>
+            <ul>
+                <li>✅ <strong>参考图片缩略化</strong>：左侧改为 120px 缩略图列表（移动端 100px），节省空间</li>
+                <li>✅ <strong>分析结果区域扩大</strong>：中间列宽度增加，展示更详细的质量指标和四维度分析</li>
+                <li>✅ <strong>模版区域扩大</strong>：右侧列宽度增加，模版内容更易阅读和编辑</li>
+                <li>✅ <strong>实时预览生成区</strong>：在模版卡片内集成预览生成功能，点击即可验证模版效果</li>
+                <li>✅ <strong>生成结果展示区</strong>：底部展示区，显示使用此模版生成的图片，增强社交证明</li>
+                <li>✅ <strong>模版占位符示例</strong>： `[例如：一只猫]` 替代空占位符，降低使用门槛</li>
+                <li>✅ <strong>缩略图查看大图</strong>：点击缩略图可查看高清大图（Emma 建议）</li>
+                <li>✅ <strong>四维度详情展开</strong>：点击专业术语可展开查看详细解释（Emma 建议）</li>
+            </ul>
+        </div>
+
+        <!-- 主界面布局（优化版） -->
+        <div class="main-layout">
+            <!-- 左侧：参考图片缩略图 -->
+            <div class="reference-thumbnail">
+                <div class="thumbnail-card active" onclick="selectImage(1); viewFullImage(1)" tabindex="0" role="button" aria-label="选择参考图片 1，点击查看大图">
+                    <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1 1'%3E%3Crect fill='%23667eea' width='1' height='1'/%3E%3C/svg%3E" alt="参考图片 1">
+                    <div class="thumbnail-label">图片 1 ✓</div>
+                </div>
+                <div class="thumbnail-card" onclick="selectImage(2); viewFullImage(2)" tabindex="0" role="button" aria-label="选择参考图片 2，点击查看大图">
+                    <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1 1'%3E%3Crect fill='%23f093fb' width='1' height='1'/%3E%3C/svg%3E" alt="参考图片 2">
+                    <div class="thumbnail-label">图片 2</div>
+                </div>
+                <div class="thumbnail-card" onclick="selectImage(3); viewFullImage(3)" tabindex="0" role="button" aria-label="选择参考图片 3，点击查看大图">
+                    <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1 1'%3E%3Crect fill='%234facfe' width='1' height='1'/%3E%3C/svg%3E" alt="参考图片 3">
+                    <div class="thumbnail-label">图片 3</div>
+                </div>
+                <div class="thumbnail-card" style="border: 2px dashed rgba(255,255,255,0.3); display: flex; align-items: center; justify-content: center;" tabindex="0" role="button" aria-label="添加更多图片">
+                    <div style="color: var(--text-secondary); font-size: 1.5rem;">+</div>
+                </div>
+            </div>
+
+            <!-- 中间：分析结果（扩大） -->
+            <div class="glass-card analysis-result">
+                <div class="quality-badge">
+                    <svg class="icon" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                    </svg>
+                    <span>256位用户 · 成功率94%</span>
+                </div>
+
+                <h3 style="margin-bottom: 12px;">风格分析结果</h3>
+
+                <div class="style-tags">
+                    <span class="style-tag">赛博朋克</span>
+                    <span class="style-tag">霓虹灯光</span>
+                    <span class="style-tag">未来主义</span>
+                    <span class="style-tag">高清摄影</span>
+                    <span class="style-tag">8K分辨率</span>
+                    <span class="style-tag">电影级光效</span>
+                </div>
+
+                <!-- 四维度分析（专业模式显示，新手模式隐藏） -->
+                <div class="four-dimensions">
+                    <div class="dimension-card" onclick="toggleDimensionDetail(this, 'rembrandt')" tabindex="0" role="button" aria-expanded="false">
+                        <div class="icon">💡</div>
+                        <div class="term">伦勃朗光</div>
+                        <div style="font-size: 0.75rem; color: var(--text-secondary);">侧上方打光</div>
+                        <div class="dimension-detail" style="display: none; margin-top: 8px; padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.1); font-size: 0.75rem; color: var(--text-secondary);">
+                            <strong style="color: var(--accent-tech, #22C55E);">伦勃朗光</strong>：一种从侧上方打光的摄影技巧，创造戏剧性的阴影效果，常用于人像摄影，强调面部轮廓和情感表达。
+                        </div>
+                    </div>
+                    <div class="dimension-card" onclick="toggleDimensionDetail(this, 'rule-thirds')" tabindex="0" role="button" aria-expanded="false">
+                        <div class="icon">📐</div>
+                        <div class="term">三分法</div>
+                        <div style="font-size: 0.75rem; color: var(--text-secondary);">黄金分割</div>
+                        <div class="dimension-detail" style="display: none; margin-top: 8px; padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.1); font-size: 0.75rem; color: var(--text-secondary);">
+                            <strong style="color: var(--accent-tech, #22C55E);">三分法构图</strong>：将画面分成九宫格，将主体放置在交叉点或线上，创造平衡且动态的构图，是摄影和绘画的基本构图法则。
+                        </div>
+                    </div>
+                    <div class="dimension-card" onclick="toggleDimensionDetail(this, 'complementary')" tabindex="0" role="button" aria-expanded="false">
+                        <div class="icon">🎨</div>
+                        <div class="term">互补色</div>
+                        <div style="font-size: 0.75rem; color: var(--text-secondary);">蓝橙对比</div>
+                        <div class="dimension-detail" style="display: none; margin-top: 8px; padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.1); font-size: 0.75rem; color: var(--text-secondary);">
+                            <strong style="color: var(--accent-tech, #22C55E);">互补色对比</strong>：色环上相对的两种颜色（如蓝与橙、紫与黄）同时使用，产生强烈的视觉冲击力和活力。
+                        </div>
+                    </div>
+                    <div class="dimension-card" onclick="toggleDimensionDetail(this, 'digital-art')" tabindex="0" role="button" aria-expanded="false">
+                        <div class="icon">🖼️</div>
+                        <div class="term">数字艺术</div>
+                        <div style="font-size: 0.75rem; color: var(--text-secondary);">未来主义</div>
+                        <div class="dimension-detail" style="display: none; margin-top: 8px; padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.1); font-size: 0.75rem; color: var(--text-secondary);">
+                            <strong style="color: var(--accent-tech, #22C55E);">数字艺术风格</strong>：融合科技与艺术的创作方式，运用数字工具创作具有未来感、科技感的视觉作品，强调创新和数字化表达。
+                        </div>
+                    </div>
+                </div>
+
+                <div style="margin-top: 20px; padding-top: 16px; border-top: 1px solid rgba(255, 255, 255, 0.1);">
+                    <div style="font-size: 0.875rem; color: var(--text-secondary); margin-bottom: 8px;">质量指标详情：</div>
+                    <div style="display: flex; flex-wrap: wrap; gap: 12px;">
+                        <div style="display: flex; align-items: center; gap: 4px; font-size: 0.875rem;">
+                            <span style="color: #22C55E;">✓</span> 参数完整
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 4px; font-size: 0.875rem;">
+                            <span style="color: #22C55E;">✓</span> 格式验证
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 4px; font-size: 0.875rem;">
+                            <span style="color: #22C55E;">✓</span> 256次使用
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 4px; font-size: 0.875rem;">
+                            <span style="color: #22C55E;">✓</span> 4.8/5评分
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 右侧：可编辑模版（扩大）+ 实时预览 -->
+            <div class="glass-card template-card">
+                <div class="template-header">
+                    <div class="template-title">完整模版</div>
+                    <div class="completeness-badge">
+                        <svg width="16" height="16" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                        </svg>
+                        参数完整
+                    </div>
+                </div>
+
+                <div class="template-content">
+                    <code>/imagine prompt: [例如：一只猫] 赛博朋克风格，霓虹灯光，未来城市，高清摄影，8K分辨率，电影级光效，赛博朋克2077游戏风格，虚幻引擎渲染 --ar 16:9 --stylize 250 --quality 2 --v 6</code>
+                </div>
+
+                <!-- 实时预览生成区 -->
+                <div style="margin-bottom: 16px;">
+                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+                        <span style="font-size: 0.875rem; color: var(--text-secondary);">✨ 实时预览生成</span>
+                        <span style="font-size: 0.75rem; color: var(--text-secondary);">消耗 1 credit</span>
+                    </div>
+                    <div id="preview-container" style="position: relative; width: 100%; aspect-ratio: 16/9; background: rgba(0, 0, 0, 0.3); border: 2px dashed rgba(255, 255, 255, 0.2); border-radius: 8px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s;" onclick="generatePreview(this)" role="button" aria-label="生成预览图">
+                        <div id="preview-placeholder" style="text-align: center; color: var(--text-secondary);">
+                            <div style="font-size: 2rem; margin-bottom: 8px;">🎨</div>
+                            <div style="font-size: 0.875rem;">点击生成预览</div>
+                            <div style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 4px;">立即验证模版效果</div>
+                        </div>
+                        <img id="preview-image" style="display: none; width: 100%; height: 100%; object-fit: cover; border-radius: 6px;" alt="生成的预览图">
+                        <div id="preview-loading" style="display: none; position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.8); border-radius: 6px; align-items: center; justify-content: center;">
+                            <div style="text-align: center; color: white;">
+                                <div style="font-size: 1.5rem; margin-bottom: 8px; animation: spin 1s linear infinite;">⚙️</div>
+                                <div style="font-size: 0.875rem;">正在生成预览...</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <button class="copy-btn" onclick="copyTemplate(this)" aria-label="复制完整模版到剪贴板" style="margin-bottom: 12px;">
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                        <path d="M8 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z"/>
+                        <path d="M6 3a2 2 0 00-2 2v11a2 2 0 002 2h8a2 2 0 002-2V5a2 2 0 00-2-2 3 3 0 01-3 3H9a3 3 0 01-3-3z"/>
+                    </svg>
+                    复制到剪贴板
+                </button>
+
+                <div style="display: flex; gap: 8px; margin-bottom: 12px;">
+                    <button onclick="generatePreview(document.getElementById('preview-container'))" style="flex: 1; padding: 10px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none; border-radius: 6px; color: white; font-size: 0.875rem; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 4px;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(102, 126, 234, 0.4)'" onmouseout="this.style.transform=''; this.style.boxShadow='none'">
+                        <svg width="16" height="16" viewBox="0 0 20 20" fill="currentColor">
+                            <path d="M4 3a2 2 0 00-2 2v11a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4z"/>
+                            <path d="M10 12l-2-2 4 4-4-4"/>
+                        </svg>
+                        重新生成
+                    </button>
+                    <button style="flex: 1; padding: 10px; background: rgba(34, 197, 94, 0.1); border: 1px solid #22C55E; border-radius: 6px; color: #22C55E; font-size: 0.875rem; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.background='rgba(34, 197, 94, 0.2)'" onmouseout="this.style.background='rgba(34, 197, 94, 0.1)'">
+                        保存到模版库
+                    </button>
+                </div>
+
+                <div class="feedback-section">
+                    <div class="feedback-text">这个分析准确吗？</div>
+                    <div class="feedback-buttons">
+                        <button class="feedback-btn" onclick="setFeedback(this, 'up')">👍 准确</button>
+                        <button class="feedback-btn" onclick="setFeedback(this, 'down')">👎 不准确</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 生成结果展示区（新增） -->
+        <div class="generated-results glass-card" style="padding: 24px;">
+            <div class="generated-results-header">
+                <div>
+                    <h3 class="generated-results-title">📸 使用此模版生成的图片</h3>
+                    <p class="generated-results-subtitle">来自 256 位真实用户 · 点击查看完整提示词</p>
+                </div>
+                <button style="padding: 8px 16px; background: rgba(34, 197, 94, 0.1); border: 1px solid #22C55E; border-radius: 6px; color: #22C55E; font-size: 0.875rem; cursor: pointer;">
+                    查看全部 256 张 →
+                </button>
+            </div>
+
+            <div class="generated-grid">
+                <div class="generated-card" tabindex="0" role="button" aria-label="查看用户 CyberArtist 的生成结果">
+                    <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1 1'%3E%3Cdefs%3E%3ClinearGradient id='g1' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' style='stop-color:%23667eea'/%3E%3Cstop offset='100%25' style='stop-color:%237649ba'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect fill='url(%23g1)' width='1' height='1'/%3E%3C/svg%3E" alt="用户生成图片">
+                    <div class="generated-overlay">
+                        <div class="generated-user">@CyberArtist</div>
+                        <div class="generated-time">2 小时前</div>
+                    </div>
+                </div>
+
+                <div class="generated-card" tabindex="0" role="button" aria-label="查看用户 NeonDreams 的生成结果">
+                    <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1 1'%3E%3Cdefs%3E%3ClinearGradient id='g2' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' style='stop-color:%23f093fb'/%3E%3Cstop offset='100%25' style='stop-color:%23f5576c'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect fill='url(%23g2)' width='1' height='1'/%3E%3C/svg%3E" alt="用户生成图片">
+                    <div class="generated-overlay">
+                        <div class="generated-user">@NeonDreams</div>
+                        <div class="generated-time">5 小时前</div>
+                    </div>
+                </div>
+
+                <div class="generated-card" tabindex="0" role="button" aria-label="查看用户 FutureVision 的生成结果">
+                    <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1 1'%3E%3Cdefs%3E%3ClinearGradient id='g3' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' style='stop-color:%234facfe'/%3E%3Cstop offset='100%25' style='stop-color:%2300f2fe'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect fill='url(%23g3)' width='1' height='1'/%3E%3C/svg%3E" alt="用户生成图片">
+                    <div class="generated-overlay">
+                        <div class="generated-user">@FutureVision</div>
+                        <div class="generated-time">昨天</div>
+                    </div>
+                </div>
+
+                <div class="generated-card" tabindex="0" role="button" aria-label="查看用户 CyberPunk 的生成结果">
+                    <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1 1'%3E%3Cdefs%3E%3ClinearGradient id='g4' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' style='stop-color:%2343e97b'/%3E%3Cstop offset='100%25' style='stop-color:%2338f9d7'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect fill='url(%23g4)' width='1' height='1'/%3E%3C/svg%3E" alt="用户生成图片">
+                    <div class="generated-overlay">
+                        <div class="generated-user">@CyberPunk</div>
+                        <div class="generated-time">2 天前</div>
+                    </div>
+                </div>
+
+                <div class="generated-card" tabindex="0" role="button" aria-label="查看用户 SynthWave 的生成结果">
+                    <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1 1'%3E%3Cdefs%3E%3ClinearGradient id='g5' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' style='stop-color:%23fa709a'/%3E%3Cstop offset='100%25' style='stop-color:%23fee140'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect fill='url(%23g5)' width='1' height='1'/%3E%3C/svg%3E" alt="用户生成图片">
+                    <div class="generated-overlay">
+                        <div class="generated-user">@SynthWave</div>
+                        <div class="generated-time">3 天前</div>
+                    </div>
+                </div>
+
+                <div class="generated-card" tabindex="0" role="button" aria-label="查看用户 TechNoir 的生成结果">
+                    <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1 1'%3E%3Cdefs%3E%3ClinearGradient id='g6' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' style='stop-color:%2330cfd0'/%3E%3Cstop offset='100%25' style='stop-color:%23330867'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect fill='url(%23g6)' width='1' height='1'/%3E%3C/svg%3E" alt="用户生成图片">
+                    <div class="generated-overlay">
+                        <div class="generated-user">@TechNoir</div>
+                        <div class="generated-time">1 周前</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast 通知 -->
+    <div id="toast" class="toast" role="alert" aria-live="polite">
+        ✓ 已复制到剪贴板！
+    </div>
+
+    <script>
+        // 模式切换
+        function setTheme(theme) {
+            document.body.setAttribute('data-theme', theme);
+
+            // 更新按钮状态
+            document.querySelectorAll('.mode-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+
+            // 专业模式：显示四维度分析
+            const fourDimensions = document.querySelectorAll('.four-dimensions');
+            fourDimensions.forEach(el => {
+                el.style.display = theme === 'professional' ? 'grid' : 'none';
+            });
+        }
+
+        // 选择参考图片
+        function selectImage(index) {
+            // 移除所有激活状态
+            document.querySelectorAll('.thumbnail-card').forEach(card => {
+                card.classList.remove('active');
+            });
+
+            // 激活当前选中的图片
+            event.currentTarget.classList.add('active');
+
+            // 这里可以添加切换图片的逻辑
+            console.log('Selected image:', index);
+        }
+
+        // 复制模版（模拟）
+        function copyTemplate(btn) {
+            // 显示 Toast
+            const toast = document.getElementById('toast');
+            toast.classList.add('show');
+
+            // 3秒后自动消失（最佳实践）
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+
+            // 按钮视觉反馈
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '✓ 已复制！';
+            btn.style.background = '#16A34A';
+
+            setTimeout(() => {
+                btn.innerHTML = originalText;
+                btn.style.background = '';
+            }, 2000);
+        }
+
+        // 用户反馈
+        function setFeedback(btn, type) {
+            // 移除同组其他按钮的激活状态
+            btn.parentElement.querySelectorAll('.feedback-btn').forEach(b => {
+                b.classList.remove('active');
+            });
+
+            // 激活当前按钮
+            btn.classList.add('active');
+
+            // 视觉反馈
+            if (type === 'up') {
+                btn.textContent = '👍 已反馈准确';
+            } else {
+                btn.textContent = '👎 已反馈不准确';
+            }
+
+            // 模拟提交成功
+            setTimeout(() => {
+                const feedbackSection = btn.parentElement.parentElement;
+                const successMsg = document.createElement('div');
+                successMsg.style.cssText = 'margin-top: 8px; font-size: 0.75rem; color: #22C55E;';
+                successMsg.textContent = '✓ 感谢您的反馈！';
+                feedbackSection.appendChild(successMsg);
+
+                setTimeout(() => {
+                    successMsg.remove();
+                }, 3000);
+            }, 500);
+        }
+
+        // 生成预览图
+        function generatePreview(container) {
+            const placeholder = document.getElementById('preview-placeholder');
+            const image = document.getElementById('preview-image');
+            const loading = document.getElementById('preview-loading');
+
+            // 显示加载状态
+            placeholder.style.display = 'none';
+            image.style.display = 'none';
+            loading.style.display = 'flex';
+
+            // 模拟生成过程（3秒）
+            setTimeout(() => {
+                loading.style.display = 'none';
+                image.style.display = 'block';
+
+                // 使用渐变色模拟生成的图片
+                // 在实际应用中，这里会调用 API 生成真实图片
+                image.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 9'%3E%3Cdefs%3E%3ClinearGradient id='preview-gradient' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' style='stop-color:%23667eea'/%3E%3Cstop offset='50%25' style='stop-color:%237649ba'/%3E%3Cstop offset='100%25' style='stop-color:%23f093fb'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect fill='url(%23preview-gradient)' width='16' height='9'/%3E%3Ctext x='50%25' y='50%25' text-anchor='middle' fill='white' font-size='2' font-family='sans-serif' font-weight='bold'%3E✓ 预览生成完成%3C/text%3E%3C/svg%3E";
+
+                // 显示成功提示
+                showToast('✓ 预览生成成功！');
+            }, 3000);
+        }
+
+        // Toast 通知函数（复用）
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.add('show');
+
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+
+        // 初始化：专业模式显示四维度分析
+        document.addEventListener('DOMContentLoaded', () => {
+            const fourDimensions = document.querySelectorAll('.four-dimensions');
+            fourDimensions.forEach(el => {
+                el.style.display = 'grid';
+            });
+        });
+
+        // 四维度详情展开/折叠（Emma 建议）
+        function toggleDimensionDetail(card, dimensionId) {
+            const detail = card.querySelector('.dimension-detail');
+            const isExpanded = detail.style.display === 'block';
+
+            // 折叠所有其他详情
+            document.querySelectorAll('.dimension-card .dimension-detail').forEach(d => {
+                d.style.display = 'none';
+            });
+
+            // 切换当前详情
+            detail.style.display = isExpanded ? 'none' : 'block';
+
+            // 更新 ARIA 状态
+            card.setAttribute('aria-expanded', !isExpanded);
+
+            // 视觉反馈
+            if (!isExpanded) {
+                card.style.background = 'rgba(34, 197, 94, 0.1)';
+                card.style.borderColor = '#22C55E';
+            } else {
+                card.style.background = '';
+                card.style.borderColor = '';
+            }
+        }
+
+        // 缩略图点击查看大图（Emma 建议）
+        function viewFullImage(imageId) {
+            // 模拟查看大图功能
+            // 在实际应用中，这里会打开模态框显示高清大图
+            const imageNames = {
+                1: '参考图片 1',
+                2: '参考图片 2',
+                3: '参考图片 3'
+            };
+            showToast(`📷 正在打开 ${imageNames[imageId]} 高清大图...`);
+
+            // 模拟模态框逻辑（实际项目中会创建真正的模态框）
+            console.log('View full image:', imageId);
+        }
+
+        // 键盘导航支持
+        document.addEventListener('keydown', (e) => {
+            // Tab 键：焦点可见
+            if (e.key === 'Tab') {
+                document.body.classList.add('keyboard-nav');
+            }
+        });
+
+        document.addEventListener('mousedown', () => {
+            document.body.classList.remove('keyboard-nav');
+        });
+    </script>
+</body>
+</html>
