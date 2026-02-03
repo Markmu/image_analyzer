@@ -1,0 +1,115 @@
+# generated: 2026-02-03
+# project: image_analyzer
+# project_key: NOKEY
+# tracking_system: file-system
+# story_location: "{project-root}/_bmad-output/implementation-artifacts"
+
+# STATUS DEFINITIONS:
+# ==================
+# Epic Status:
+#   - backlog: Epic not yet started
+#   - in-progress: Epic actively being worked on
+#   - done: All stories in epic completed
+#
+# Story Status:
+#   - backlog: Story only exists in epic file
+#   - ready-for-dev: Story file created in stories folder
+#   - in-progress: Developer actively working on implementation
+#   - review: Ready for code review (via Dev's code-review workflow)
+#   - done: Story completed
+#
+# Retrospective Status:
+#   - optional: Can be completed but not required
+#   - done: Retrospective has been completed
+#
+# WORKFLOW NOTES:
+# ===============
+# - Mark epic as 'in-progress' when starting work on its first story
+# - SM typically creates next story ONLY after previous one is 'done' to incorporate learnings
+# - Dev moves story to 'review', then Dev runs code-review (fresh context, ideally different LLM)
+
+generated: 2026-02-03
+project: image_analyzer
+project_key: NOKEY
+tracking_system: file-system
+story_location: "{project-root}/_bmad-output/implementation-artifacts"
+
+development_status:
+  # Epic 0: 项目初始化与基础设施
+  epic-0: in-progress
+  0-1-项目初始化: review
+  0-2-数据库配置: ready-for-dev
+  0-3-开发环境配置: ready-for-dev
+  0-4-CI_CD流水线: ready-for-dev
+  0-5-外部服务集成准备: ready-for-dev
+  epic-0-retrospective: optional
+
+  # Epic 1: 用户认证与账户系统
+  epic-1: backlog
+  1-1-user-authentication: backlog
+  1-2-account-management: backlog
+  epic-1-retrospective: optional
+
+  # Epic 2: 图片上传与管理
+  epic-2: backlog
+  2-1-image-upload: backlog
+  2-2-batch-upload: backlog
+  2-3-upload-validation: backlog
+  2-4-progress-feedback: backlog
+  epic-2-retrospective: optional
+
+  # Epic 3: AI 风格分析
+  epic-3: backlog
+  3-1-style-analysis: backlog
+  3-2-batch-analysis: backlog
+  3-3-analysis-progress: backlog
+  3-4-vision-model-integration: backlog
+  3-5-confidence-scoring: backlog
+  epic-3-retrospective: optional
+
+  # Epic 4: 内容安全与合规
+  epic-4: backlog
+  4-1-content-moderation: backlog
+  4-2-generation-safety: backlog
+  4-3-privacy-compliance: backlog
+  epic-4-retrospective: optional
+
+  # Epic 5: 模版生成与管理
+  epic-5: backlog
+  5-1-template-generation: backlog
+  5-2-json-export: backlog
+  5-3-template-editor: backlog
+  5-4-prompt-optimization: backlog
+  epic-5-retrospective: optional
+
+  # Epic 6: AI 图片生成
+  epic-6: backlog
+  6-1-image-generation: backlog
+  6-2-generation-progress: backlog
+  6-3-image-save: backlog
+  6-4-social-sharing: backlog
+  6-5-sharing-rewards: backlog
+  epic-6-retrospective: optional
+
+  # Epic 7: 模版库与历史记录
+  epic-7: backlog
+  7-1-history-management: backlog
+  7-2-template-library: backlog
+  7-3-template-analytics: backlog
+  epic-7-retrospective: optional
+
+  # Epic 8: 订阅与支付系统
+  epic-8: backlog
+  8-1-credit-system: backlog
+  8-2-subscription-plans: backlog
+  8-3-payment-integration: backlog
+  8-4-practice-mode: backlog
+  8-5-admin-config: backlog
+  epic-8-retrospective: optional
+
+  # Epic 9: 错误处理与用户支持
+  epic-9: backlog
+  9-1-error-handling: backlog
+  9-2-retry-mechanisms: backlog
+  9-3-user-education: backlog
+  epic-9-retrospective: optional
