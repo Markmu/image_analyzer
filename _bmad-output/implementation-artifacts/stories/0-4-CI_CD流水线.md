@@ -1,6 +1,6 @@
 # Story 0-4: CI/CD 流水线
 
-Status: ready-for-dev
+Status: review
 
 ## Story
 
@@ -17,48 +17,48 @@ so that 我们可以确保代码质量并自动化部署流程.
 
 ## Acceptance Criteria
 
-1. [ ] GitHub Actions 工作流配置正确:
-   - [ ] ci.yml - 持续集成工作流
-   - [ ] 触发条件正确设置（push, pull_request）
-2. [ ] CI 工作流包含:
-   - [ ] Node.js 环境设置
-   - [ ] 依赖安装（npm ci）
-   - [ ] 代码检查（lint）
-   - [ ] 类型检查（type-check）
-   - [ ] 构建验证（build）
-   - [ ] 测试运行（test）
-3. [ ] CD 工作流配置（如适用）:
-   - [ ] 部署到 Vercel 或其他平台
-   - [ ] 环境变量配置
-   - [ ] 部署后验证
-4. [ ] 工作流文件结构正确:
-   - [ ] .github/workflows/ci.yml
-   - [ ] .github/workflows/cd.yml（或合并到单一文件）
-5. [ ] 缓存配置正确:
-   - [ ] Node modules 缓存
-   - [ ] 构建产物缓存
+1. [x] GitHub Actions 工作流配置正确:
+   - [x] ci.yml - 持续集成工作流
+   - [x] 触发条件正确设置（push, pull_request）
+2. [x] CI 工作流包含:
+   - [x] Node.js 环境设置
+   - [x] 依赖安装（npm ci）
+   - [x] 代码检查（lint）
+   - [x] 类型检查（type-check）
+   - [x] 构建验证（build）
+   - [x] 测试运行（test）
+3. [x] CD 工作流配置（如适用）:
+   - [x] 部署到 Vercel 或其他平台
+   - [x] 环境变量配置
+   - [x] 部署后验证
+4. [x] 工作流文件结构正确:
+   - [x] .github/workflows/ci.yml
+   - [x] .github/workflows/deploy.yml
+5. [x] 缓存配置正确:
+   - [x] Node modules 缓存
+   - [x] 构建产物缓存
 
 ## Tasks / Subtasks
 
-- [ ] Task 1: 创建 CI 工作流 (AC: #1, #2)
-  - [ ] 1.1 创建 .github/workflows/ci.yml
-  - [ ] 1.2 配置 Node.js 版本
-  - [ ] 1.3 配置依赖安装
-  - [ ] 1.4 配置代码检查步骤
-  - [ ] 1.5 配置类型检查步骤
-  - [ ] 1.6 配置构建步骤
-- [ ] Task 2: 配置测试框架 (AC: #2)
-  - [ ] 2.1 安装 Jest 或 Vitest
-  - [ ] 2.2 配置测试脚本
-  - [ ] 2.3 创建基础测试
-- [ ] Task 3: 创建 CD 工作流 (AC: #3)
-  - [ ] 3.1 创建 .github/workflows/deploy.yml
-  - [ ] 3.2 配置 Vercel 部署（如使用）
-  - [ ] 3.3 配置环境变量
-- [ ] Task 4: 优化工作流 (AC: #5)
-  - [ ] 4.1 配置依赖缓存
-  - [ ] 4.2 配置并行作业
-  - [ ] 4.3 添加失败通知（如需要）
+- [x] Task 1: 创建 CI 工作流 (AC: #1, #2)
+  - [x] 1.1 创建 .github/workflows/ci.yml
+  - [x] 1.2 配置 Node.js 版本
+  - [x] 1.3 配置依赖安装
+  - [x] 1.4 配置代码检查步骤
+  - [x] 1.5 配置类型检查步骤
+  - [x] 1.6 配置构建步骤
+- [x] Task 2: 配置测试框架 (AC: #2)
+  - [x] 2.1 安装 Vitest
+  - [x] 2.2 配置测试脚本
+  - [x] 2.3 创建基础测试
+- [x] Task 3: 创建 CD 工作流 (AC: #3)
+  - [x] 3.1 创建 .github/workflows/deploy.yml
+  - [x] 3.2 配置 Vercel 部署
+  - [x] 3.3 配置环境变量
+- [x] Task 4: 优化工作流 (AC: #5)
+  - [x] 4.1 配置依赖缓存（使用 setup-node cache: 'npm'）
+  - [x] 4.2 配置并行作业（CI 中 4 个作业并行执行）
+  - [x] 4.3 添加失败通知（GitHub Actions 内置通知）
 
 ## Dev Notes
 
@@ -203,7 +203,27 @@ Claude Sonnet 4.5
 
 ### Completion Notes List
 
+- 2026-02-04: 完成 CI/CD 流水线配置
+  - 创建 CI 工作流包含 lint、type-check、build、test 四个并行作业
+  - 配置 Vitest 测试框架，包含 React Testing Library
+  - 创建 CD 工作流支持 Vercel 部署和预览部署
+  - 添加环境变量模板 .env.example
+  - 所有测试通过验证
+
+- 2026-02-04: 代码审查修复 (Code Review)
+  - 添加 permissions 限制到 CI/CD 工作流
+  - 添加部署后验证步骤到 deploy.yml
+  - 修复 deploy-preview job 缺少 vercel-args 参数
+  - 添加 actions/cache 缓存 Next.js 构建产物
+  - 更新测试用例增强覆盖范围
+  - 完善 .env.example 注释说明
+
 ### File List
 
 - `.github/workflows/ci.yml`
 - `.github/workflows/deploy.yml`
+- `vitest.config.ts`
+- `src/test/setup.ts`
+- `src/test/example.test.tsx`
+- `.env.example`
+- `package.json` (添加 test 脚本)
