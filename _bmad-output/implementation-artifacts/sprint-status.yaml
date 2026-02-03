@@ -38,8 +38,8 @@ development_status:
   # Epic 0: 项目初始化与基础设施
   epic-0: in-progress
   0-1-项目初始化: done
-  0-2-数据库配置: ready-for-dev
-  0-3-开发环境配置: ready-for-dev
+  0-2-数据库配置: done
+  0-3-开发环境配置: done
   0-4-CI_CD流水线: ready-for-dev
   0-5-外部服务集成准备: ready-for-dev
   epic-0-retrospective: optional

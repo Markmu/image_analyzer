@@ -202,6 +202,112 @@ npx create-next-app@latest image_analyzer \
 | **支付平台** | Creem | Latest | Merchant of Record，自动税务 |
 | **环境变量** | .env.local | 标准 | 本地开发配置 |
 
+#### 开发环境数据库管理
+
+**开发阶段使用 Docker 管理 PostgreSQL：**
+
+```yaml
+# docker-compose.yml
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: image_analyzer_db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: image_analyzer
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # 可选：pgAdmin 用于数据库管理
+  pgadmin:
+    image: dpage/pgadmin8:latest
+    container_name: image_analyzer_pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@localhost
+      PGADMIN_DEFAULT_PASSWORD: admin
+    ports:
+      - "5050:80"
+    depends_on:
+      - postgres
+
+volumes:
+  postgres_data:
+```
+
+**启动命令：**
+
+```bash
+# 启动数据库
+docker-compose up -d
+
+# 停止数据库
+docker-compose down
+
+# 停止并删除数据卷（慎用！会删除所有数据）
+docker-compose down -v
+```
+
+**开发环境变量配置（.env.local）：**
+
+```bash
+# 数据库连接（Docker 本地实例）
+DATABASE_URL="postgresql://postgres:postgres@localhost:5432/image_analyzer?schema=public"
+
+# NextAuth 配置
+NEXTAUTH_URL="http://localhost:3000"
+NEXTAUTH_SECRET="your-nextauth-secret-key"
+
+# Google OAuth
+GOOGLE_CLIENT_ID="your-google-client-id"
+GOOGLE_CLIENT_SECRET="your-google-client-secret"
+
+# Replicate API
+REPLICATE_API_TOKEN="your-replicate-token"
+
+# Cloudflare R2
+R2_ACCESS_KEY_ID="your-r2-access-key"
+R2_SECRET_ACCESS_KEY="your-r2-secret-key"
+R2_ACCOUNT_ID="your-r2-account-id"
+R2_BUCKET_NAME="your-r2-bucket"
+
+# Creem Payment
+CREEM_API_KEY="your-creem-api-key"
+CREEM_WEBHOOK_SECRET="your-creem-webhook-secret"
+```
+
+**数据库连接池配置（生产环境）：**
+
+```typescript
+// drizzle.config.ts
+import { defineConfig } from 'drizzle-kit';
+
+export default defineConfig({
+  schema: './src/lib/db/schema.ts',
+  out: './drizzle',
+  dialect: 'postgresql',
+  dbCredentials: {
+    url: process.env.DATABASE_URL!,
+  },
+  // 生产环境连接池配置
+  pool: {
+    min: 2,
+    max: 10,
+    idleTimeoutMillis: 30000,
+    connectionTimeoutMillis: 2000,
+  },
+});
+```
+
 ### Decision Impact Analysis
 
 **Implementation Sequence:**
