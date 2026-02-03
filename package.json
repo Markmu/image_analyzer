@@ -24,6 +24,7 @@
     "@auth/drizzle-adapter": "^1.11.1",
     "@aws-sdk/client-s3": "^3.981.0",
     "@aws-sdk/lib-storage": "^3.981.0",
+    "@aws-sdk/s3-request-presigner": "^3.981.0",
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.1",
     "@mui/material": "^7.3.7",
@@ -35,6 +36,7 @@
     "react": "19.2.3",
     "react-dom": "19.2.3",
     "react-hook-form": "^7.71.1",
+    "replicate": "^1.4.0",
     "zod": "^4.3.6",
     "zustand": "^5.0.11"
   },

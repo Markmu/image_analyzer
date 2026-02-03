@@ -41,7 +41,7 @@ development_status:
   0-2-数据库配置: done
   0-3-开发环境配置: done
   0-4-CI_CD流水线: done
-  0-5-外部服务集成准备: ready-for-dev
+  0-5-外部服务集成准备: done
   epic-0-retrospective: optional
 
   # Epic 1: 用户认证与账户系统
