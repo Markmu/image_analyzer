@@ -2,12 +2,14 @@ import type { NextAuthConfig } from 'next-auth';
 import Google from 'next-auth/providers/google';
 import { DrizzleAdapter } from '@auth/drizzle-adapter';
 import { db } from '@/lib/db';
+import { checkAndRewardNewUser, checkNewUser } from '@/features/auth/services';
 
 /**
  * NextAuth 配置选项
  *
  * Epic 1 - Story 1.1: OAuth 基础设置
- * Google OAuth 2.0 集成配置
+ * Epic 1 - Story 1.2: 用户注册与 Credit 奖励
+ * Google OAuth 2.0 集成配置 + 新用户奖励机制
  */
 export const authOptions: NextAuthConfig = {
   adapter: DrizzleAdapter(db),
@@ -47,6 +49,21 @@ export const authOptions: NextAuthConfig = {
           return false;
         }
 
+        // Epic 1-2: 检测并奖励新用户
+        try {
+          const rewardResult = await checkAndRewardNewUser(user.id);
+          if (rewardResult.showWelcome) {
+            console.log('[Auth] New user rewarded:', {
+              userId: user.id,
+              creditedAmount: rewardResult.creditedAmount,
+              welcomeMessage: rewardResult.welcomeMessage,
+            });
+          }
+        } catch (rewardError) {
+          // Credit reward failure should not block login
+          console.error('[Auth] Credit reward error (non-blocking):', rewardError);
+        }
+
         // Drizzle Adapter 会自动处理用户创建和账户关联
         return true;
       } catch (error) {
@@ -62,6 +79,17 @@ export const authOptions: NextAuthConfig = {
           if (user.email) token.email = user.email;
           if (user.name) token.name = user.name;
           if (user.image) token.picture = user.image;
+
+          // Epic 1-2: Check if new user for welcome message
+          try {
+            const { isNewUser } = await checkNewUser(user.id);
+            token.isNewUser = isNewUser;
+            token.showWelcome = isNewUser;
+          } catch (error) {
+            console.error('[Auth] Error checking new user status:', error);
+            token.isNewUser = false;
+            token.showWelcome = false;
+          }
         }
         return token;
       } catch (error) {

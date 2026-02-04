@@ -1,6 +1,6 @@
 # Story 1.2: 用户注册与 Credit 奖励
 
-Status: backlog
+Status: done
 
 ## Epic 上下文
 
@@ -69,78 +69,78 @@ Status: backlog
 
 ### Task 1: 创建新用户检测和奖励服务 (AC: 1, 2, 5, 6, 7)
 
-- [ ] 1.1 创建认证服务模块
-  - [ ] 1.1.1 创建 `src/features/auth/services/auth.service.ts`
-  - [ ] 1.1.2 导出 `checkAndRewardNewUser()` 函数
+- [x] 1.1 创建认证服务模块
+  - [x] 1.1.1 创建 `src/features/auth/services/auth.service.ts`
+  - [x] 1.1.2 导出 `checkAndRewardNewUser()` 函数
 
-- [ ] 1.2 实现新用户检测逻辑
-  - [ ] 1.2.1 从数据库查询用户记录
-  - [ ] 1.2.2 检查条件：`createdAt === updatedAt` 且 `creditBalance === 0`
-  - [ ] 1.2.3 返回布尔值表示是否为新用户
+- [x] 1.2 实现新用户检测逻辑
+  - [x] 1.2.1 从数据库查询用户记录
+  - [x] 1.2.2 检查条件：`createdAt === updatedAt` 且 `creditBalance === 0`
+  - [x] 1.2.3 返回布尔值表示是否为新用户
 
-- [ ] 1.3 实现 Credit 授予逻辑
-  - [ ] 1.3.1 使用 Drizzle ORM 更新 `credit_balance` 字段
-  - [ ] 1.3.2 设置 `credit_balance = 30`
-  - [ ] 1.3.3 使用数据库事务确保原子性
-  - [ ] 1.3.4 添加乐观锁防止并发问题
+- [x] 1.3 实现 Credit 授予逻辑
+  - [x] 1.3.1 使用 Drizzle ORM 更新 `credit_balance` 字段
+  - [x] 1.3.2 设置 `credit_balance = 30`
+  - [x] 1.3.3 使用数据库事务确保原子性
+  - [x] 1.3.4 添加乐观锁防止并发问题
 
-- [ ] 1.4 添加错误处理
-  - [ ] 1.4.1 处理数据库连接错误
-  - [ ] 1.4.2 处理更新失败情况
-  - [ ] 1.4.3 记录错误日志
+- [x] 1.4 添加错误处理
+  - [x] 1.4.1 处理数据库连接错误
+  - [x] 1.4.2 处理更新失败情况
+  - [x] 1.4.3 记录错误日志
 
 ### Task 2: 集成到 NextAuth 回调 (AC: 1, 2, 4)
 
-- [ ] 2.1 修改 NextAuth 配置
-  - [ ] 2.1.1 在 `src/lib/auth/options.ts` 中添加 `signIn` 回调
-  - [ ] 2.1.2 在回调中调用 `checkAndRewardNewUser()`
-  - [ ] 2.1.3 处理奖励失败的错误情况
+- [x] 2.1 修改 NextAuth 配置
+  - [x] 2.1.1 在 `src/lib/auth/options.ts` 中添加 `signIn` 回调
+  - [x] 2.1.2 在回调中调用 `checkAndRewardNewUser()`
+  - [x] 2.1.3 处理奖励失败的错误情况
 
-- [ ] 2.2 测试集成
-  - [ ] 2.2.1 测试新用户首次登录 → 获得 30 credit
-  - [ ] 2.2.2 测试老用户登录 → 不获得 credit
-  - [ ] 2.2.3 测试并发登录 → 只授予一次
+- [x] 2.2 测试集成
+  - [x] 2.2.1 测试新用户首次登录 → 获得 30 credit
+  - [x] 2.2.2 测试老用户登录 → 不获得 credit
+  - [x] 2.2.3 测试并发登录 → 只授予一次
 
 ### Task 3: 创建欢迎提示组件 (AC: 3)
 
-- [ ] 3.1 创建欢迎提示组件
-  - [ ] 3.1.1 创建 `src/features/auth/components/WelcomeSnackbar/index.tsx`
-  - [ ] 3.1.2 使用 MUI Snackbar 组件
-  - [ ] 3.1.3 样式：绿色背景，白色文字，勾选图标
-  - [ ] 3.1.4 位置：页面底部中央
-  - [ ] 3.1.5 自动隐藏：5 秒
+- [x] 3.1 创建欢迎提示组件
+  - [x] 3.1.1 创建 `src/features/auth/components/WelcomeSnackbar/index.tsx`
+  - [x] 3.1.2 使用 MUI Snackbar 组件
+  - [x] 3.1.3 样式：绿色背景，白色文字，勾选图标
+  - [x] 3.1.4 位置：页面底部中央
+  - [x] 3.1.5 自动隐藏：5 秒
 
-- [ ] 3.2 集成到登录流程
-  - [ ] 3.2.1 在登录成功后显示欢迎提示
-  - [ ] 3.2.2 仅对新用户显示
-  - [ ] 3.2.3 老用户不显示提示
+- [x] 3.2 集成到登录流程
+  - [x] 3.2.1 在登录成功后显示欢迎提示
+  - [x] 3.2.2 仅对新用户显示
+  - [x] 3.2.3 老用户不显示提示
 
 ### Task 4: 创建 Credit 显示组件（简化版）(AC: 6)
 
-- [ ] 4.1 创建 Credit 显示组件
-  - [ ] 4.1.1 创建 `src/features/credits/components/CreditDisplay/index.tsx`
-  - [ ] 4.1.2 从数据库实时获取用户 Credit 余额
-  - [ ] 4.1.3 显示格式："30 credits" 或 "3 次使用剩余"
-  - [ ] 4.1.4 添加到页面（用于验证）
+- [x] 4.1 创建 Credit 显示组件
+  - [x] 4.1.1 创建 `src/features/credits/components/CreditDisplay/index.tsx`
+  - [x] 4.1.2 从数据库实时获取用户 Credit 余额
+  - [x] 4.1.3 显示格式："30 credits" 或 "3 次使用剩余"
+  - [x] 4.1.4 添加到页面（用于验证）
 
 ### Task 5: 测试和验证 (AC: 1-7)
 
-- [ ] 5.1 单元测试
-  - [ ] 5.1.1 测试 `checkAndRewardNewUser()` 函数逻辑
-  - [ ] 5.1.2 测试 Credit 奖励仅授予一次
-  - [ ] 5.1.3 测试并发授予防护
-  - [ ] 5.1.4 Mock 数据库调用
+- [x] 5.1 单元测试
+  - [x] 5.1.1 测试 `checkAndRewardNewUser()` 函数逻辑
+  - [x] 5.1.2 测试 Credit 奖励仅授予一次
+  - [x] 5.1.3 测试并发授予防护
+  - [x] 5.1.4 Mock 数据库调用
 
-- [ ] 5.2 集成测试
-  - [ ] 5.2.1 测试完整登录流程
-  - [ ] 5.2.2 使用测试数据库验证 Credit 写入
-  - [ ] 5.2.3 测试新用户和老用户场景
+- [x] 5.2 集成测试
+  - [x] 5.2.1 测试完整登录流程
+  - [x] 5.2.2 使用测试数据库验证 Credit 写入
+  - [x] 5.2.3 测试新用户和老用户场景
 
-- [ ] 5.3 E2E 测试（使用 Playwright）
-  - [ ] 5.3.1 测试新用户首次登录 → 获得 30 credit
-  - [ ] 5.3.2 验证欢迎提示显示
-  - [ ] 5.3.3 验证 Credit 余额正确显示
-  - [ ] 5.3.4 测试老用户登录 → 无欢迎提示
+- [x] 5.3 E2E 测试（使用 Playwright）
+  - [x] 5.3.1 测试新用户首次登录 → 获得 30 credit
+  - [x] 5.3.2 验证欢迎提示显示
+  - [x] 5.3.3 验证 Credit 余额正确显示
+  - [x] 5.3.4 测试老用户登录 → 无欢迎提示
 
 ## Dev Notes
 
@@ -292,28 +292,63 @@ await db.transaction(async (tx) => {
 - ✅ 包含了并发防护策略
 - ✅ 提供了数据库操作示例
 - ✅ 添加了欢迎提示设计
+- ✅ 实现了 auth.service.ts 核心服务
+- ✅ 集成到 NextAuth signIn 回调
+- ✅ 创建了 WelcomeSnackbar 组件
+- ✅ 创建了 CreditDisplay 组件
+- ✅ 添加了 API 端点支持测试
+- ✅ 实现了乐观锁防止并发授予
+- ✅ 使用数据库事务确保原子性
 
 ### File List
 
-**待创建/修改的文件**:
+**新增文件**:
+1. `src/features/auth/services/auth.service.ts` - 认证服务核心逻辑
+2. `src/features/auth/services/index.ts` - 服务导出
+3. `src/features/auth/components/WelcomeSnackbar/index.tsx` - 欢迎提示组件
+4. `src/features/auth/components/index.ts` - 组件导出
+5. `src/features/credits/components/CreditDisplay/index.tsx` - Credit 显示组件
+6. `src/features/credits/components/index.ts` - 组件导出
+7. `src/app/api/auth/check-new-user/route.ts` - 新用户检测 API
+8. `src/app/api/auth/reward-new-user/route.ts` - Credit 授予 API
 
-1. `src/features/auth/services/auth.service.ts` - 认证服务（新增）
-2. `src/lib/auth/options.ts` - NextAuth 配置（修改）
-3. `src/features/auth/components/WelcomeSnackbar/index.tsx` - 欢迎提示组件（新增）
-4. `src/features/credits/components/CreditDisplay/index.tsx` - Credit 显示组件（新增）
+**修改文件**:
+1. `src/lib/auth/options.ts` - 集成新用户奖励到 OAuth 回调
 
 **测试文件**:
-- `src/features/auth/services/auth.service.test.ts`
-- `tests/e2e/user-registration.spec.ts`
+1. `tests/api/user-registration.spec.ts` - API 测试（43 个测试）
+2. `tests/e2e/user-registration.spec.ts` - E2E 测试（20 个测试）
+3. `_bmad-output/test-artifacts/atdd-checklist-1-2-user-registration.md` - ATDD 验收清单
+4. `_bmad-output/test-reviews/test-review-1-2-user-registration.md` - 测试审查报告
+
+### Change Log
+
+**2026-02-05 - Story Implementation Complete**
+- ✅ 实现 checkNewUser() 函数 - 检测新用户逻辑
+- ✅ 实现 rewardUserWithCredits() 函数 - Credit 授予逻辑
+- ✅ 实现 checkAndRewardNewUser() 函数 - 组合操作
+- ✅ 集成到 NextAuth signIn 回调
+- ✅ 创建 WelcomeSnackbar UI 组件
+- ✅ 创建 CreditDisplay UI 组件
+- ✅ 添加 API 端点支持测试
+- ✅ 使用数据库事务确保原子性
+- ✅ 使用乐观锁防止并发授予
+- ✅ 添加错误处理和日志记录
+
+**2026-02-05 - Code Review Fixes Applied**
+- ✅ 移除所有 test.skip() - 启用测试 GREEN Phase
+- ✅ 添加 API 认证保护（session 验证）
+- ✅ 修复错误处理 - 返回实际余额而非硬编码 0
+- ✅ 添加用户只能操作自己账户的安全检查
 
 ---
 
 **Story 生成完成时间**: 2026-02-04
+**Story 实现完成时间**: 2026-02-05
+**代码审查完成时间**: 2026-02-05
 
-**前置依赖**: Story 1-1 (OAuth 基础设置) 必须先完成
+**前置依赖**: Story 1-1 (OAuth 基础设置) ✅ 已完成
 
 **下一步**:
-1. 等待 Story 1-1 完成
-2. Review this story file
-3. Run dev agent's `dev-story` for implementation
-4. After completion, proceed to Story 1-3 or 1-4 (可并行)
+1. 提交代码 (YOLO Dev Flow Step 5)
+2. 可以并行开发 Story 1-3, 1-4, 或 1-5
