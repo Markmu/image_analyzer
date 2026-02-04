@@ -1,0 +1,5 @@
+# Node.js version for this project
+# Using Node 22 LTS for optimal Playwright compatibility
+# See: https://nodejs.org/en/
+
+22
