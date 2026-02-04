@@ -66,17 +66,25 @@ export const test = base.extend<{
       data: user,
     });
 
-    if (!response.ok()) {
+    let userCreated = false;
+    if (response.ok()) {
+      userCreated = true;
+    } else {
       console.warn(`⚠️  Failed to seed test user, using without API setup`);
     }
 
     await use(user);
 
-    // Cleanup: Delete the created user
-    try {
-      await request.delete(`/api/users/${user.id}`);
-    } catch (error) {
-      console.warn(`⚠️  Failed to cleanup test user: ${user.id}`);
+    // Cleanup: Delete the created user (fail test if cleanup fails)
+    if (userCreated) {
+      const deleteResponse = await request.delete(`/api/users/${user.id}`);
+      if (!deleteResponse.ok()) {
+        // Log detailed error and throw to prevent state pollution
+        const errorBody = await deleteResponse.text().catch(() => 'Unknown error');
+        throw new Error(
+          `Failed to cleanup test user ${user.id}. Status: ${deleteResponse.status()}. Body: ${errorBody}`,
+        );
+      }
     }
   },
 
@@ -93,17 +101,24 @@ export const test = base.extend<{
       data: template,
     });
 
-    if (!response.ok()) {
+    let templateCreated = false;
+    if (response.ok()) {
+      templateCreated = true;
+    } else {
       console.warn(`⚠️  Failed to seed test template, using without API setup`);
     }
 
     await use(template);
 
     // Cleanup
-    try {
-      await request.delete(`/api/templates/${template.id}`);
-    } catch (error) {
-      console.warn(`⚠️  Failed to cleanup test template: ${template.id}`);
+    if (templateCreated) {
+      const deleteResponse = await request.delete(`/api/templates/${template.id}`);
+      if (!deleteResponse.ok()) {
+        const errorBody = await deleteResponse.text().catch(() => 'Unknown error');
+        throw new Error(
+          `Failed to cleanup test template ${template.id}. Status: ${deleteResponse.status()}. Body: ${errorBody}`,
+        );
+      }
     }
   },
 
@@ -120,17 +135,24 @@ export const test = base.extend<{
       data: analysis,
     });
 
-    if (!response.ok()) {
+    let analysisCreated = false;
+    if (response.ok()) {
+      analysisCreated = true;
+    } else {
       console.warn(`⚠️  Failed to seed test analysis, using without API setup`);
     }
 
     await use(analysis);
 
     // Cleanup
-    try {
-      await request.delete(`/api/analysis/${analysis.id}`);
-    } catch (error) {
-      console.warn(`⚠️  Failed to cleanup test analysis: ${analysis.id}`);
+    if (analysisCreated) {
+      const deleteResponse = await request.delete(`/api/analysis/${analysis.id}`);
+      if (!deleteResponse.ok()) {
+        const errorBody = await deleteResponse.text().catch(() => 'Unknown error');
+        throw new Error(
+          `Failed to cleanup test analysis ${analysis.id}. Status: ${deleteResponse.status()}. Body: ${errorBody}`,
+        );
+      }
     }
   },
 

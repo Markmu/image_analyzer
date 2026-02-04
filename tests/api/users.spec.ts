@@ -11,7 +11,7 @@
 import { test, expect } from '../support/merged-fixtures';
 
 test.describe('Users API', () => {
-  test('should create a new user', async ({ apiRequest, log }) => {
+  test('TEST-101: should create a new user @p0 @smoke @api @user', async ({ apiRequest, log }) => {
     await log.step('Create a new user via API');
 
     // When: Creating a user
@@ -30,7 +30,7 @@ test.describe('Users API', () => {
     expect(body.email).toBe('newuser@example.com');
   });
 
-  test('should get user by ID', async ({ apiRequest, testUser, log }) => {
+  test('TEST-102: should get user by ID @p0 @api @user', async ({ apiRequest, testUser, log }) => {
     await log.step('Get user by ID');
 
     // When: Fetching user
@@ -45,7 +45,7 @@ test.describe('Users API', () => {
     expect(body.email).toBe(testUser.email);
   });
 
-  test('should update user profile', async ({ apiRequest, testUser, log }) => {
+  test('TEST-103: should update user profile @p1 @api @user', async ({ apiRequest, testUser, log }) => {
     await log.step('Update user profile');
 
     // When: Updating user
@@ -62,7 +62,7 @@ test.describe('Users API', () => {
     expect(body.name).toBe('Updated Name');
   });
 
-  test('should return 404 for non-existent user', async ({ apiRequest, log }) => {
+  test('TEST-104: should return 404 for non-existent user @p1 @api @error-handling', async ({ apiRequest, log }) => {
     await log.step('Try to get non-existent user');
 
     // When: Fetching non-existent user
@@ -76,7 +76,7 @@ test.describe('Users API', () => {
     expect(body.error.code).toBe('USER_NOT_FOUND');
   });
 
-  test('should require authentication for protected endpoint', async ({
+  test('TEST-105: should require authentication for protected endpoint @p0 @security @api @auth', async ({
     request,
     log,
   }) => {
@@ -91,7 +91,7 @@ test.describe('Users API', () => {
 });
 
 test.describe('Templates API', () => {
-  test('should create a template', async ({ apiRequest, testUser, log }) => {
+  test('TEST-201: should create a template @p0 @api @template', async ({ apiRequest, testUser, log }) => {
     await log.step('Create a new template');
 
     // When: Creating a template
@@ -116,7 +116,7 @@ test.describe('Templates API', () => {
     expect(body.name).toBe('My Template');
   });
 
-  test('should list user templates', async ({ apiRequest, testUser, log }) => {
+  test('TEST-202: should list user templates @p1 @api @template', async ({ apiRequest, testUser, log }) => {
     await log.step('List user templates');
 
     // When: Fetching templates list
@@ -130,7 +130,7 @@ test.describe('Templates API', () => {
     expect(Array.isArray(body.data)).toBe(true);
   });
 
-  test('should get public templates', async ({ apiRequest, log }) => {
+  test('TEST-203: should get public templates @p2 @api @template', async ({ apiRequest, log }) => {
     await log.step('Get public templates');
 
     // When: Fetching public templates
@@ -146,7 +146,7 @@ test.describe('Templates API', () => {
 });
 
 test.describe('Analysis API', () => {
-  test('should create analysis request', async ({ apiRequest, testUser, log }) => {
+  test('TEST-301: should create analysis request @p0 @api @analysis', async ({ apiRequest, testUser, log }) => {
     await log.step('Create analysis request');
 
     // When: Creating analysis
@@ -165,7 +165,7 @@ test.describe('Analysis API', () => {
     expect(body.status).toBe('pending');
   });
 
-  test('should poll for analysis completion', async ({
+  test('TEST-302: should poll for analysis completion @p1 @api @analysis @polling', async ({
     apiRequest,
     recurse,
     log,
@@ -189,7 +189,7 @@ test.describe('Analysis API', () => {
     expect(result.body.status).toBe('completed');
   });
 
-  test('should return analysis results', async ({ apiRequest, log }) => {
+  test('TEST-303: should return analysis results @p1 @api @analysis @results', async ({ apiRequest, log }) => {
     await log.step('Get analysis results');
 
     // Given: Analysis is complete

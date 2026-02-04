@@ -18,7 +18,7 @@ test.describe('Image Upload Flow', () => {
     await expect(page).toHaveTitle(/Image Analyzer/);
   });
 
-  test('should allow uploading a valid image', async ({
+  test('TEST-001: should allow uploading a valid image @p0 @smoke @critical @upload', async ({
     page,
     interceptNetworkCall,
     log,
@@ -51,7 +51,7 @@ test.describe('Image Upload Flow', () => {
     await expect(analysisSection).toBeVisible();
   });
 
-  test('should show error for invalid file type', async ({
+  test('TEST-002: should show error for invalid file type @p1 @error-handling @validation', async ({
     page,
     log,
   }) => {
@@ -71,7 +71,7 @@ test.describe('Image Upload Flow', () => {
     await expect(errorMessage).toContainText('Invalid file type');
   });
 
-  test('should show error for file too large', async ({
+  test('TEST-003: should show error for file too large @p1 @error-handling @validation', async ({
     page,
     log,
   }) => {
@@ -91,7 +91,7 @@ test.describe('Image Upload Flow', () => {
     await expect(errorMessage).toContainText('File too large');
   });
 
-  test('should support drag and drop upload', async ({
+  test('TEST-004: should support drag and drop upload @p2 @ui @upload', async ({
     page,
     interceptNetworkCall,
     log,
@@ -125,7 +125,7 @@ test.describe('Analysis Results', () => {
     },
   });
 
-  test('should display analysis results correctly', async ({
+  test('TEST-005: should display analysis results correctly @p1 @ui @results', async ({
     page,
     testUser,
     log,
@@ -148,7 +148,7 @@ test.describe('Analysis Results', () => {
     await expect(confidenceBadge).toContainText(/%/);
   });
 
-  test('should allow saving results as template', async ({
+  test('TEST-006: should allow saving results as template @p2 @ui @template', async ({
     page,
     log,
   }) => {
