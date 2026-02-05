@@ -9,7 +9,8 @@ import { checkAndRewardNewUser, checkNewUser } from '@/features/auth/services';
  *
  * Epic 1 - Story 1.1: OAuth 基础设置
  * Epic 1 - Story 1.2: 用户注册与 Credit 奖励
- * Google OAuth 2.0 集成配置 + 新用户奖励机制
+ * Epic 1 - Story 1.3: 会话管理与登出
+ * Google OAuth 2.0 集成配置 + 新用户奖励机制 + 会话持久化
  */
 export const authOptions: NextAuthConfig = {
   adapter: DrizzleAdapter(db),
@@ -25,7 +26,19 @@ export const authOptions: NextAuthConfig = {
   },
   session: {
     strategy: 'jwt',
-    maxAge: 7 * 24 * 60 * 60, // 7 天
+    maxAge: 7 * 24 * 60 * 60, // 7 天 (Story 1-3, AC-1)
+    updateAge: 24 * 60 * 60, // 每天更新 (Story 1-3, AC-4)
+  },
+  cookies: {
+    sessionToken: {
+      name: `next-auth.session-token`,
+      options: {
+        httpOnly: true, // 防止 XSS (Story 1-3, AC-6)
+        sameSite: 'lax', // 防止 CSRF (Story 1-3, AC-6)
+        path: '/',
+        secure: process.env.NODE_ENV === 'production', // HTTPS only (Story 1-3, AC-6)
+      },
+    },
   },
   callbacks: {
     async signIn({ user, account }) {
@@ -105,6 +118,10 @@ export const authOptions: NextAuthConfig = {
           session.user.email = token.email || '';
           session.user.name = token.name || '';
           session.user.image = token.picture || undefined;
+        }
+        // 添加过期时间 (Story 1-3, AC-1)
+        if (token.exp) {
+          session.expires = new Date(token.exp * 1000).toISOString();
         }
         return session;
       } catch (error) {
