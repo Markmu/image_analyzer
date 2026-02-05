@@ -13,7 +13,7 @@
  */
 
 import { test, expect } from '@playwright/test';
-import { createUser } from '../../support/factories/user-factory';
+import { createUser } from '../support/factories/user-factory';
 
 /**
  * AC-1: 会话持久化
@@ -23,7 +23,6 @@ import { createUser } from '../../support/factories/user-factory';
 test.describe('Session Persistence (AC-1)', () => {
   test('should keep user logged in after page refresh', async ({ page, request }) => {
     // RED: 未实现 - 登录流程或会话持久化未完成
-    test.skip(true, 'Implementation pending: Session persistence across page refresh');
 
     const user = createUser({ email: 'test-persist@example.com' });
 
@@ -47,7 +46,6 @@ test.describe('Session Persistence (AC-1)', () => {
 
   test('should keep user logged in after closing and reopening browser', async ({ browser, request }) => {
     // RED: 未实现 - 浏览器关闭后会话持久化未实现
-    test.skip(true, 'Implementation pending: Session persistence after browser close');
 
     const user = createUser({ email: 'test-browser-close@example.com' });
 
@@ -77,7 +75,6 @@ test.describe('Session Persistence (AC-1)', () => {
 
   test('should store JWT token in HTTP-only cookie', async ({ page, request }) => {
     // RED: 未实现 - HTTP-only cookie 未正确配置
-    test.skip(true, 'Implementation pending: HTTP-only cookie configuration');
 
     const user = createUser({ email: 'test-cookie@example.com' });
 
@@ -113,7 +110,6 @@ test.describe('Sign Out Functionality (AC-2)', () => {
 
   test('should sign out user when clicking sign out button', async ({ page }) => {
     // RED: 未实现 - 登出按钮不存在或功能未实现
-    test.skip(true, 'Implementation pending: Sign out button functionality');
 
     // Click sign out button
     await page.getByTestId('user-menu').click();
@@ -128,7 +124,6 @@ test.describe('Sign Out Functionality (AC-2)', () => {
 
   test('should clear session after sign out', async ({ page }) => {
     // RED: 未实现 - 会话清除未实现
-    test.skip(true, 'Implementation pending: Session clearing on sign out');
 
     // Sign out
     await page.getByTestId('user-menu').click();
@@ -143,7 +138,6 @@ test.describe('Sign Out Functionality (AC-2)', () => {
 
   test('should show loading state during sign out', async ({ page }) => {
     // RED: 未实现 - 加载状态未实现
-    test.skip(true, 'Implementation pending: Loading state during sign out');
 
     await page.getByTestId('user-menu').click();
 
@@ -156,7 +150,6 @@ test.describe('Sign Out Functionality (AC-2)', () => {
 
   test('should redirect to home page after sign out', async ({ page }) => {
     // RED: 未实现 - 重定向未实现
-    test.skip(true, 'Implementation pending: Redirect to home after sign out');
 
     await page.getByTestId('user-menu').click();
     await page.getByTestId('sign-out-button').click();
@@ -186,7 +179,6 @@ test.describe('Post-Sign Out State (AC-3)', () => {
 
   test('should hide user menu after sign out', async ({ page }) => {
     // RED: 未实现 - 用户菜单状态更新未实现
-    test.skip(true, 'Implementation pending: User menu state update');
 
     // Sign out
     await page.getByTestId('user-menu').click();
@@ -201,7 +193,6 @@ test.describe('Post-Sign Out State (AC-3)', () => {
 
   test('should show login button after sign out', async ({ page }) => {
     // RED: 未实现 - 登录按钮显示未实现
-    test.skip(true, 'Implementation pending: Login button visibility');
 
     // Sign out
     await page.getByTestId('user-menu').click();
@@ -217,7 +208,6 @@ test.describe('Post-Sign Out State (AC-3)', () => {
 
   test('should deny access to protected pages after sign out', async ({ page }) => {
     // RED: 未实现 - 页面保护未实现
-    test.skip(true, 'Implementation pending: Protected route access control');
 
     // Sign out
     await page.getByTestId('user-menu').click();
@@ -247,7 +237,6 @@ test.describe('User Experience (AC-7)', () => {
 
   test('should show sign out success message', async ({ page }) => {
     // RED: 未实现 - 成功提示未实现
-    test.skip(true, 'Implementation pending: Success message after sign out');
 
     // Sign out
     await page.getByTestId('user-menu').click();
@@ -266,7 +255,6 @@ test.describe('User Experience (AC-7)', () => {
 
   test('should show error message if sign out fails', async ({ page }) => {
     // RED: 未实现 - 错误处理未实现
-    test.skip(true, 'Implementation pending: Error handling on sign out failure');
 
     // Mock network failure
     await page.route('**/api/auth/signout', (route) => {
@@ -283,7 +271,6 @@ test.describe('User Experience (AC-7)', () => {
 
   test('should complete sign out flow in under 1 second', async ({ page }) => {
     // RED: 未实现 - 性能要求未满足
-    test.skip(true, 'Implementation pending: Sign out performance optimization');
 
     const startTime = Date.now();
 
@@ -302,7 +289,6 @@ test.describe('User Experience (AC-7)', () => {
 
   test('should disable sign out button during loading', async ({ page }) => {
     // RED: 未实现 - 按钮禁用状态未实现
-    test.skip(true, 'Implementation pending: Button disabled state during loading');
 
     await page.getByTestId('user-menu').click();
     const signOutButton = page.getByTestId('sign-out-button');
@@ -321,7 +307,6 @@ test.describe('User Experience (AC-7)', () => {
 test.describe('Complete Session Flow', () => {
   test('should complete full login-activity-signout cycle', async ({ page }) => {
     // RED: 未实现 - 完整会话流程未实现
-    test.skip(true, 'Implementation pending: Complete session lifecycle');
 
     const user = createUser({ email: 'test-full-cycle@example.com' });
 
@@ -357,7 +342,6 @@ test.describe('Complete Session Flow', () => {
 
   test('should handle concurrent tabs correctly', async ({ browser }) => {
     // RED: 未实现 - 多标签页会话同步未实现
-    test.skip(true, 'Implementation pending: Multi-tab session synchronization');
 
     const user = createUser({ email: 'test-multi-tab@example.com' });
 

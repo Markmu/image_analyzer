@@ -15,7 +15,7 @@
  */
 
 import { test, expect } from '@playwright/test';
-import { createUser } from '../../support/factories/user-factory';
+import { createUser } from '../support/factories/user-factory';
 
 /**
  * AC-1: 会话持久化
@@ -25,7 +25,6 @@ import { createUser } from '../../support/factories/user-factory';
 test.describe('Session Persistence (AC-1)', () => {
   test('should return JWT token in HTTP-only cookie after login', async ({ request }) => {
     // RED: 未实现 - 登录 API 不存在或未返回 JWT token
-    test.skip(true, 'Implementation pending: Login API with JWT token');
 
     const user = createUser({ email: 'test-session@example.com' });
 
@@ -49,7 +48,6 @@ test.describe('Session Persistence (AC-1)', () => {
 
   test('should validate session on subsequent requests with JWT token', async ({ request }) => {
     // RED: 未实现 - 会话验证 API 不存在
-    test.skip(true, 'Implementation pending: Session validation API');
 
     const user = createUser({ email: 'test-validate@example.com' });
 
@@ -76,7 +74,6 @@ test.describe('Session Persistence (AC-1)', () => {
 
   test('should reject expired JWT tokens (7-day expiry)', async ({ request }) => {
     // RED: 未实现 - JWT 过期验证未实现
-    test.skip(true, 'Implementation pending: JWT expiry validation');
 
     // 使用过期的 token
     const expiredToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.expired';
@@ -99,7 +96,6 @@ test.describe('Session Persistence (AC-1)', () => {
 test.describe('Sign Out Functionality (AC-2)', () => {
   test('should clear NextAuth session on sign out', async ({ request }) => {
     // RED: 未实现 - 登出 API 不存在
-    test.skip(true, 'Implementation pending: Sign out API');
 
     const user = createUser({ email: 'test-signout@example.com' });
 
@@ -122,7 +118,6 @@ test.describe('Sign Out Functionality (AC-2)', () => {
 
   test('should clear JWT token cookie on sign out', async ({ request }) => {
     // RED: 未实现 - Cookie 清除未实现
-    test.skip(true, 'Implementation pending: Cookie clearing on sign out');
 
     const user = createUser({ email: 'test-clear-cookie@example.com' });
 
@@ -145,7 +140,6 @@ test.describe('Sign Out Functionality (AC-2)', () => {
 
   test('should redirect to home page after sign out', async ({ request }) => {
     // RED: 未实现 - 重定向未实现
-    test.skip(true, 'Implementation pending: Redirect after sign out');
 
     const response = await request.post('/api/auth/signout', {
       data: { callbackUrl: '/' },
@@ -163,7 +157,6 @@ test.describe('Sign Out Functionality (AC-2)', () => {
 test.describe('Post-Sign Out State (AC-3)', () => {
   test('should return null user after sign out', async ({ request }) => {
     // RED: 未实现 - 登出后状态 API 不存在
-    test.skip(true, 'Implementation pending: Post-sign out state API');
 
     const user = createUser({ email: 'test-post-state@example.com' });
 
@@ -185,7 +178,6 @@ test.describe('Post-Sign Out State (AC-3)', () => {
 
   test('should deny access to protected routes after sign out', async ({ request }) => {
     // RED: 未实现 - 路由保护中间件不存在
-    test.skip(true, 'Implementation pending: Route protection middleware');
 
     // Sign out
     await request.post('/api/auth/signout');
@@ -205,7 +197,6 @@ test.describe('Post-Sign Out State (AC-3)', () => {
 test.describe('Session Refresh (AC-4)', () => {
   test('should extend session when user is active', async ({ request }) => {
     // RED: 未实现 - 会话刷新机制未实现
-    test.skip(true, 'Implementation pending: Session refresh mechanism');
 
     const user = createUser({ email: 'test-refresh@example.com' });
 
@@ -227,7 +218,6 @@ test.describe('Session Refresh (AC-4)', () => {
 
   test('should keep session valid for 7 days with activity', async ({ request }) => {
     // RED: 未实现 - 7天会话有效期未实现
-    test.skip(true, 'Implementation pending: 7-day session validity');
 
     const user = createUser({ email: 'test-7days@example.com' });
 
@@ -259,7 +249,6 @@ test.describe('Session Refresh (AC-4)', () => {
 test.describe('Performance Requirements (AC-5)', () => {
   test('should complete sign out in < 1 second', async ({ request }) => {
     // RED: 未实现 - 性能要求未满足
-    test.skip(true, 'Implementation pending: Sign out performance optimization');
 
     const startTime = Date.now();
 
@@ -273,7 +262,6 @@ test.describe('Performance Requirements (AC-5)', () => {
 
   test('should validate session in < 100ms', async ({ request }) => {
     // RED: 未实现 - 会话验证性能未优化
-    test.skip(true, 'Implementation pending: Session validation performance');
 
     await request.post('/api/auth/signin', {
       data: { email: 'test-perf@example.com', password: 'password123' },
@@ -296,7 +284,6 @@ test.describe('Performance Requirements (AC-5)', () => {
 test.describe('Security Requirements (AC-6)', () => {
   test('should store JWT token in HTTP-only cookie', async ({ request }) => {
     // RED: 未实现 - HTTP-only cookie 未设置
-    test.skip(true, 'Implementation pending: HTTP-only cookie configuration');
 
     await request.post('/api/auth/signin', {
       data: { email: 'test-secure@example.com', password: 'password123' },
@@ -315,7 +302,6 @@ test.describe('Security Requirements (AC-6)', () => {
 
   test('should clear all session data immediately on sign out', async ({ request }) => {
     // RED: 未实现 - 立即清除会话数据未实现
-    test.skip(true, 'Implementation pending: Immediate session data clearing');
 
     // Login
     await request.post('/api/auth/signin', {
