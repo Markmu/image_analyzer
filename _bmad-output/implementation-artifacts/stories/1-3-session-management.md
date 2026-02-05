@@ -1,6 +1,6 @@
 # Story 1.3: 会话管理与登出
 
-Status: backlog
+Status: review
 
 ## Epic 上下文
 
@@ -391,10 +391,60 @@ export function useRequireAuth() {
 - ✅ 包含了安全配置（HTTP-only, Secure, SameSite）
 - ✅ 提供了页面保护实现
 - ✅ 添加了登出用户体验设计
+- ✅ ATDD 测试创建完成（30个失败测试）
+- ✅ 测试质量审查完成（92/100分 - 优秀）
+
+### Senior Developer Review (AI)
+
+**Review Date**: 2026-02-06
+**Review Outcome**: ⚠️ Changes Requested
+**Reviewer**: YOLO Dev Flow - Code Review Agent
+
+#### Summary
+
+Story 1-3 已完成 **TDD 红阶段**（测试创建），但功能代码尚未实现。
+
+**已完成**:
+- ✅ 30 个 ATDD 测试创建（API: 14, E2E: 16）
+- ✅ 所有测试正确使用 test.skip()（TDD 红阶段合规）
+- ✅ 测试质量评分: 92/100（优秀）
+- ✅ 所有 7 个验收标准覆盖
+
+**待完成**（功能实现 - TDD 绿阶段）:
+- ❌ Task 1: 配置会话管理
+- ❌ Task 2: 实现登出功能
+- ❌ Task 3: 实现会话验证和保护
+- ❌ Task 4: 测试和验证（测试已创建，但被跳过）
+
+#### Action Items
+
+**High Priority - 功能实现（TDD 绿阶段）**:
+
+- [ ] [AI-Review][High] 实现 Task 1.1: 配置 JWT 策略 [src/lib/auth/options.ts]
+- [ ] [AI-Review][High] 实现 Task 1.2: 配置 Cookie 安全选项 [src/lib/auth/options.ts]
+- [ ] [AI-Review][High] 实现 Task 1.3: 配置会话回调 [src/lib/auth/options.ts]
+- [ ] [AI-Review][High] 实现 Task 2.1: 创建 useAuth Hook [src/features/auth/hooks/useAuth.ts]
+- [ ] [AI-Review][High] 实现 Task 2.2: 创建 SignOutButton 组件 [src/features/auth/components/SignOutButton/index.tsx]
+- [ ] [AI-Review][High] 实现 Task 2.3: 添加登出提示（Snackbar）
+- [ ] [AI-Review][High] 实现 Task 2.4: 错误处理
+- [ ] [AI-Review][High] 实现 Task 3.1: 创建 useRequireAuth Hook [src/features/auth/hooks/useRequireAuth.ts]
+- [ ] [AI-Review][High] 实现 Task 3.2: 创建中间件 [src/middleware.ts]
+- [ ] [AI-Review][High] 移除所有 test.skip() 并运行测试验证
+
+#### Review Follow-ups (AI)
+
+*本节将在 TDD 绿阶段完成后更新*
 
 ### File List
 
-**待创建/修改的文件**:
+**已创建的文件**:
+
+1. `tests/api/session-management.spec.ts` - API 测试（14个测试，全部跳过）
+2. `tests/e2e/session-management.spec.ts` - E2E 测试（16个测试，全部跳过）
+3. `_bmad-output/test-artifacts/atdd-checklist-1-3.md` - ATDD Checklist
+4. `_bmad-output/test-artifacts/test-review-1-3.md` - 测试质量审查报告
+
+**待创建/修改的文件**（TDD 绿阶段）:
 
 1. `src/lib/auth/options.ts` - NextAuth 配置（修改）
 2. `src/features/auth/hooks/useAuth.ts` - 认证 Hook（新增）
@@ -402,9 +452,12 @@ export function useRequireAuth() {
 4. `src/features/auth/components/SignOutButton/index.tsx` - 登出按钮（新增）
 5. `src/middleware.ts` - 路由保护中间件（新增）
 
-**测试文件**:
-- `src/features/auth/hooks/useAuth.test.ts`
-- `tests/e2e/session-management.spec.ts`
+### Change Log
+
+**2026-02-06**:
+- ATDD 测试创建完成（30个测试）
+- 测试质量审查完成（92/100分）
+- Story 状态更新为 review（等待 TDD 绿阶段实现）
 
 ---
 
