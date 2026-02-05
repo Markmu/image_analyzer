@@ -313,7 +313,7 @@ test.describe('Complete Session Flow', () => {
     // Step 1: Login
     await page.goto('/api/auth/signin');
     await page.fill('[data-testid="email"]', user.email);
-    await page.click('[data-testid='google-login-button']');
+    await page.click('[data-testid="google-login-button"]');
     await page.waitForURL('/dashboard');
 
     await expect(page.getByText(`Welcome, ${user.name}`)).toBeVisible();
