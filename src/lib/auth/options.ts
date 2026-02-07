@@ -2,6 +2,8 @@ import type { NextAuthConfig } from 'next-auth';
 import Google from 'next-auth/providers/google';
 import { DrizzleAdapter } from '@auth/drizzle-adapter';
 import { db } from '@/lib/db';
+import { user } from '@/lib/db/schema';
+import { eq } from 'drizzle-orm';
 import { checkAndRewardNewUser, checkNewUser } from '@/features/auth/services';
 
 /**
@@ -104,6 +106,24 @@ export const authOptions: NextAuthConfig = {
             token.isNewUser = false;
             token.showWelcome = false;
           }
+
+          // Epic 1-4: Load credit and subscription info from database
+          try {
+            const dbUser = await db.query.user.findFirst({
+              where: eq(user.id, token.sub), // FIXED: Use token.sub instead of user.id
+              columns: {
+                creditBalance: true,
+                subscriptionTier: true,
+              },
+            });
+
+            token.creditBalance = dbUser?.creditBalance ?? 0;
+            token.subscriptionTier = dbUser?.subscriptionTier ?? 'free';
+          } catch (error) {
+            console.error('[Auth] Error loading user credit/subscription:', error);
+            token.creditBalance = 0;
+            token.subscriptionTier = 'free';
+          }
         }
         return token;
       } catch (error) {
@@ -119,6 +139,10 @@ export const authOptions: NextAuthConfig = {
           session.user.email = token.email || '';
           session.user.name = token.name || '';
           session.user.image = token.picture || undefined;
+
+          // Epic 1-4: Include credit and subscription info
+          (session.user as any).creditBalance = token.creditBalance ?? 0;
+          (session.user as any).subscriptionTier = token.subscriptionTier ?? 'free';
         }
         // 添加过期时间 (Story 1-3, AC-1)
         if (token.exp) {

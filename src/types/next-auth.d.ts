@@ -8,6 +8,8 @@ declare module 'next-auth' {
       email: string;
       name: string;
       image?: string;
+      creditBalance: number;
+      subscriptionTier: 'free' | 'lite' | 'standard';
     };
   }
 
@@ -16,6 +18,8 @@ declare module 'next-auth' {
     email: string;
     name: string;
     image?: string;
+    creditBalance?: number;
+    subscriptionTier?: 'free' | 'lite' | 'standard';
   }
 }
 
@@ -25,5 +29,9 @@ declare module 'next-auth/jwt' {
     email: string;
     name: string;
     picture?: string;
+    creditBalance?: number;
+    subscriptionTier?: 'free' | 'lite' | 'standard';
+    isNewUser?: boolean;
+    showWelcome?: boolean;
   }
 }
