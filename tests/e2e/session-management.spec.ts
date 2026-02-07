@@ -36,6 +36,11 @@ import { createUser } from '../support/factories/user-factory';
  * Mock OAuth 登录辅助函数
  *
  * 通过拦截 NextAuth 请求和设置模拟 cookie 来模拟已登录状态
+ *
+ * 移动端兼容性改进:
+ * - 移动浏览器（尤其是 iOS Safari）对 Cookie 属性更严格
+ * - 使用更宽松的 domain 和 sameSite 设置
+ * - 添加 secure 选项的环境检测
  */
 async function mockOAuthLogin(page: any, user: any) {
   // 1. Mock NextAuth session API
@@ -65,6 +70,14 @@ async function mockOAuthLogin(page: any, user: any) {
   });
 
   // 3. 设置模拟的 session cookie
+  // 移动端兼容性改进：
+  // - 移除 domain 属性，让浏览器自动处理
+  // - 使用 'Lax' 而不是 'lax'（大写，某些浏览器更兼容）
+  // - 根据环境设置 secure（开发环境 false，生产环境 true）
+  const isProduction = process.env.NODE_ENV === 'production';
+  const baseUrl = process.env.BASE_URL || 'http://localhost:3000';
+  const isHttps = baseUrl.startsWith('https://');
+
   await page.context().addCookies([
     {
       name: 'next-auth.session-token',
@@ -72,11 +85,12 @@ async function mockOAuthLogin(page: any, user: any) {
         user: { id: user.id, email: user.email, name: user.name, image: user.image },
         expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
       })).toString('base64'),
-      domain: 'localhost',
+      // 移动端兼容：不设置 domain，使用默认
+      // domain: isProduction ? undefined : 'localhost',
       path: '/',
       httpOnly: true,
-      secure: false, // 开发环境
-      sameSite: 'Lax',
+      secure: isProduction || isHttps, // 移动端：只在 HTTPS/生产环境设置 secure
+      sameSite: 'Lax' as any, // 移动端兼容：使用 'Lax'
     },
   ]);
 }

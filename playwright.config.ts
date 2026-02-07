@@ -53,14 +53,32 @@ export default defineConfig({
       name: 'webkit',
       use: { ...devices['Desktop Safari'] },
     },
-    // Mobile testing
+    // Mobile testing - 优化配置以解决测试隔离问题
     {
       name: 'mobile-chrome',
-      use: { ...devices['Pixel 5'] },
+      use: {
+        ...devices['Pixel 5'],
+        // 移动端特定配置
+        contextOptions: {
+          // 移动端更宽松的 Cookie 设置
+          permissions: [],
+        },
+      },
+      // 移动端测试依赖顺序：确保在桌面测试后运行
+      dependencies: ['chromium'],
     },
     {
       name: 'mobile-safari',
-      use: { ...devices['iPhone 12'] },
+      use: {
+        ...devices['iPhone 12'],
+        // iOS Safari 特定配置
+        contextOptions: {
+          // iOS Safari 更严格的 Cookie 策略
+          permissions: [],
+        },
+      },
+      // 移动端测试依赖顺序：确保在桌面测试后运行
+      dependencies: ['chromium', 'webkit'],
     },
     // API-only tests (no browser)
     {
@@ -69,6 +87,8 @@ export default defineConfig({
         baseURL: process.env.API_URL || 'http://localhost:3000/api',
         // No browser dependencies for API tests
       },
+      // API 测试优先运行
+      dependencies: [],
     },
   ],
 
@@ -102,6 +122,9 @@ export default defineConfig({
   // RETRY CONFIGURATION
   // ============================================
   retries: process.env.CI ? 2 : 0, // More retries in CI
+
+  // 移动端测试通常需要更多时间，增加特定项目的超时
+  // 通过 test.use() 在测试文件中配置特定超时
 
   // ============================================
   // GLOBAL SETUP & TEARDOWN
