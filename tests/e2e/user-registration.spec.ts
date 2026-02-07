@@ -32,7 +32,7 @@ test.describe('[Story 1-2] User Registration & Credit Reward E2E Journey (ATDD)'
     name: faker.person.fullName(),
   });
 
-  describe('[AC-1, AC-2, AC-3] New User First Login with Credit Reward', () => {
+  test.describe('[AC-1, AC-2, AC-3] New User First Login with Credit Reward', () => {
     test('[P0] should grant 30 credits and show welcome on first login', async ({ page, context }) => {
       // GIVEN: User is on home page and NOT logged in
       await page.goto('/');
@@ -148,7 +148,7 @@ test.describe('[Story 1-2] User Registration & Credit Reward E2E Journey (ATDD)'
     });
   });
 
-  describe('[AC-4] Existing User Login Without Duplicate Reward', () => {
+  test.describe('[AC-4] Existing User Login Without Duplicate Reward', () => {
     test('[P0] should not show welcome or grant credits to existing users', async ({ page }) => {
       // GIVEN: Existing user with credits logging in again
       await page.goto('/');
@@ -195,7 +195,7 @@ test.describe('[Story 1-2] User Registration & Credit Reward E2E Journey (ATDD)'
     });
   });
 
-  describe('[AC-6] Credit Balance Display', () => {
+  test.describe('[AC-6] Credit Balance Display', () => {
     test('[P1] should display credit balance after login', async ({ page }) => {
       // GIVEN: User just logged in with 30 credits
       await page.goto('/');
@@ -262,7 +262,7 @@ test.describe('[Story 1-2] User Registration & Credit Reward E2E Journey (ATDD)'
     });
   });
 
-  describe('[AC-3] Welcome Snackbar Styling', () => {
+  test.describe('[AC-3] Welcome Snackbar Styling', () => {
     test('[P2] should use correct colors for welcome snackbar', async ({ page }) => {
       // GIVEN: New user just logged in
       await page.goto('/');
@@ -309,7 +309,7 @@ test.describe('[Story 1-2] User Registration & Credit Reward E2E Journey (ATDD)'
     });
   });
 
-  describe('[Integration] Complete New User Journey', () => {
+  test.describe('[Integration] Complete New User Journey', () => {
     test('[P0] should complete full new user onboarding flow', async ({ page }) => {
       // GIVEN: New user arrives for first time
       await page.goto('/');
@@ -372,7 +372,7 @@ test.describe('[Story 1-2] User Registration & Credit Reward E2E Journey (ATDD)'
     });
   });
 
-  describe('[AC-7] Performance', () => {
+  test.describe('[AC-7] Performance', () => {
     test('[P2] should complete login and credit grant within acceptable time', async ({ page }) => {
       // GIVEN: User on home page
       await page.goto('/');
@@ -398,7 +398,7 @@ test.describe('[Story 1-2] User Registration & Credit Reward E2E Journey (ATDD)'
     });
   });
 
-  describe('[Edge Cases] Error States', () => {
+  test.describe('[Edge Cases] Error States', () => {
     test('[P1] should handle OAuth error gracefully', async ({ page }) => {
       // GIVEN: User clicks login but OAuth fails
       await page.goto('/');
@@ -451,7 +451,7 @@ test.describe('[Story 1-2] User Registration & Credit Reward E2E Journey (ATDD)'
     });
   });
 
-  describe('[Responsive Design] Mobile Experience', () => {
+  test.describe('[Responsive Design] Mobile Experience', () => {
     test('[P2] should show welcome snackbar correctly on mobile', async ({ page }) => {
       // GIVEN: Mobile viewport
       await page.setViewportSize({ width: 375, height: 667 }); // iPhone SE

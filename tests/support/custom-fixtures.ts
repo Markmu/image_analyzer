@@ -6,9 +6,9 @@
  */
 
 import { test as base, APIRequestContext } from '@playwright/test';
-import { createUser, type User, type CreateUserInput } from '../factories/user-factory';
-import { createTemplate, type Template, type CreateTemplateInput } from '../factories/template-factory';
-import { createAnalysis, type Analysis, type CreateAnalysisInput } from '../factories/analysis-factory';
+import { createUser, type User, type CreateUserInput } from './factories/user-factory';
+import { createTemplate, type Template, type CreateTemplateInput } from './factories/template-factory';
+import { createAnalysis, type Analysis, type CreateAnalysisInput } from './factories/analysis-factory';
 
 // ============================================
 // TYPE DEFINITIONS

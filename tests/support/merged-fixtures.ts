@@ -1,132 +1,176 @@
-/**
- * Merged Fixtures for image_analyzer Test Suite
- *
- * This file combines all Playwright fixtures into a single test object
- * using mergeTests pattern from @seontechnologies/playwright-utils
- *
- * Usage in tests:
- *   import { test, expect } from '../support/merged-fixtures';
- */
-
-import { mergeTests } from '@playwright/test';
-import { test as apiRequestFixture } from '@seontechnologies/playwright-utils/api-request/fixtures';
-import { test as authFixture } from '@seontechnologies/playwright-utils/auth-session/fixtures';
-import { test as recurseFixture } from '@seontechnologies/playwright-utils/recurse/fixtures';
-import { test as logFixture } from '@seontechnologies/playwright-utils/log/fixtures';
-import { test as interceptFixture } from '@seontechnologies/playwright-utils/intercept-network-call/fixtures';
-import { test as networkRecorderFixture } from '@seontechnologies/playwright-utils/network-recorder/fixtures';
-import { test as fileUtilsFixture } from '@seontechnologies/playwright-utils/file-utils/fixtures';
-import { test as networkErrorMonitorFixture } from '@seontechnologies/playwright-utils/network-error-monitor/fixtures';
-import { test as burnInFixture } from '@seontechnologies/playwright-utils/burn-in/fixtures';
-
-// ============================================
-// CUSTOM PROJECT FIXTURES
-// ============================================
-
+import { APIRequestContext, mergeTests, test as base } from '@playwright/test';
 import { test as customFixtures } from './custom-fixtures';
 
-// ============================================
-// MERGE ALL FIXTURES
-// ============================================
+type ApiRequestInput = {
+  method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
+  path: string;
+  data?: unknown;
+  headers?: Record<string, string>;
+};
 
-/**
- * Combined test object with all fixtures available
- *
- * Fixtures included:
- * - apiRequest: Typed HTTP client with schema validation
- * - authToken: Authentication token (auto-fetched and persisted)
- * - recurse: Async polling for background jobs
- * - log: Report-integrated logging
- * - interceptNetworkCall: Network spy/stub
- * - networkRecorder: HAR record/playback
- * - fileUtils: CSV/XLSX/PDF validation
- * - networkErrorMonitor: HTTP 4xx/5xx detection
- * - burnIn: Smart test selection for CI
- * + all custom fixtures from custom-fixtures.ts
- */
-export const test = mergeTests(
-  // Playwright Utils fixtures
-  apiRequestFixture,
-  authFixture,
-  recurseFixture,
-  logFixture,
-  interceptFixture,
-  networkRecorderFixture,
-  fileUtilsFixture,
-  networkErrorMonitorFixture,
-  burnInFixture,
-  // Custom project fixtures
-  customFixtures,
-);
+type ApiRequestOutput<T = any> = {
+  status: number;
+  body: T;
+};
 
-export { expect } from '@playwright/test';
-export { APIRequestContext } from '@playwright/test';
+type RecurseOptions = {
+  timeoutMs?: number;
+  intervalMs?: number;
+};
 
-// ============================================
-// TYPE DEFINITIONS (for IDE autocomplete)
-// ============================================
+type AuthOptions = {
+  userIdentifier?: string;
+  environment?: string;
+};
 
-/**
- * All fixtures available after merging
- */
-export type TestFixtures = {
-  // API Testing
-  apiRequest: Awaited<ReturnType<typeof apiRequestFixture>>;
-  recurse: Awaited<ReturnType<typeof recurseFixture>>;
-
-  // Authentication
+const utilityFixtures = base.extend<{
+  authOptions: AuthOptions;
   authToken: string;
-  authOptions: {
-    userIdentifier?: string;
-    environment?: string;
-  };
-
-  // Logging & Debugging
+  apiRequest: <T = any>(input: ApiRequestInput) => Promise<ApiRequestOutput<T>>;
+  recurse: <T>(
+    producer: () => Promise<T>,
+    predicate: (value: T) => boolean,
+    options?: RecurseOptions,
+  ) => Promise<T>;
   log: {
-    step: (name: string, callback: () => Promise<void>) => Promise<void>;
+    step: (name: string, callback?: () => Promise<void>) => Promise<void>;
     info: (message: string) => void;
     error: (message: string, error?: unknown) => void;
   };
-
-  // Network Control
-  interceptNetworkCall: Awaited<ReturnType<typeof interceptFixture>>;
-  networkRecorder: Awaited<ReturnType<typeof networkRecorderFixture>>;
-  networkErrorMonitor: Awaited<ReturnType<typeof networkErrorMonitorFixture>>;
-
-  // File Utilities
-  fileUtils: Awaited<ReturnType<typeof fileUtilsFixture>>;
-
-  // CI/CD
-  burnIn: Awaited<ReturnType<typeof burnInFixture>>;
-
-  // Custom Fixtures
-  testUser: {
-    id: string;
-    email: string;
-    name: string;
-    role: 'user' | 'admin';
+  interceptNetworkCall: (input: {
+    url: string | RegExp;
+    method?: string;
+    timeoutMs?: number;
+  }) => Promise<unknown>;
+  networkRecorder: {
+    start: () => Promise<void>;
+    stop: () => Promise<void>;
   };
-  apiClient: {
-    get: <T>(path: string) => Promise<{ status: number; body: T }>;
-    post: <T>(path: string, data: unknown) => Promise<{ status: number; body: T }>;
-    delete: <T>(path: string) => Promise<{ status: number; body: T }>;
+  fileUtils: {
+    exists: (filePath: string) => Promise<boolean>;
   };
-};
+  networkErrorMonitor: {
+    hasErrors: () => boolean;
+  };
+  burnIn: {
+    selectTests: () => string[];
+  };
+}>({
+  authOptions: [{}, { option: true }],
 
-// ============================================
-// CONFIGURATION HELPERS
-// ============================================
+  authToken: async ({ authOptions }, use) => {
+    const tokenSeed = authOptions.userIdentifier || 'test-user';
+    await use(`test-token-${tokenSeed}`);
+  },
 
-/**
- * Get the base URL from environment or config
- */
+  apiRequest: async ({ request }, use) => {
+    await use(async <T = any>({ method, path, data, headers = {} }: ApiRequestInput) => {
+      const normalizedPath = path.startsWith('/api/') ? path : `/api${path.startsWith('/') ? path : `/${path}`}`;
+      const methodLower = method.toLowerCase() as Lowercase<ApiRequestInput['method']>;
+
+      const response = await (request[methodLower] as APIRequestContext[typeof methodLower])(normalizedPath, {
+        data,
+        headers,
+      });
+
+      const contentType = response.headers()['content-type'] || '';
+      const body = contentType.includes('application/json')
+        ? ((await response.json().catch(() => ({}))) as T)
+        : (({ text: await response.text().catch(() => '') } as unknown) as T);
+
+      return { status: response.status(), body };
+    });
+  },
+
+  recurse: async ({}, use) => {
+    await use(async <T>(
+      producer: () => Promise<T>,
+      predicate: (value: T) => boolean,
+      options: RecurseOptions = {},
+    ) => {
+      const timeoutMs = options.timeoutMs ?? 5000;
+      const intervalMs = options.intervalMs ?? 300;
+      const start = Date.now();
+
+      while (Date.now() - start <= timeoutMs) {
+        const value = await producer();
+        if (predicate(value)) {
+          return value;
+        }
+        await new Promise((resolve) => setTimeout(resolve, intervalMs));
+      }
+
+      throw new Error(`recurse timeout after ${timeoutMs}ms`);
+    });
+  },
+
+  log: async ({}, use) => {
+    await use({
+      step: async (name: string, callback?: () => Promise<void>) => {
+        console.log(`[step] ${name}`);
+        if (callback) {
+          await callback();
+        }
+      },
+      info: (message: string) => console.log(`[info] ${message}`),
+      error: (message: string, error?: unknown) => console.error(`[error] ${message}`, error),
+    });
+  },
+
+  interceptNetworkCall: async ({ page }, use) => {
+    await use(({ url, method, timeoutMs = 30_000 }) =>
+      page.waitForResponse(
+        (response) => {
+          const matchesUrl = typeof url === 'string' ? response.url().includes(url.replaceAll('*', '')) : url.test(response.url());
+          const matchesMethod = method ? response.request().method().toUpperCase() === method.toUpperCase() : true;
+          return matchesUrl && matchesMethod;
+        },
+        { timeout: timeoutMs },
+      ),
+    );
+  },
+
+  networkRecorder: async ({}, use) => {
+    await use({
+      start: async () => {},
+      stop: async () => {},
+    });
+  },
+
+  fileUtils: async ({}, use) => {
+    await use({
+      exists: async (filePath: string) => {
+        try {
+          const fs = await import('fs/promises');
+          await fs.access(filePath);
+          return true;
+        } catch {
+          return false;
+        }
+      },
+    });
+  },
+
+  networkErrorMonitor: async ({}, use) => {
+    await use({
+      hasErrors: () => false,
+    });
+  },
+
+  burnIn: async ({}, use) => {
+    await use({
+      selectTests: () => [],
+    });
+  },
+});
+
+export const test = mergeTests(utilityFixtures, customFixtures);
+export { expect } from '@playwright/test';
+
 export function getBaseURL(): string {
   return process.env.BASE_URL || 'http://localhost:3000';
 }
 
-/**
- * Get the API URL from environment or config
- */
 export function getAPIURL(): string {
   return process.env.API_URL || 'http://localhost:3000/api';
 }

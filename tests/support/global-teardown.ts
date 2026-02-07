@@ -20,10 +20,10 @@ async function globalTeardown(config: FullConfig): Promise<void> {
   console.log('🧹 Cleaning up shared admin user...');
 
   const browser = await chromium.launch();
+  const authPath = path.resolve(__dirname, '../.auth/admin.json');
   const context = await browser.newContext({
     baseURL: process.env.BASE_URL || 'http://localhost:3000',
-    // Load the auth state created in globalSetup
-    storageState: path.resolve(__dirname, '../.auth/admin.json'),
+    ...(fs.existsSync(authPath) ? { storageState: authPath } : {}),
   });
 
   try {

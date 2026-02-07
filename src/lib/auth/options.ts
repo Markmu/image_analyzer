@@ -21,7 +21,8 @@ export const authOptions: NextAuthConfig = {
     }),
   ],
   pages: {
-    signIn: '/auth/signin',
+    // 使用 NextAuth 默认登录页面
+    // signIn: '/auth/signin', // 自定义页面未实现，使用默认
     error: '/auth/error',
   },
   session: {

@@ -40,7 +40,7 @@ test.describe('[Story 1-2] User Registration & Credit Reward API Tests (ATDD)', 
     updatedAt: overrides?.updatedAt || new Date(),
   });
 
-  describe('[AC-1] New User Detection', () => {
+  test.describe('[AC-1] New User Detection', () => {
     test('[P0] should detect new user correctly', async ({ request }) => {
       // GIVEN: User just created (createdAt === updatedAt && creditBalance === 0)
       const newUser = generateTestUser({
@@ -108,7 +108,7 @@ test.describe('[Story 1-2] User Registration & Credit Reward API Tests (ATDD)', 
     });
   });
 
-  describe('[AC-2] Credit Automatic Granting', () => {
+  test.describe('[AC-2] Credit Automatic Granting', () => {
     test('[P0] should grant 30 credits to new user on first login', async ({ request }) => {
       // GIVEN: New user detected (AC-1 passed)
       const newUser = generateTestUser({
@@ -172,7 +172,7 @@ test.describe('[Story 1-2] User Registration & Credit Reward API Tests (ATDD)', 
     });
   });
 
-  describe('[AC-3] Welcome Snackbar Display', () => {
+  test.describe('[AC-3] Welcome Snackbar Display', () => {
     test('[P1] should return welcome flag for new users', async ({ request }) => {
       // GIVEN: New user just rewarded with credits
       const newUser = generateTestUser({
@@ -216,7 +216,7 @@ test.describe('[Story 1-2] User Registration & Credit Reward API Tests (ATDD)', 
     });
   });
 
-  describe('[AC-4] Existing Users No Duplicate Rewards', () => {
+  test.describe('[AC-4] Existing Users No Duplicate Rewards', () => {
     test('[P0] should not grant credits on subsequent logins', async ({ request }) => {
       // GIVEN: User with creditBalance > 0
       const existingUser = generateTestUser({
@@ -266,7 +266,7 @@ test.describe('[Story 1-2] User Registration & Credit Reward API Tests (ATDD)', 
     });
   });
 
-  describe('[AC-5] Prevent Concurrent Granting', () => {
+  test.describe('[AC-5] Prevent Concurrent Granting', () => {
     test('[P1] should only grant once for concurrent requests', async ({ request }) => {
       // GIVEN: New user (creditBalance = 0, same timestamps)
       const newUser = generateTestUser({
@@ -333,7 +333,7 @@ test.describe('[Story 1-2] User Registration & Credit Reward API Tests (ATDD)', 
     });
   });
 
-  describe('[AC-6] Data Consistency', () => {
+  test.describe('[AC-6] Data Consistency', () => {
     test('[P1] should persist credit balance immediately after granting', async ({ request }) => {
       // GIVEN: New user
       const newUser = generateTestUser({
@@ -407,7 +407,7 @@ test.describe('[Story 1-2] User Registration & Credit Reward API Tests (ATDD)', 
     });
   });
 
-  describe('[AC-7] Performance Requirements', () => {
+  test.describe('[AC-7] Performance Requirements', () => {
     test('[P2] should complete credit granting within 500ms', async ({ request }) => {
       // GIVEN: New user
       const newUser = generateTestUser({
@@ -457,7 +457,7 @@ test.describe('[Story 1-2] User Registration & Credit Reward API Tests (ATDD)', 
     });
   });
 
-  describe('[AC-8] Error Handling', () => {
+  test.describe('[AC-8] Error Handling', () => {
     test('[P1] should handle database connection failure gracefully', async ({ request }) => {
       // GIVEN: Database is unavailable (simulated)
       // WHEN: Attempting to reward user
@@ -518,7 +518,7 @@ test.describe('[Story 1-2] User Registration & Credit Reward API Tests (ATDD)', 
     });
   });
 
-  describe('[Integration] OAuth Callback Integration', () => {
+  test.describe('[Integration] OAuth Callback Integration', () => {
     test('[P0] should integrate credit granting with OAuth signIn callback', async ({ request }) => {
       // GIVEN: New user completing OAuth login for first time
       const newUser = generateTestUser({

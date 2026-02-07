@@ -27,7 +27,7 @@ test.describe('[Story 1-1] OAuth Login E2E Journey (ATDD)', () => {
     await page.goto('/');
   });
 
-  describe('[AC-3] Complete OAuth Login Flow', () => {
+  test.describe('[AC-3] Complete OAuth Login Flow', () => {
     test.skip('[P0] should complete Google OAuth login successfully', async ({ page }) => {
       // GIVEN: User is on home page and sees login button
       // THEN: Login button should be visible
@@ -72,7 +72,7 @@ test.describe('[Story 1-1] OAuth Login E2E Journey (ATDD)', () => {
     });
   });
 
-  describe('[AC-8] OAuth Error Handling', () => {
+  test.describe('[AC-8] OAuth Error Handling', () => {
     test.skip('[P1] should handle OAuth authorization denial', async ({ page }) => {
       // GIVEN: User is on home page
       await expect(page.getByTestId('google-login-button')).toBeVisible();
@@ -115,7 +115,7 @@ test.describe('[Story 1-1] OAuth Login E2E Journey (ATDD)', () => {
     });
   });
 
-  describe('[AC-5] Security - Session Management', () => {
+  test.describe('[AC-5] Security - Session Management', () => {
     test.skip('[P1] should use secure cookie for session token', async ({ page, context }) => {
       // GIVEN: User completes OAuth login successfully
 
@@ -143,7 +143,7 @@ test.describe('[Story 1-1] OAuth Login E2E Journey (ATDD)', () => {
     });
   });
 
-  describe('[AC-7] Performance', () => {
+  test.describe('[AC-7] Performance', () => {
     test.skip('[P2] should complete entire login flow within 10 seconds', async ({ page }) => {
       // GIVEN: User is on home page
       const startTime = Date.now();

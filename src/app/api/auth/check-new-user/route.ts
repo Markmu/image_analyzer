@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { checkNewUser } from '@/features/auth/services';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth/options';
+import { auth } from '@/lib/auth';
 
 /**
  * API Endpoint: POST /api/auth/check-new-user
@@ -14,8 +13,8 @@ import { authOptions } from '@/lib/auth/options';
 
 export async function POST(request: NextRequest) {
   try {
-    // Verify user is authenticated
-    const session = await getServerSession(authOptions);
+    // Verify user is authenticated (NextAuth v5 uses auth())
+    const session = await auth();
     if (!session?.user?.id) {
       return NextResponse.json(
         { code: 'UNAUTHORIZED', message: 'Authentication required' },

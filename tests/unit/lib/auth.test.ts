@@ -1,7 +1,19 @@
 /**
  * @jest-environment node
  */
-import { describe, it, expect, beforeAll, afterAll } from 'vitest';
+import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest';
+
+vi.mock('next-auth', () => ({
+  default: vi.fn(() => ({
+    handlers: {
+      GET: vi.fn(),
+      POST: vi.fn(),
+    },
+    auth: vi.fn(),
+    signIn: vi.fn(),
+    signOut: vi.fn(),
+  })),
+}));
 
 // Set up environment variables before any imports
 const mockEnv = {

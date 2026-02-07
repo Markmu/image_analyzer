@@ -19,7 +19,7 @@ import { faker } from '@faker-js/faker';
  */
 
 test.describe('[Story 1-1] OAuth Setup API Tests (ATDD)', () => {
-  describe('[AC-1] NextAuth.js Configuration', () => {
+  test.describe('[AC-1] NextAuth.js Configuration', () => {
     test.skip('[P1] should return Google provider configuration', async ({ request }) => {
       // GIVEN: NextAuth is configured with Google OAuth
       // WHEN: GET /api/auth/providers
@@ -58,7 +58,7 @@ test.describe('[Story 1-1] OAuth Setup API Tests (ATDD)', () => {
     });
   });
 
-  describe('[AC-2, AC-4] Database Schema and User Data Storage', () => {
+  test.describe('[AC-2, AC-4] Database Schema and User Data Storage', () => {
     const generateOAuthUser = () => ({
       id: faker.string.uuid(),
       email: faker.internet.email().toLowerCase(),
@@ -188,7 +188,7 @@ test.describe('[Story 1-1] OAuth Setup API Tests (ATDD)', () => {
     });
   });
 
-  describe('[AC-3] OAuth Login Flow', () => {
+  test.describe('[AC-3] OAuth Login Flow', () => {
     test.skip('[P0] should handle successful OAuth callback', async ({ request }) => {
       // GIVEN: User authorizes with Google OAuth
       const oauthUser = generateOAuthUser();
@@ -253,7 +253,7 @@ test.describe('[Story 1-1] OAuth Setup API Tests (ATDD)', () => {
     });
   });
 
-  describe('[AC-5] Security', () => {
+  test.describe('[AC-5] Security', () => {
     test.skip('[P1] should reject requests without valid session', async ({ request }) => {
       // GIVEN: User is not authenticated
       // WHEN: GET /api/protected-endpoint
@@ -282,7 +282,7 @@ test.describe('[Story 1-1] OAuth Setup API Tests (ATDD)', () => {
     });
   });
 
-  describe('[AC-8] Error Handling', () => {
+  test.describe('[AC-8] Error Handling', () => {
     test.skip('[P1] should return error when database connection fails', async ({ request }) => {
       // GIVEN: Database is unavailable
       // WHEN: Attempting OAuth callback
@@ -317,7 +317,7 @@ test.describe('[Story 1-1] OAuth Setup API Tests (ATDD)', () => {
     });
   });
 
-  describe('[AC-6] Data Persistence', () => {
+  test.describe('[AC-6] Data Persistence', () => {
     test.skip('[P1] should persist user data across requests', async ({ request }) => {
       // GIVEN: User created via OAuth
       const newUser = generateOAuthUser();
@@ -338,7 +338,7 @@ test.describe('[Story 1-1] OAuth Setup API Tests (ATDD)', () => {
     });
   });
 
-  describe('[AC-7] Performance', () => {
+  test.describe('[AC-7] Performance', () => {
     test.skip('[P2] should complete OAuth callback within 10 seconds', async ({ request }) => {
       // GIVEN: Valid OAuth user data
       const newUser = generateOAuthUser();

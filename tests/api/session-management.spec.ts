@@ -18,6 +18,22 @@ import { test, expect } from '@playwright/test';
 import { createUser } from '../support/factories/user-factory';
 
 /**
+ * 辅助函数：解析 set-cookie header
+ *
+ * 处理 set-cookie header 可能是字符串或数组的情况
+ */
+function getSetCookieHeaders(response: any): string[] {
+  const setCookie = response.headers()['set-cookie'];
+  if (!setCookie) {
+    return [];
+  }
+  if (Array.isArray(setCookie)) {
+    return setCookie;
+  }
+  return [setCookie];
+}
+
+/**
  * AC-1: 会话持久化
  *
  * 验证 JWT Token 在 HTTP-only Cookie 中的持久化
@@ -34,8 +50,8 @@ test.describe('Session Persistence (AC-1)', () => {
 
     expect(response.status()).toBe(200);
 
-    const cookies = response.headers()['set-cookie'];
-    expect(cookies).toBeDefined();
+    const cookies = getSetCookieHeaders(response);
+    expect(cookies.length).toBeGreaterThan(0);
 
     const sessionCookie = cookies.find((c: string) => c.includes('next-auth.session-token'));
     expect(sessionCookie).toBeDefined();
@@ -56,7 +72,7 @@ test.describe('Session Persistence (AC-1)', () => {
       data: { email: user.email, password: 'password123' },
     });
 
-    const cookies = loginResponse.headers()['set-cookie'];
+    const cookies = getSetCookieHeaders(loginResponse);
     const sessionCookie = cookies.find((c: string) => c.includes('next-auth.session-token='));
 
     // Step 2: Validate session
@@ -130,7 +146,7 @@ test.describe('Sign Out Functionality (AC-2)', () => {
     const signOutResponse = await request.post('/api/auth/signout');
 
     // 验证清除 cookie 的响应头
-    const cookies = signOutResponse.headers()['set-cookie'];
+    const cookies = getSetCookieHeaders(signOutResponse);
     const clearCookie = cookies.find((c: string) =>
       c.includes('next-auth.session-token') && c.includes('Max-Age=0')
     );
@@ -290,9 +306,9 @@ test.describe('Security Requirements (AC-6)', () => {
     });
 
     const response = await request.get('/api/auth/session');
-    const cookies = response.headers()['set-cookie'];
+    const cookies = getSetCookieHeaders(response);
 
-    const sessionCookie = cookies?.find((c: string) => c.includes('next-auth.session-token'));
+    const sessionCookie = cookies.find((c: string) => c.includes('next-auth.session-token'));
 
     // 验证安全属性
     expect(sessionCookie).toContain('HttpOnly'); // 防止 XSS
