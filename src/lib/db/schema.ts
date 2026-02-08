@@ -1,4 +1,4 @@
-import { pgTable, text, integer, timestamp, uniqueIndex } from 'drizzle-orm/pg-core';
+import { pgTable, text, integer, timestamp, uniqueIndex, index } from 'drizzle-orm/pg-core';
 
 /**
  * NextAuth 认证表
@@ -90,3 +90,21 @@ export const accountDeletions = pgTable('account_deletions', {
   ipAddress: text('ip_address'),
   userAgent: text('user_agent'),
 });
+
+// ============================================================================
+// 图片表 (images) - Epic 2: 图片上传与管理
+// ============================================================================
+export const images = pgTable('images', {
+  id: text('id').primaryKey(),
+  userId: text('user_id').notNull().references(() => user.id, { onDelete: 'cascade' }),
+  filePath: text('file_path').notNull(), // R2 存储路径
+  fileSize: integer('file_size').notNull(), // 文件大小(字节)
+  fileFormat: text('file_format').notNull(), // JPEG, PNG, WebP
+  width: integer('width'), // 图片宽度
+  height: integer('height'), // 图片高度
+  uploadStatus: text('upload_status').notNull(), // pending, completed, failed
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+  updatedAt: timestamp('updated_at').notNull().defaultNow(),
+}, (table) => ({
+  userIdIdx: index('images_user_id_idx').on(table.userId),
+}));
