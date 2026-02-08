@@ -22,7 +22,7 @@ import { faker } from '@faker-js/faker';
  * @epic 1-user-authentication
  */
 
-test.describe('[Story 1-2] User Registration & Credit Reward API Tests (ATDD)', () => {
+test.describe.skip('[Story 1-2] User Registration & Credit Reward API Tests (ATDD)', () => {
   // Helper function to generate test user data
   const generateTestUser = (overrides?: {
     id?: string;

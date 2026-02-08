@@ -43,11 +43,13 @@ export default defineConfig({
   projects: [
     {
       name: 'chromium',
+      testMatch: 'e2e/**/*.spec.ts',
       use: { ...devices['Desktop Chrome'] },
     },
     // API-only tests (no browser)
     {
       name: 'api',
+      testMatch: 'api/**/*.spec.ts',
       use: {
         baseURL: process.env.API_URL || 'http://localhost:3000/api',
         // No browser dependencies for API tests
@@ -81,7 +83,7 @@ export default defineConfig({
   // PARALLEL EXECUTION
   // ============================================
   fullyParallel: true, // Run all tests in parallel
-  workers: process.env.CI ? 4 : undefined, // CI-tuned workers
+  workers: process.env.CI ? 4 : 4, // Limit local parallelism to avoid Node runtime instability
 
   // ============================================
   // RETRY CONFIGURATION

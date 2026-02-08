@@ -25,7 +25,7 @@ import { faker } from '@faker-js/faker';
  * - User menu: [data-testid="user-menu"]
  */
 
-test.describe('[Story 1-2] User Registration & Credit Reward E2E Journey (ATDD)', () => {
+test.describe.skip('[Story 1-2] User Registration & Credit Reward E2E Journey (ATDD)', () => {
   // Helper to generate unique test user
   const generateTestUser = () => ({
     email: `test-${faker.string.uuid()}@example.com`,

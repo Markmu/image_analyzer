@@ -10,6 +10,11 @@
  */
 
 import { test, expect } from '../support/merged-fixtures';
+import path from 'path';
+
+const sampleImagePath = path.resolve(process.cwd(), 'tests/fixtures/images/sample.jpg');
+const largeImagePath = path.resolve(process.cwd(), 'tests/fixtures/images/large-image.jpg');
+const invalidFilePath = path.resolve(process.cwd(), 'tests/fixtures/images/document.pdf');
 
 test.describe('Image Upload Flow', () => {
   test.beforeEach(async ({ page }) => {
@@ -32,11 +37,7 @@ test.describe('Image Upload Flow', () => {
 
     // When: User uploads a valid image
     const fileInput = page.getByTestId('image-upload-input');
-    await fileInput.setInputFiles({
-      name: 'test-image.jpg',
-      mimeType: 'image/jpeg',
-      path: './tests/fixtures/images/sample.jpg',
-    });
+    await fileInput.setInputFiles(sampleImagePath);
 
     // Then: Upload progress should be shown
     const progressBar = page.getByTestId('upload-progress');
@@ -59,11 +60,7 @@ test.describe('Image Upload Flow', () => {
 
     // When: User tries to upload a non-image file
     const fileInput = page.getByTestId('image-upload-input');
-    await fileInput.setInputFiles({
-      name: 'document.pdf',
-      mimeType: 'application/pdf',
-      path: './tests/fixtures/images/document.pdf',
-    });
+    await fileInput.setInputFiles(invalidFilePath);
 
     // Then: Error message should be displayed
     const errorMessage = page.getByTestId('upload-error');
@@ -79,11 +76,7 @@ test.describe('Image Upload Flow', () => {
 
     // When: User uploads a file exceeding size limit (10MB)
     const fileInput = page.getByTestId('image-upload-input');
-    await fileInput.setInputFiles({
-      name: 'large-image.jpg',
-      mimeType: 'image/jpeg',
-      path: './tests/fixtures/images/large-image.jpg',
-    });
+    await fileInput.setInputFiles(largeImagePath);
 
     // Then: Size error should be displayed
     const errorMessage = page.getByTestId('upload-error');
@@ -105,11 +98,7 @@ test.describe('Image Upload Flow', () => {
 
     // When: User drags and drops an image
     const dropZone = page.getByTestId('drop-zone');
-    await dropZone.setInputFiles({
-      name: 'drag-drop-image.jpg',
-      mimeType: 'image/jpeg',
-      path: './tests/fixtures/images/sample.jpg',
-    });
+    await dropZone.setInputFiles(sampleImagePath);
 
     // Then: Upload should complete
     await uploadCall;

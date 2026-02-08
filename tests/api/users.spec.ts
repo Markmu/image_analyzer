@@ -9,6 +9,7 @@
  */
 
 import { test, expect } from '../support/merged-fixtures';
+import { faker } from '@faker-js/faker';
 
 test.describe('Users API', () => {
   test('TEST-101: should create a new user @p0 @smoke @api @user', async ({ apiRequest, log }) => {
@@ -68,7 +69,7 @@ test.describe('Users API', () => {
     // When: Fetching non-existent user
     const { status, body } = await apiRequest({
       method: 'GET',
-      path: '/users/non-existent-id',
+      path: `/users/${faker.string.uuid()}`,
     });
 
     // Then: 404 error should be returned
