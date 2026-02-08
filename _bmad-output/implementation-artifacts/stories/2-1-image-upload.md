@@ -1,6 +1,6 @@
 # Story 2.1: image-upload
 
-Status: ready-for-dev
+Status: done
 
 <!-- Note: Validation is optional. Run validate-create-story for quality check before dev-story. -->
 
@@ -460,14 +460,84 @@ try {
 
 Claude Sonnet 4.5 (claude-sonnet-4-5-20250929)
 
-### Debug Log References
+### Team Members
 
-(开发代理将在实施过程中填写)
+- **Murat (QA)**: 测试工程师 - 执行Phase 1, 2, 4, 7
+- **Amelia (Dev)**: 开发工程师 - 执行Phase 3, 5, 6, 8
+- **Bob (Coordinator)**: 协调员 - 执行Phase 9
 
-### Completion Notes List
+### Development Workflow
 
-(开发代理将在完成时填写)
+**开发模式**: YOLO Mode (快速迭代,9个Phase)
+
+**Phase执行记录**:
+- Phase 1 (Murat): 设计测试 ✓
+- Phase 2 (Murat): Review测试设计 ✓
+- Phase 3 (Amelia): 实现功能 ✓
+- Phase 4 (Murat): 验证测试 ✓
+- Phase 5 (Amelia): 代码审查 ✓
+- Phase 6 (Amelia): 重构 ✓
+- Phase 7 (Murat): 验证重构 ✓
+- Phase 8 (Amelia): Review重构 ✓
+- Phase 9 (Bob): 更新状态 ✓
+
+### Completion Notes
+
+**Story完成时间**: 2026-02-09
+
+**实现的主要功能**:
+1. 数据库Schema设计 (images表)
+2. Cloudflare R2存储集成
+3. Next.js API路由实现 (/api/upload)
+4. ImageUploader前端组件(拖拽+点击上传)
+5. 响应式设计(桌面端+移动端)
+6. 错误处理和用户教育
+7. 完整的测试覆盖(单元测试+E2E测试)
+
+**技术亮点**:
+- 使用Drizzle ORM定义数据库Schema
+- R2流式上传支持
+- react-dropzone实现拖拽上传
+- Zustand状态管理
+- React Query API调用
+- MUI + Tailwind CSS响应式设计
+- Glassmorphism视觉风格
+
+**业务价值达成**:
+- 用户可以通过简单直观的方式上传图片 ✓
+- 系统支持拖拽和点击两种上传方式 ✓
+- 桌面端和移动端体验优化 ✓
+- 实时上传进度显示 ✓
+- 完善的错误处理和用户引导 ✓
+
+**质量保证**:
+- 7个验收标准全部满足
+- 单元测试覆盖核心逻辑
+- E2E测试覆盖用户场景
+- 代码质量通过审查
+- 重构优化代码结构
+
+**下一步建议**:
+- Story 2-2 (batch-upload) 可以基于当前实现添加批量功能
+- 建议在Story 2-3中增强图片验证逻辑(集成视觉模型)
+- 建议在Story 2-4中优化进度反馈体验
 
 ### File List
 
-(开发代理将在完成时列出所有创建/修改的文件)
+**创建的文件**:
+- `/Users/muchao/code/image_analyzer/src/lib/db/schema.ts` - images表定义
+- `/Users/muchao/code/image_analyzer/src/lib/r2/index.ts` - R2客户端配置
+- `/Users/muchao/code/image_analyzer/src/lib/r2/upload.ts` - R2上传函数
+- `/Users/muchao/code/image_analyzer/src/lib/r2/delete.ts` - R2删除函数
+- `/Users/muchao/code/image_analyzer/src/app/api/upload/route.ts` - 上传API
+- `/Users/muchao/code/image_analyzer/src/features/analysis/components/ImageUploader/index.tsx` - 组件导出
+- `/Users/muchao/code/image_analyzer/src/features/analysis/components/ImageUploader/ImageUploader.tsx` - 主组件
+- `/Users/muchao/code/image_analyzer/src/features/analysis/components/ImageUploader/types.ts` - 类型定义
+- `/Users/muchao/code/image_analyzer/src/features/analysis/components/ImageUploader/ImageUploader.test.tsx` - 单元测试
+
+**测试文件**:
+- E2E测试覆盖拖拽上传、点击上传、取消上传、错误场景
+
+**配置文件更新**:
+- 数据库迁移文件 (Drizzle Kit生成)
+- 环境变量配置 (R2相关)
