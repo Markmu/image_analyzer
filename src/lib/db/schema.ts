@@ -80,3 +80,13 @@ export const users = user;
 export const accounts = account;
 export const sessions = session;
 export const verificationTokens = verificationToken;
+
+// ============================================================================
+// 账户删除审计表 (account_deletions)
+// ============================================================================
+export const accountDeletions = pgTable('account_deletions', {
+  userId: text('user_id').primaryKey(),
+  deletedAt: timestamp('deleted_at').notNull().defaultNow(),
+  ipAddress: text('ip_address'),
+  userAgent: text('user_agent'),
+});

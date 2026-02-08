@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import {
+  Alert,
   Menu,
   MenuItem,
   Avatar,
@@ -9,18 +10,24 @@ import {
   Divider,
   Chip,
   Box,
+  Snackbar,
   useMediaQuery,
-  useTheme,
 } from '@mui/material';
 import { useUserInfo } from '../../hooks/useUserInfo';
+import { useAuth } from '../../hooks/useAuth';
 import { CreditDisplay } from '@/features/credits/components/CreditDisplay';
 import { SignOutButton } from '../SignOutButton';
+import { DeleteAccountDialog } from '../DeleteAccountDialog';
 
 export function UserMenu() {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [deleteSuccessOpen, setDeleteSuccessOpen] = useState(false);
   const open = Boolean(anchorEl);
   const { user, isLoading } = useUserInfo();
-  const theme = useTheme();
+  const { signOut } = useAuth();
   const isMobile = useMediaQuery('(max-width:767px)');
 
   const handleClick = (event: React.MouseEvent<HTMLElement>) => {
@@ -38,83 +45,152 @@ export function UserMenu() {
     setAnchorEl(null);
   };
 
+  const handleOpenDeleteDialog = () => {
+    setDeleteError(null);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleCloseDeleteDialog = () => {
+    if (isDeleting) return;
+    setDeleteDialogOpen(false);
+  };
+
+  const handleConfirmDelete = async (payload: { confirmation: string; reAuthToken: string }) => {
+    setDeleteError(null);
+    setIsDeleting(true);
+
+    try {
+      const response = await fetch('/api/user', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+
+      const responsePayload = await response.json().catch(() => null);
+      if (!response.ok) {
+        throw new Error(responsePayload?.error?.message ?? '删除账户失败，请重试');
+      }
+
+      setDeleteDialogOpen(false);
+      setDeleteSuccessOpen(true);
+      handleClose();
+      await new Promise((resolve) => setTimeout(resolve, 1200));
+      await signOut();
+    } catch (error) {
+      setDeleteError(error instanceof Error ? error.message : '删除账户失败，请重试');
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   if (isLoading || !user) {
     return null;
   }
 
-  if (isMobile) {
-    // 移动端简化菜单 - 仅头像和登出按钮
-    return (
-      <>
-        <Avatar
-          src={user.image ?? undefined}
-          alt={user.name}
-          onClick={handleClick}
-          onKeyDown={handleKeyDown}
-          tabIndex={0}
-          role="button"
-          data-testid="user-menu-avatar"
-          sx={{
-            width: 48,
-            height: 48,
-            cursor: 'pointer',
-            '&:hover': {
-              transform: 'translateY(-2px)',
-              transition: 'transform 0.2s ease',
-            },
-          }}
-        >
+  const menuBody = isMobile ? (
+    <Menu
+      anchorEl={anchorEl}
+      open={open}
+      onClose={handleClose}
+      slotProps={{
+        paper: {
+          sx: {
+            minWidth: 200,
+            mt: 1,
+            background: 'rgba(30, 41, 59, 0.95)',
+            backdropFilter: 'blur(12px)',
+            border: '1px solid rgba(255, 255, 255, 0.1)',
+            borderRadius: '8px',
+            boxShadow: '0 4px 20px rgba(0, 0, 0, 0.15)',
+          },
+        },
+      }}
+    >
+      <MenuItem onClick={handleClose}>
+        <Avatar src={user.image ?? undefined} alt={user.name} data-testid="user-menu-large-avatar" sx={{ width: 64, height: 64, mr: 2 }}>
           {user.name?.charAt(0).toUpperCase()}
         </Avatar>
+        <Box>
+          <Typography variant="subtitle1" fontWeight={600} data-testid="user-menu-name">
+            {user.name}
+          </Typography>
+          <Typography variant="body2" color="text.secondary" data-testid="user-menu-email">
+            {user.email}
+          </Typography>
+        </Box>
+      </MenuItem>
 
-        <Menu
-          anchorEl={anchorEl}
-          open={open}
-          onClose={handleClose}
-          slotProps={{
-            paper: {
-              sx: {
-                minWidth: 200,
-                mt: 1,
-                background: 'rgba(30, 41, 59, 0.95)',
-                backdropFilter: 'blur(12px)',
-                border: '1px solid rgba(255, 255, 255, 0.1)',
-                borderRadius: '8px',
-                boxShadow: '0 4px 20px rgba(0, 0, 0, 0.15)',
-              },
-            },
-          }}
-        >
-          <MenuItem onClick={handleClose}>
-            <Avatar
-              src={user.image ?? undefined}
-              alt={user.name}
-              data-testid="user-menu-large-avatar"
-              sx={{ width: 64, height: 64, mr: 2 }}
-            >
-              {user.name?.charAt(0).toUpperCase()}
-            </Avatar>
-            <Box>
-              <Typography variant="subtitle1" fontWeight={600} data-testid="user-menu-name">
-                {user.name}
-              </Typography>
-              <Typography variant="body2" color="text.secondary" data-testid="user-menu-email">
-                {user.email}
-              </Typography>
-            </Box>
-          </MenuItem>
+      <Divider />
 
-          <Divider />
+      <MenuItem onClick={handleOpenDeleteDialog} data-testid="user-menu-delete-account">
+        <Typography color="error">删除账户</Typography>
+      </MenuItem>
 
-          <MenuItem onClick={handleClose}>
-            <SignOutButton />
-          </MenuItem>
-        </Menu>
-      </>
-    );
-  }
+      <Divider />
 
-  // 桌面端完整菜单
+      <MenuItem onClick={handleClose}>
+        <SignOutButton />
+      </MenuItem>
+    </Menu>
+  ) : (
+    <Menu
+      id="user-menu"
+      aria-labelledby="user-menu-button"
+      anchorEl={anchorEl}
+      open={open}
+      onClose={handleClose}
+      slotProps={{
+        paper: {
+          sx: {
+            minWidth: 280,
+            mt: 1,
+            background: 'rgba(30, 41, 59, 0.95)',
+            backdropFilter: 'blur(12px)',
+            border: '1px solid rgba(255, 255, 255, 0.1)',
+            borderRadius: '8px',
+            boxShadow: '0 4px 20px rgba(0, 0, 0, 0.15)',
+          },
+        },
+      }}
+    >
+      <Box sx={{ p: 2, textAlign: 'center' }}>
+        <Avatar src={user.image ?? undefined} alt={user.name} data-testid="user-menu-large-avatar" sx={{ width: 64, height: 64, mb: 1 }}>
+          {user.name?.charAt(0).toUpperCase()}
+        </Avatar>
+        <Typography variant="subtitle1" fontWeight={600} data-testid="user-menu-name">
+          {user.name}
+        </Typography>
+        <Typography variant="body2" color="text.secondary" data-testid="user-menu-email">
+          {user.email}
+        </Typography>
+      </Box>
+
+      <Divider />
+
+      <MenuItem disabled>
+        <Box data-testid="user-menu-credit-balance">
+          <CreditDisplay creditBalance={user.creditBalance} />
+        </Box>
+      </MenuItem>
+
+      <MenuItem disabled>
+        <Chip label={`${user.subscriptionTier} 等级`} size="small" color="default" data-testid="user-menu-subscription-tier" />
+      </MenuItem>
+
+      <Divider />
+
+      <MenuItem onClick={handleOpenDeleteDialog} data-testid="user-menu-delete-account">
+        <Typography color="error">删除账户</Typography>
+      </MenuItem>
+
+      <Divider />
+
+      <MenuItem onClick={handleClose} data-testid="user-menu-sign-out">
+        <SignOutButton />
+      </MenuItem>
+    </Menu>
+  );
+
   return (
     <>
       <Avatar
@@ -140,71 +216,35 @@ export function UserMenu() {
       >
         {user.name?.charAt(0).toUpperCase()}
       </Avatar>
+      {menuBody}
 
-      <Menu
-        id="user-menu"
-        aria-labelledby="user-menu-button"
-        anchorEl={anchorEl}
-        open={open}
-        onClose={handleClose}
-        slotProps={{
-          paper: {
-            sx: {
-              minWidth: 280,
-              mt: 1,
-              background: 'rgba(30, 41, 59, 0.95)',
-              backdropFilter: 'blur(12px)',
-              border: '1px solid rgba(255, 255, 255, 0.1)',
-              borderRadius: '8px',
-              boxShadow: '0 4px 20px rgba(0, 0, 0, 0.15)',
-            },
-          },
-        }}
+      <DeleteAccountDialog
+        open={deleteDialogOpen}
+        isDeleting={isDeleting}
+        userEmail={user.email}
+        errorMessage={deleteError}
+        onClose={handleCloseDeleteDialog}
+        onConfirm={handleConfirmDelete}
+      />
+
+      <Snackbar
+        open={deleteSuccessOpen}
+        autoHideDuration={5000}
+        onClose={() => setDeleteSuccessOpen(false)}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
       >
-        {/* 用户信息区域 */}
-        <Box sx={{ p: 2, textAlign: 'center' }}>
-          <Avatar
-            src={user.image ?? undefined}
-            alt={user.name}
-            data-testid="user-menu-large-avatar"
-            sx={{ width: 64, height: 64, mb: 1 }}
-          >
-            {user.name?.charAt(0).toUpperCase()}
-          </Avatar>
-          <Typography variant="subtitle1" fontWeight={600} data-testid="user-menu-name">
-            {user.name}
-          </Typography>
-          <Typography variant="body2" color="text.secondary" data-testid="user-menu-email">
-            {user.email}
-          </Typography>
-        </Box>
-
-        <Divider />
-
-        {/* Credit 余额 - 使用 Story 1-2 的组件 */}
-        <MenuItem disabled>
-          <Box data-testid="user-menu-credit-balance">
-            <CreditDisplay creditBalance={user.creditBalance} />
-          </Box>
-        </MenuItem>
-
-        {/* 订阅状态 */}
-        <MenuItem disabled>
-          <Chip
-            label={`${user.subscriptionTier} 等级`}
-            size="small"
-            color="default"
-            data-testid="user-menu-subscription-tier"
-          />
-        </MenuItem>
-
-        <Divider />
-
-        {/* 登出按钮 - 使用 Story 1-3 的组件 */}
-        <MenuItem onClick={handleClose} data-testid="user-menu-sign-out">
-          <SignOutButton />
-        </MenuItem>
-      </Menu>
+        <Alert
+          severity="success"
+          sx={{
+            width: '100%',
+            bgcolor: '#64748b',
+            color: '#fff',
+            '& .MuiAlert-icon': { color: '#fff' },
+          }}
+        >
+          账户已删除，感谢您使用我们的服务
+        </Alert>
+      </Snackbar>
     </>
   );
 }

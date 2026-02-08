@@ -16,7 +16,6 @@
  */
 
 import { Snackbar, Alert } from '@mui/material';
-import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import { useState, useEffect } from 'react';
 
 export interface WelcomeSnackbarProps {
@@ -60,7 +59,7 @@ export function WelcomeSnackbar({
         onClose={handleClose}
         severity="success"
         iconMapping={{
-          success: <CheckCircleIcon data-testid="checkmark-icon" sx={{ fontSize: 28 }} />,
+          success: <span data-testid="checkmark-icon" aria-hidden="true">✓</span>,
         }}
         sx={{
           backgroundColor: '#22C55E', // Green 500

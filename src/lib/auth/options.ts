@@ -2,7 +2,7 @@ import type { NextAuthConfig } from 'next-auth';
 import Google from 'next-auth/providers/google';
 import { DrizzleAdapter } from '@auth/drizzle-adapter';
 import { db } from '@/lib/db';
-import { user } from '@/lib/db/schema';
+import { user as userTable } from '@/lib/db/schema';
 import { eq } from 'drizzle-orm';
 import { checkAndRewardNewUser, checkNewUser } from '@/features/auth/services';
 
@@ -15,7 +15,7 @@ import { checkAndRewardNewUser, checkNewUser } from '@/features/auth/services';
  * Google OAuth 2.0 集成配置 + 新用户奖励机制 + 会话持久化
  */
 export const authOptions: NextAuthConfig = {
-  adapter: DrizzleAdapter(db),
+  adapter: DrizzleAdapter(db) as NextAuthConfig['adapter'],
   providers: [
     Google({
       clientId: process.env.GOOGLE_CLIENT_ID || '',
@@ -23,8 +23,7 @@ export const authOptions: NextAuthConfig = {
     }),
   ],
   pages: {
-    // 使用 NextAuth 默认登录页面
-    // signIn: '/auth/signin', // 自定义页面未实现，使用默认
+    signIn: '/auth/signin',
     error: '/auth/error',
   },
   session: {
@@ -110,7 +109,7 @@ export const authOptions: NextAuthConfig = {
           // Epic 1-4: Load credit and subscription info from database
           try {
             const dbUser = await db.query.user.findFirst({
-              where: eq(user.id, token.sub), // FIXED: Use token.sub instead of user.id
+              where: eq(userTable.id, token.sub ?? ''),
               columns: {
                 creditBalance: true,
                 subscriptionTier: true,
@@ -118,7 +117,11 @@ export const authOptions: NextAuthConfig = {
             });
 
             token.creditBalance = dbUser?.creditBalance ?? 0;
-            token.subscriptionTier = dbUser?.subscriptionTier ?? 'free';
+            const tier = dbUser?.subscriptionTier;
+            token.subscriptionTier =
+              tier === 'lite' || tier === 'standard' || tier === 'free'
+                ? tier
+                : 'free';
           } catch (error) {
             console.error('[Auth] Error loading user credit/subscription:', error);
             token.creditBalance = 0;
@@ -146,7 +149,7 @@ export const authOptions: NextAuthConfig = {
         }
         // 添加过期时间 (Story 1-3, AC-1)
         if (token.exp) {
-          session.expires = new Date(token.exp * 1000).toISOString();
+          session.expires = new Date(token.exp * 1000).toISOString() as typeof session.expires;
         }
         return session;
       } catch (error) {

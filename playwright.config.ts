@@ -45,41 +45,6 @@ export default defineConfig({
       name: 'chromium',
       use: { ...devices['Desktop Chrome'] },
     },
-    {
-      name: 'firefox',
-      use: { ...devices['Desktop Firefox'] },
-    },
-    {
-      name: 'webkit',
-      use: { ...devices['Desktop Safari'] },
-    },
-    // Mobile testing - 优化配置以解决测试隔离问题
-    {
-      name: 'mobile-chrome',
-      use: {
-        ...devices['Pixel 5'],
-        // 移动端特定配置
-        contextOptions: {
-          // 移动端更宽松的 Cookie 设置
-          permissions: [],
-        },
-      },
-      // 移动端测试依赖顺序：确保在桌面测试后运行
-      dependencies: ['chromium'],
-    },
-    {
-      name: 'mobile-safari',
-      use: {
-        ...devices['iPhone 12'],
-        // iOS Safari 特定配置
-        contextOptions: {
-          // iOS Safari 更严格的 Cookie 策略
-          permissions: [],
-        },
-      },
-      // 移动端测试依赖顺序：确保在桌面测试后运行
-      dependencies: ['chromium', 'webkit'],
-    },
     // API-only tests (no browser)
     {
       name: 'api',

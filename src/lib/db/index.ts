@@ -1,6 +1,7 @@
 import { drizzle } from 'drizzle-orm/postgres-js';
 import postgres from 'postgres';
 import * as schema from './schema';
+import type { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 
 // 验证必要环境变量
 if (!process.env.DATABASE_URL) {
@@ -15,9 +16,9 @@ const connectionConfig = {
 
 // 连接实例（单例模式）
 let _client: postgres.Sql | null = null;
-let _db: ReturnType<typeof drizzle> | null = null;
+let _db: PostgresJsDatabase<typeof schema> | null = null;
 
-export function getDb(): ReturnType<typeof drizzle> {
+export function getDb(): PostgresJsDatabase<typeof schema> {
   if (!_client) {
     try {
       _client = postgres(process.env.DATABASE_URL!, connectionConfig);

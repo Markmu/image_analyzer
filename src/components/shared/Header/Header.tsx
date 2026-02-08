@@ -1,6 +1,7 @@
 'use client';
 
 import { useSession } from 'next-auth/react';
+import Link from 'next/link';
 import { UserMenu } from '@/features/auth/components/UserMenu';
 import { SignInButton } from '@/features/auth/components/SignInButton';
 
@@ -17,9 +18,9 @@ export function Header() {
 
       {/* Navigation - 占位符 */}
       <nav className="hidden md:flex gap-6">
-        <a href="/" className="text-slate-300 hover:text-white">
+        <Link href="/" className="text-slate-300 hover:text-white">
           首页
-        </a>
+        </Link>
       </nav>
 
       {/* 右侧：登录状态相关 */}
