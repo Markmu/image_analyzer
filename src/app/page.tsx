@@ -1,5 +1,5 @@
 import Image from 'next/image';
-import { SignInButton } from '@/features/auth/components/SignInButton';
+import { AuthActionButton } from '@/features/auth/components/AuthActionButton';
 
 export default function Home() {
   return (
@@ -7,7 +7,7 @@ export default function Home() {
       <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
         {/* OAuth Test Section */}
         <div className="absolute top-4 right-4">
-          <SignInButton />
+          <AuthActionButton />
         </div>
 
         <Image

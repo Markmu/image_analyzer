@@ -46,8 +46,8 @@ export const authOptions: NextAuthConfig = {
     async signIn({ user, account }) {
       try {
         // 验证必要字段存在
-        if (!user?.email || !user?.id) {
-          console.error('[Auth] Missing required user fields');
+        if (!user?.email) {
+          console.error('[Auth] Missing required user email');
           return false;
         }
 
@@ -65,18 +65,24 @@ export const authOptions: NextAuthConfig = {
         }
 
         // Epic 1-2: 检测并奖励新用户
-        try {
-          const rewardResult = await checkAndRewardNewUser(user.id);
-          if (rewardResult.showWelcome) {
-            console.log('[Auth] New user rewarded:', {
-              userId: user.id,
-              creditedAmount: rewardResult.creditedAmount,
-              welcomeMessage: rewardResult.welcomeMessage,
-            });
+        // 注意：某些 OAuth 场景下 signIn 回调阶段可能暂时拿不到 user.id，
+        // 不能因此阻断登录流程。
+        if (user.id) {
+          try {
+            const rewardResult = await checkAndRewardNewUser(user.id);
+            if (rewardResult.showWelcome) {
+              console.log('[Auth] New user rewarded:', {
+                userId: user.id,
+                creditedAmount: rewardResult.creditedAmount,
+                welcomeMessage: rewardResult.welcomeMessage,
+              });
+            }
+          } catch (rewardError) {
+            // Credit reward failure should not block login
+            console.error('[Auth] Credit reward error (non-blocking):', rewardError);
           }
-        } catch (rewardError) {
-          // Credit reward failure should not block login
-          console.error('[Auth] Credit reward error (non-blocking):', rewardError);
+        } else {
+          console.warn('[Auth] user.id missing in signIn callback; skip reward check');
         }
 
         // Drizzle Adapter 会自动处理用户创建和账户关联
@@ -97,9 +103,14 @@ export const authOptions: NextAuthConfig = {
 
           // Epic 1-2: Check if new user for welcome message
           try {
-            const { isNewUser } = await checkNewUser(user.id);
-            token.isNewUser = isNewUser;
-            token.showWelcome = isNewUser;
+            if (user.id) {
+              const { isNewUser } = await checkNewUser(user.id);
+              token.isNewUser = isNewUser;
+              token.showWelcome = isNewUser;
+            } else {
+              token.isNewUser = false;
+              token.showWelcome = false;
+            }
           } catch (error) {
             console.error('[Auth] Error checking new user status:', error);
             token.isNewUser = false;
