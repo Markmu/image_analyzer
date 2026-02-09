@@ -1,6 +1,6 @@
 # Story 2.1: image-upload
 
-Status: done
+Status: read-for-dev
 
 <!-- Note: Validation is optional. Run validate-create-story for quality check before dev-story. -->
 
@@ -144,6 +144,7 @@ Status: done
 ### Epic Context
 
 **Epic 2: 图片上传与管理**
+
 - **用户成果**: 用户可以通过拖拽或点击上传图片,支持单张和批量上传(支持桌面端和移动端)
 - **包含的 Stories**:
   - 2-1: image-upload (当前故事)
@@ -156,6 +157,7 @@ Status: done
 ### Architecture Requirements
 
 **技术栈:**
+
 - **前端**: Next.js 15 + React 18 + TypeScript
 - **状态管理**: Zustand(上传状态) + React Query(服务器状态)
 - **UI 组件**: MUI + Tailwind CSS
@@ -169,20 +171,24 @@ Status: done
 // src/lib/db/schema.ts
 import { pgTable, uuid, text, integer, timestamp, index } from 'drizzle-orm/pg-core';
 
-export const images = pgTable('images', {
-  id: uuid('id').primaryKey().defaultRandom(),
-  userId: text('user_id').notNull(), // 外键关联 users 表
-  filePath: text('file_path').notNull(), // R2 存储路径
-  fileSize: integer('file_size').notNull(), // 文件大小(字节)
-  fileFormat: text('file_format').notNull(), // JPEG, PNG, WebP
-  width: integer('width'), // 图片宽度
-  height: integer('height'), // 图片高度
-  uploadStatus: text('upload_status').notNull(), // pending, completed, failed
-  createdAt: timestamp('created_at').defaultNow(),
-  updatedAt: timestamp('updated_at').defaultNow(),
-}, (table) => ({
-  userIdIdx: index('images_user_id_idx').on(table.userId),
-}));
+export const images = pgTable(
+  'images',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    userId: text('user_id').notNull(), // 外键关联 users 表
+    filePath: text('file_path').notNull(), // R2 存储路径
+    fileSize: integer('file_size').notNull(), // 文件大小(字节)
+    fileFormat: text('file_format').notNull(), // JPEG, PNG, WebP
+    width: integer('width'), // 图片宽度
+    height: integer('height'), // 图片高度
+    uploadStatus: text('upload_status').notNull(), // pending, completed, failed
+    createdAt: timestamp('created_at').defaultNow(),
+    updatedAt: timestamp('updated_at').defaultNow(),
+  },
+  (table) => ({
+    userIdIdx: index('images_user_id_idx').on(table.userId),
+  }),
+);
 ```
 
 **API 设计:**
@@ -240,6 +246,7 @@ src/app/api/upload/
 ### UX Requirements
 
 **视觉设计:**
+
 - **Glassmorphism 风格**: 半透明背景 + 模糊效果
   - 参考: `src/styles/glassmorphism.css`
 - **深色模式背景**: Slate 900 (#0F172A)
@@ -310,16 +317,19 @@ src/app/api/upload/
 ```
 
 **响应式断点:**
+
 - **移动端** (< 768px): 单列布局,底部 FAB
 - **平板端** (768-1024px): 单列布局,稍宽间距
 - **桌面端** (≥ 1024px): 三列布局,上传区域占据左侧
 
 **字体规范:**
+
 - 标题: Poppins 600
 - 正文: Open Sans 400
 - 移动端最小触摸目标: 44x44px
 
 **无障碍要求:**
+
 - 所有可交互元素支持键盘导航
 - 上传区域有 `aria-label` 描述
 - 进度条有 `aria-valuenow` 实时值
@@ -328,12 +338,14 @@ src/app/api/upload/
 ### Implementation Patterns
 
 **命名规范:**
+
 - **React 组件**: PascalCase (ImageUploader)
 - **函数/变量**: camelCase (uploadImageToR2)
 - **数据库表/列**: snake_case (images, file_path)
 - **文件名**: kebab-case (image-uploader.tsx)
 
 **状态管理模式:**
+
 ```typescript
 // Zustand store for upload state
 interface UploadState {
@@ -358,6 +370,7 @@ const useUploadStore = create<UploadState>((set) => ({
 ```
 
 **API 调用模式:**
+
 ```typescript
 // React Query hook for upload
 const useUploadImage = () => {
@@ -386,6 +399,7 @@ const useUploadImage = () => {
 ```
 
 **错误处理模式:**
+
 ```typescript
 // 统一错误处理
 try {
@@ -404,17 +418,20 @@ try {
 ### Testing Requirements
 
 **单元测试:**
+
 - 图片验证逻辑测试(格式、大小、分辨率)
 - R2 上传函数测试(使用 mock)
 - 数据库记录创建测试
 
 **E2E 测试:**
+
 - 拖拽上传完整流程
 - 点击上传完整流程
 - 取消上传流程
 - 错误场景(格式错误、大小超限、网络错误)
 
 **测试框架:**
+
 - Jest + React Testing Library(单元测试)
 - Playwright(E2E 测试)
 
@@ -423,6 +440,7 @@ try {
 无 - 这是 Epic 2 的第一个故事。
 
 **从 Epic 1 学习到的经验:**
+
 - 确保所有数据库 Schema 都使用 Drizzle ORM 定义
 - NextAuth session 验证在 API 路由中使用 `auth()` 函数
 - 组件统一使用 MUI + Tailwind CSS 组合
@@ -431,11 +449,13 @@ try {
 ### Git Intelligence
 
 **最近的提交(从 git log):**
+
 - `43ada13`: feat: 完成Epic 1回顾并优化认证组件
 - `6fb24be`: stabilize test baseline and implement non-epic1 api/e2e scaffolding
 - `c9154ed`: feat: 完成Story 1-5账户删除功能
 
 **学习到的代码模式:**
+
 - 认证相关功能使用 `src/lib/auth/` 模块
 - 数据库操作统一使用 `src/lib/db/` 模块
 - 测试文件放在同目录,命名为 `*.test.tsx`
@@ -443,101 +463,18 @@ try {
 ### Dependencies
 
 **依赖的 Stories:**
+
 - Epic 1: 用户认证与账户系统(completed)
   - 需要 NextAuth session 验证
 
 **依赖的组件:**
+
 - `src/lib/auth/`: 认证模块
 - `src/lib/db/`: 数据库模块
 - `src/components/ui/`: MUI 基础组件
 
 **后续 Stories:**
+
 - 2-2: batch-upload (将基于当前故事的实现添加批量功能)
 
 ## Dev Agent Record
-
-### Agent Model Used
-
-Claude Sonnet 4.5 (claude-sonnet-4-5-20250929)
-
-### Team Members
-
-- **Murat (QA)**: 测试工程师 - 执行Phase 1, 2, 4, 7
-- **Amelia (Dev)**: 开发工程师 - 执行Phase 3, 5, 6, 8
-- **Bob (Coordinator)**: 协调员 - 执行Phase 9
-
-### Development Workflow
-
-**开发模式**: YOLO Mode (快速迭代,9个Phase)
-
-**Phase执行记录**:
-- Phase 1 (Murat): 设计测试 ✓
-- Phase 2 (Murat): Review测试设计 ✓
-- Phase 3 (Amelia): 实现功能 ✓
-- Phase 4 (Murat): 验证测试 ✓
-- Phase 5 (Amelia): 代码审查 ✓
-- Phase 6 (Amelia): 重构 ✓
-- Phase 7 (Murat): 验证重构 ✓
-- Phase 8 (Amelia): Review重构 ✓
-- Phase 9 (Bob): 更新状态 ✓
-
-### Completion Notes
-
-**Story完成时间**: 2026-02-09
-
-**实现的主要功能**:
-1. 数据库Schema设计 (images表)
-2. Cloudflare R2存储集成
-3. Next.js API路由实现 (/api/upload)
-4. ImageUploader前端组件(拖拽+点击上传)
-5. 响应式设计(桌面端+移动端)
-6. 错误处理和用户教育
-7. 完整的测试覆盖(单元测试+E2E测试)
-
-**技术亮点**:
-- 使用Drizzle ORM定义数据库Schema
-- R2流式上传支持
-- react-dropzone实现拖拽上传
-- Zustand状态管理
-- React Query API调用
-- MUI + Tailwind CSS响应式设计
-- Glassmorphism视觉风格
-
-**业务价值达成**:
-- 用户可以通过简单直观的方式上传图片 ✓
-- 系统支持拖拽和点击两种上传方式 ✓
-- 桌面端和移动端体验优化 ✓
-- 实时上传进度显示 ✓
-- 完善的错误处理和用户引导 ✓
-
-**质量保证**:
-- 7个验收标准全部满足
-- 单元测试覆盖核心逻辑
-- E2E测试覆盖用户场景
-- 代码质量通过审查
-- 重构优化代码结构
-
-**下一步建议**:
-- Story 2-2 (batch-upload) 可以基于当前实现添加批量功能
-- 建议在Story 2-3中增强图片验证逻辑(集成视觉模型)
-- 建议在Story 2-4中优化进度反馈体验
-
-### File List
-
-**创建的文件**:
-- `/Users/muchao/code/image_analyzer/src/lib/db/schema.ts` - images表定义
-- `/Users/muchao/code/image_analyzer/src/lib/r2/index.ts` - R2客户端配置
-- `/Users/muchao/code/image_analyzer/src/lib/r2/upload.ts` - R2上传函数
-- `/Users/muchao/code/image_analyzer/src/lib/r2/delete.ts` - R2删除函数
-- `/Users/muchao/code/image_analyzer/src/app/api/upload/route.ts` - 上传API
-- `/Users/muchao/code/image_analyzer/src/features/analysis/components/ImageUploader/index.tsx` - 组件导出
-- `/Users/muchao/code/image_analyzer/src/features/analysis/components/ImageUploader/ImageUploader.tsx` - 主组件
-- `/Users/muchao/code/image_analyzer/src/features/analysis/components/ImageUploader/types.ts` - 类型定义
-- `/Users/muchao/code/image_analyzer/src/features/analysis/components/ImageUploader/ImageUploader.test.tsx` - 单元测试
-
-**测试文件**:
-- E2E测试覆盖拖拽上传、点击上传、取消上传、错误场景
-
-**配置文件更新**:
-- 数据库迁移文件 (Drizzle Kit生成)
-- 环境变量配置 (R2相关)

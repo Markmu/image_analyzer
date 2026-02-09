@@ -55,7 +55,7 @@ development_status:
 
   # Epic 2: 图片上传与管理
   epic-2: in-progress
-  2-1-image-upload: done
+  2-1-image-upload: ready-for-dev
   2-2-batch-upload: ready-for-dev
   2-3-upload-validation: ready-for-dev
   2-4-progress-feedback: ready-for-dev
