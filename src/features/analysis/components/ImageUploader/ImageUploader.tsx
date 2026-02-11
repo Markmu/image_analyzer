@@ -3,9 +3,12 @@
 import React, { useCallback, useState } from 'react';
 import { useDropzone } from 'react-dropzone';
 import axios, { CancelTokenSource } from 'axios';
-import { Box, Typography, LinearProgress, Button, Alert } from '@mui/material';
-import { CloudUpload, CheckCircle, Error as ErrorIcon } from '@mui/icons-material';
+import { Box, Typography, LinearProgress, Button } from '@mui/material';
+import { CloudUpload } from '@mui/icons-material';
 import type { ImageData, UploadStatus } from './types';
+import { validateImageUpload, type ValidationResult } from '@/lib/utils/image-validation';
+import ValidationStatus from '../ValidationStatus';
+import FirstTimeGuide from '../FirstTimeGuide';
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 const ALLOWED_FORMATS = ['image/jpeg', 'image/png', 'image/webp'];
@@ -18,33 +21,43 @@ interface ImageUploaderProps {
 export function ImageUploader({ onUploadSuccess, onUploadError }: ImageUploaderProps) {
   const [uploadStatus, setUploadStatus] = useState<UploadStatus>('idle');
   const [uploadProgress, setUploadProgress] = useState(0);
-  const [error, setError] = useState<string | null>(null);
+  const [validationResult, setValidationResult] = useState<ValidationResult | null>(null);
   const [imageData, setImageData] = useState<ImageData | null>(null);
   const [cancelTokenSource, setCancelTokenSource] = useState<CancelTokenSource | null>(null);
+  const [pendingFile, setPendingFile] = useState<File | null>(null);
 
-  const validateFile = useCallback((file: File): string | null => {
-    if (!ALLOWED_FORMATS.includes(file.type)) {
-      return 'Only JPEG, PNG, and WebP formats are supported';
-    }
-    if (file.size > MAX_FILE_SIZE) {
-      return 'File size exceeds 10MB limit';
-    }
-    return null;
+  const validateFile = useCallback(async (file: File): Promise<ValidationResult> => {
+    const result = await validateImageUpload(file);
+    setValidationResult(result);
+    return result;
   }, []);
 
   const uploadFile = useCallback(
     async (file: File) => {
-      const validationError = validateFile(file);
-      if (validationError) {
-        setError(validationError);
-        setUploadStatus('error');
-        onUploadError?.(validationError);
+      // Run validation first
+      const validation = await validateFile(file);
+
+      if (!validation.valid) {
+        onUploadError?.(validation.errors[0]?.message || 'Validation failed');
         return;
       }
 
+      // If there are warnings, wait for user to decide
+      if (validation.warnings.length > 0) {
+        setPendingFile(file);
+        return;
+      }
+
+      proceedWithUpload(file);
+    },
+    [validateFile, onUploadError]
+  );
+
+  const proceedWithUpload = useCallback(
+    async (file: File) => {
       setUploadStatus('uploading');
       setUploadProgress(0);
-      setError(null);
+      setValidationResult(null);
 
       const source = axios.CancelToken.source();
       setCancelTokenSource(source);
@@ -69,10 +82,15 @@ export function ImageUploader({ onUploadSuccess, onUploadError }: ImageUploaderP
         if (response.data.success) {
           setImageData(response.data.data);
           setUploadStatus('success');
+          setPendingFile(null);
           onUploadSuccess?.(response.data.data);
         } else {
           const errorMessage = response.data.error?.message || 'Upload failed';
-          setError(errorMessage);
+          setValidationResult({
+            valid: false,
+            errors: [{ code: 'UPLOAD_ERROR', message: errorMessage }],
+            warnings: [],
+          });
           setUploadStatus('error');
           onUploadError?.(errorMessage);
         }
@@ -80,9 +98,14 @@ export function ImageUploader({ onUploadSuccess, onUploadError }: ImageUploaderP
         if (axios.isCancel(err)) {
           setUploadStatus('idle');
           setUploadProgress(0);
+          setValidationResult(null);
         } else {
           const errorMessage = err instanceof Error ? err.message : 'Upload failed';
-          setError(errorMessage);
+          setValidationResult({
+            valid: false,
+            errors: [{ code: 'UPLOAD_ERROR', message: errorMessage }],
+            warnings: [],
+          });
           setUploadStatus('error');
           onUploadError?.(errorMessage);
         }
@@ -90,7 +113,7 @@ export function ImageUploader({ onUploadSuccess, onUploadError }: ImageUploaderP
         setCancelTokenSource(null);
       }
     },
-    [validateFile, onUploadSuccess, onUploadError]
+    [onUploadSuccess, onUploadError]
   );
 
   const cancelUpload = useCallback(() => {
@@ -98,6 +121,17 @@ export function ImageUploader({ onUploadSuccess, onUploadError }: ImageUploaderP
       cancelTokenSource.cancel('Upload cancelled by user');
     }
   }, [cancelTokenSource]);
+
+  const handleContinueAnyway = useCallback(() => {
+    if (pendingFile) {
+      proceedWithUpload(pendingFile);
+    }
+  }, [pendingFile, proceedWithUpload]);
+
+  const handleChangeImage = useCallback(() => {
+    setPendingFile(null);
+    setValidationResult(null);
+  }, []);
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop: (acceptedFiles) => {
@@ -117,6 +151,8 @@ export function ImageUploader({ onUploadSuccess, onUploadError }: ImageUploaderP
 
   return (
     <Box sx={{ width: '100%' }}>
+      <FirstTimeGuide />
+
       <Box
         {...getRootProps()}
         sx={{
@@ -144,7 +180,7 @@ export function ImageUploader({ onUploadSuccess, onUploadError }: ImageUploaderP
           }}
         />
         <Typography variant="h6" sx={{ mb: 1, color: 'white' }}>
-          {isDragActive ? 'Drop the image here' : 'Drag & drop an image'}
+          {isDragActive ? 'Drop image here' : 'Drag & drop an image'}
         </Typography>
         <Typography variant="body2" sx={{ color: 'rgba(255, 255, 255, 0.6)' }}>
           or click to select (Max 10MB)
@@ -175,6 +211,7 @@ export function ImageUploader({ onUploadSuccess, onUploadError }: ImageUploaderP
               variant="outlined"
               size="small"
               sx={{ mt: 2, borderColor: 'rgba(255, 255, 255, 0.3)', color: 'rgba(255, 255, 255, 0.7)' }}
+              data-testid="cancel-upload-btn"
             >
               Cancel
             </Button>
@@ -182,40 +219,22 @@ export function ImageUploader({ onUploadSuccess, onUploadError }: ImageUploaderP
         </Box>
       )}
 
+      {validationResult && (
+        <ValidationStatus
+          result={validationResult}
+          onContinueAnyway={handleContinueAnyway}
+          onChangeImage={handleChangeImage}
+        />
+      )}
+
       {uploadStatus === 'success' && imageData && (
-        <Alert
-          icon={<CheckCircle sx={{ color: '#22C55E' }} />}
-          severity="success"
-          sx={{ mt: 3, backgroundColor: 'rgba(34, 197, 94, 0.1)', color: '#22C55E' }}
-          data-testid="upload-success"
-        >
-          Image uploaded successfully! ({imageData.width}x{imageData.height} {imageData.fileFormat})
-        </Alert>
-      )}
-
-      {uploadStatus === 'error' && error && (
-        <Alert
-          icon={<ErrorIcon sx={{ color: '#EF4444' }} />}
-          severity="error"
-          sx={{ mt: 3, backgroundColor: 'rgba(239, 68, 68, 0.1)', color: '#EF4444' }}
-          data-testid="upload-error"
-        >
-          {error}
-        </Alert>
-      )}
-
-      {imageData?.warning && (
-        <Alert
-          severity="warning"
-          sx={{ mt: 2, backgroundColor: 'rgba(251, 191, 36, 0.1)' }}
-        >
-          <Typography variant="body2" sx={{ color: 'rgba(255, 255, 255, 0.9)' }}>
-            {imageData.warning.message}
-          </Typography>
-          <Typography variant="caption" sx={{ color: 'rgba(255, 255, 255, 0.6)' }}>
-            {imageData.warning.suggestion}
-          </Typography>
-        </Alert>
+        <ValidationStatus
+          result={{
+            valid: true,
+            errors: [],
+            warnings: [],
+          }}
+        />
       )}
     </Box>
   );
