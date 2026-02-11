@@ -1,4 +1,4 @@
-import { pgTable, text, integer, timestamp, uniqueIndex, index } from 'drizzle-orm/pg-core';
+import { pgTable, text, varchar, integer, timestamp, uniqueIndex, index } from 'drizzle-orm/pg-core';
 
 /**
  * NextAuth 认证表
@@ -12,19 +12,19 @@ import { pgTable, text, integer, timestamp, uniqueIndex, index } from 'drizzle-o
 // 用户表 (user) - 注意：NextAuth 要求单数形式
 // ============================================================================
 export const user = pgTable('user', {
-  id: text('id').primaryKey(),
+  id: varchar('id', { length: 255 }).primaryKey(),
 
   // 用户基本信息（从 Google OAuth 获取）
-  email: text('email').notNull(),
-  name: text('name').notNull(),
-  image: text('image'), // Profile picture URL
+  email: varchar('email', { length: 320 }).notNull(),
+  name: varchar('name', { length: 255 }).notNull(),
+  image: varchar('image', { length: 2048 }), // Profile picture URL
 
   // 邮箱验证字段（NextAuth 标准字段）
   emailVerified: timestamp('emailVerified'),
 
   // Credit 和订阅信息（后续故事使用）
   creditBalance: integer('credit_balance').notNull().default(0),
-  subscriptionTier: text('subscription_tier').notNull().default('free'),
+  subscriptionTier: varchar('subscription_tier', { length: 32 }).notNull().default('free'),
 
   // 时间戳
   createdAt: timestamp('created_at').notNull().defaultNow(),
@@ -37,17 +37,17 @@ export const user = pgTable('user', {
 // OAuth 账户表 (account) - 注意：NextAuth 要求单数形式
 // ============================================================================
 export const account = pgTable('account', {
-  userId: text('userId').notNull().references(() => user.id, { onDelete: 'cascade' }),
-  type: text('type').notNull(), // "oauth" | "email" | "credentials"
-  provider: text('provider').notNull(), // "google" | "github" etc.
-  providerAccountId: text('providerAccountId').notNull(),
+  userId: varchar('userId', { length: 255 }).notNull().references(() => user.id, { onDelete: 'cascade' }),
+  type: varchar('type', { length: 32 }).notNull(), // "oauth" | "email" | "credentials"
+  provider: varchar('provider', { length: 64 }).notNull(), // "google" | "github" etc.
+  providerAccountId: varchar('providerAccountId', { length: 255 }).notNull(),
   refresh_token: text('refresh_token'),
   access_token: text('access_token'),
   expires_at: integer('expires_at'),
-  token_type: text('token_type'),
-  scope: text('scope'),
+  token_type: varchar('token_type', { length: 64 }),
+  scope: varchar('scope', { length: 1024 }),
   id_token: text('id_token'),
-  session_state: text('session_state'),
+  session_state: varchar('session_state', { length: 255 }),
 }, (table) => ({
   providerIdx: uniqueIndex('account_provider_providerAccountId_key').on(table.provider, table.providerAccountId),
 }));
@@ -56,8 +56,8 @@ export const account = pgTable('account', {
 // 会话表 (session) - 注意：NextAuth 要求单数形式
 // ============================================================================
 export const session = pgTable('session', {
-  sessionToken: text('sessionToken').primaryKey(),
-  userId: text('userId').notNull().references(() => user.id, { onDelete: 'cascade' }),
+  sessionToken: varchar('sessionToken', { length: 255 }).primaryKey(),
+  userId: varchar('userId', { length: 255 }).notNull().references(() => user.id, { onDelete: 'cascade' }),
   expires: timestamp('expires').notNull(),
 });
 
@@ -65,8 +65,8 @@ export const session = pgTable('session', {
 // 验证令牌表 (verificationToken) - 注意：NextAuth 要求单数形式
 // ============================================================================
 export const verificationToken = pgTable('verificationToken', {
-  identifier: text('identifier').notNull(),
-  token: text('token').notNull(),
+  identifier: varchar('identifier', { length: 320 }).notNull(),
+  token: varchar('token', { length: 255 }).notNull(),
   expires: timestamp('expires').notNull(),
 }, (table) => ({
   tokenIdx: uniqueIndex('verificationToken_token_key').on(table.token),
@@ -85,24 +85,24 @@ export const verificationTokens = verificationToken;
 // 账户删除审计表 (account_deletions)
 // ============================================================================
 export const accountDeletions = pgTable('account_deletions', {
-  userId: text('user_id').primaryKey(),
+  userId: varchar('user_id', { length: 255 }).primaryKey(),
   deletedAt: timestamp('deleted_at').notNull().defaultNow(),
-  ipAddress: text('ip_address'),
-  userAgent: text('user_agent'),
+  ipAddress: varchar('ip_address', { length: 45 }),
+  userAgent: varchar('user_agent', { length: 1024 }),
 });
 
 // ============================================================================
 // 图片表 (images) - Epic 2: 图片上传与管理
 // ============================================================================
 export const images = pgTable('images', {
-  id: text('id').primaryKey(),
-  userId: text('user_id').notNull().references(() => user.id, { onDelete: 'cascade' }),
-  filePath: text('file_path').notNull(), // R2 存储路径
+  id: varchar('id', { length: 64 }).primaryKey(),
+  userId: varchar('user_id', { length: 255 }).notNull().references(() => user.id, { onDelete: 'cascade' }),
+  filePath: varchar('file_path', { length: 1024 }).notNull(), // R2 存储路径
   fileSize: integer('file_size').notNull(), // 文件大小(字节)
-  fileFormat: text('file_format').notNull(), // JPEG, PNG, WebP
+  fileFormat: varchar('file_format', { length: 32 }).notNull(), // JPEG, PNG, WebP
   width: integer('width'), // 图片宽度
   height: integer('height'), // 图片高度
-  uploadStatus: text('upload_status').notNull(), // pending, completed, failed
+  uploadStatus: varchar('upload_status', { length: 32 }).notNull(), // pending, completed, failed
   createdAt: timestamp('created_at').notNull().defaultNow(),
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
 }, (table) => ({
