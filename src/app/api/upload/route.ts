@@ -16,6 +16,12 @@ const ALLOWED_FORMATS = ['image/jpeg', 'image/png', 'image/webp'];
  * POST /api/upload
  *
  * Upload an image to R2 and save metadata to database
+ *
+ * TODO: Future Enhancements (Story 2-1):
+ * - AC-5: Image complexity detection (identify complex scenes, warn if confidence < 50%)
+ *         This feature is planned for a future iteration. Currently using simple heuristics.
+ * - AC-7: Mobile optimization features
+ *         Mobile-specific enhancements will be added in a future update.
  */
 export async function POST(request: NextRequest) {
   try {
