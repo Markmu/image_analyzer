@@ -9,7 +9,10 @@ export default defineConfig({
     environment: 'jsdom',
     // Single source of truth for unit/integration tests
     setupFiles: ['./tests/setup/vitest.setup.ts'],
-    include: ['tests/**/*.test.{ts,tsx}'],
+    include: [
+      'tests/**/*.test.{ts,tsx}',
+      'src/features/**/*.test.{ts,tsx}',
+    ],
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html'],

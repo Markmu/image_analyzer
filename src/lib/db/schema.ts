@@ -1,4 +1,4 @@
-import { pgTable, text, varchar, integer, timestamp, uniqueIndex, index } from 'drizzle-orm/pg-core';
+import { pgTable, text, varchar, integer, timestamp, uniqueIndex, index, uuid } from 'drizzle-orm/pg-core';
 
 /**
  * NextAuth 认证表
@@ -103,8 +103,12 @@ export const images = pgTable('images', {
   width: integer('width'), // 图片宽度
   height: integer('height'), // 图片高度
   uploadStatus: varchar('upload_status', { length: 32 }).notNull(), // pending, completed, failed
+  // Batch upload fields (Story 2-2)
+  batchId: uuid('batch_id'), // 批次 ID，关联同批次上传的图片
+  uploadOrder: integer('upload_order'), // 上传顺序
   createdAt: timestamp('created_at').notNull().defaultNow(),
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
 }, (table) => ({
   userIdIdx: index('images_user_id_idx').on(table.userId),
+  batchIdIdx: index('images_batch_id_idx').on(table.batchId),
 }));
