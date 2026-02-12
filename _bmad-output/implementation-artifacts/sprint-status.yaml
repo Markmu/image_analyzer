@@ -62,8 +62,8 @@ development_status:
   epic-2-retrospective: optional
 
   # Epic 3: AI 风格分析
-  epic-3: backlog
-  3-1-style-analysis: backlog
+  epic-3: in-progress
+  3-1-style-analysis: done
   3-2-batch-analysis: backlog
   3-3-analysis-progress: backlog
   3-4-vision-model-integration: backlog

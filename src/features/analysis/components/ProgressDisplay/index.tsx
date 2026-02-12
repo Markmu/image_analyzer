@@ -7,7 +7,7 @@ import React from 'react';
 import { Box, useTheme, useMediaQuery } from '@mui/material';
 import { ProgressBar } from './ProgressBar';
 import { StageIndicator } from './StageIndicator';
-import { TermScroller, SimpleTermDisplay } from './TermScroller';
+import { TermScroller } from './TermScroller';
 import { BatchProgressDisplay } from './BatchProgressDisplay';
 import { MobileProgressBar } from './MobileProgressBar';
 import { QueuePositionDisplay } from './MobileProgressBar';
@@ -119,11 +119,7 @@ export const ProgressDisplay: React.FC<ProgressDisplayProps> = ({
       {/* 专业术语滚动器 */}
       {showTermScroller && isAnalyzing && terms.length > 0 && (
         <Box sx={{ mb: 2 }}>
-          {isMobile ? (
-            <SimpleTermDisplay term={currentTerm || terms[0]} />
-          ) : (
-            <TermScroller terms={terms} />
-          )}
+          <TermScroller terms={terms} />
         </Box>
       )}
 

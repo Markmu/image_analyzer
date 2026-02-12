@@ -3,10 +3,14 @@
  * GET /api/analysis/[id]/status
  *
  * 返回分析任务的当前状态和进度
+ * 如果分析完成，返回完整的结果数据
  */
 
 import { NextRequest, NextResponse } from 'next/server';
 import type { AnalysisStage } from '@/lib/utils/time-estimation';
+import { getDb } from '@/lib/db';
+import { analysisResults } from '@/lib/db/schema';
+import { eq } from 'drizzle-orm';
 
 // 模拟的分析任务存储（实际应用中应该使用数据库或 Redis）
 const analysisTasks = new Map<string, {
@@ -38,7 +42,35 @@ export async function GET(
       );
     }
 
-    // 获取分析任务状态
+    // 检查是否是数字 ID（真实数据库记录）
+    const numericId = parseInt(analysisId, 10);
+    if (!isNaN(numericId)) {
+      // 查询数据库中的真实分析结果
+      const db = getDb();
+      const results = await db
+        .select()
+        .from(analysisResults)
+        .where(eq(analysisResults.id, numericId))
+        .limit(1);
+
+      if (results.length > 0) {
+        const result = results[0];
+        return NextResponse.json({
+          success: true,
+          data: {
+            analysisId: result.id,
+            status: 'completed',
+            progress: 100,
+            result: result.analysisData,
+            confidenceScore: result.confidenceScore,
+            feedback: result.feedback,
+            createdAt: result.createdAt,
+          },
+        });
+      }
+    }
+
+    // 获取分析任务状态（用于进度跟踪）
     const task = analysisTasks.get(analysisId);
 
     if (!task) {
@@ -127,3 +159,4 @@ export const updateAnalysisTask = (
 
 // 导出用于测试
 export { analysisTasks };
+

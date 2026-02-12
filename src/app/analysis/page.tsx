@@ -1,0 +1,389 @@
+'use client';
+
+import { useState, useCallback } from 'react';
+import {
+  Box,
+  Container,
+  Typography,
+  Button,
+  Alert,
+  CircularProgress,
+} from '@mui/material';
+import { Psychology as PsychologyIcon } from '@mui/icons-material';
+import { ImageUploader } from '@/features/analysis/components/ImageUploader';
+import { ProgressDisplay } from '@/features/analysis/components/ProgressDisplay';
+import { AnalysisCard } from '@/features/analysis/components/AnalysisResult/AnalysisCard';
+import { FeedbackButtons } from '@/features/analysis/components/AnalysisResult/FeedbackButtons';
+import type { ImageData } from '@/features/analysis/components/ImageUploader/types';
+import type { AnalysisData } from '@/types/analysis';
+import { useProgressStore } from '@/stores/useProgressStore';
+
+type AnalysisStatus = 'idle' | 'uploading' | 'ready' | 'analyzing' | 'completed' | 'error';
+
+interface AnalysisState {
+  status: AnalysisStatus;
+  imageData: ImageData | null;
+  analysisData: AnalysisData | null;
+  analysisId: number | null;
+  error: string | null;
+}
+
+export default function AnalysisPage() {
+  const [state, setState] = useState<AnalysisState>({
+    status: 'idle',
+    imageData: null,
+    analysisData: null,
+    analysisId: null,
+    error: null,
+  });
+
+  const {
+    setAnalysisStage,
+    setAnalysisProgress,
+    resetAnalysis,
+  } = useProgressStore();
+
+  // 处理上传成功
+  const handleUploadSuccess = useCallback((imageData: ImageData) => {
+    setState((prev) => ({
+      ...prev,
+      status: 'ready',
+      imageData,
+      error: null,
+    }));
+  }, []);
+
+  // 处理上传错误
+  const handleUploadError = useCallback((error: string) => {
+    setState((prev) => ({
+      ...prev,
+      status: 'error',
+      error,
+    }));
+  }, []);
+
+  // 开始分析
+  const handleStartAnalysis = useCallback(async () => {
+    if (!state.imageData) return;
+
+    setState((prev) => ({
+      ...prev,
+      status: 'analyzing',
+      error: null,
+    }));
+
+    setAnalysisStage('analyzing');
+    setAnalysisProgress(0);
+
+    try {
+      // 调用分析 API
+      const response = await fetch('/api/analysis', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          imageId: state.imageData.imageId,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!data.success) {
+        throw new Error(data.error?.message || '分析请求失败');
+      }
+
+      const analysisId = data.data.analysisId;
+      setState((prev) => ({
+        ...prev,
+        analysisId,
+      }));
+
+      // 开始轮询分析状态（不等待完成）
+      pollAnalysisStatus(analysisId);
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : '分析失败';
+      setState((prev) => ({
+        ...prev,
+        status: 'error',
+        error: errorMessage,
+      }));
+      setAnalysisStage('error');
+    }
+  }, [state.imageData, setAnalysisStage, setAnalysisProgress]);
+
+  // 轮询分析状态
+  const pollAnalysisStatus = async (analysisId: number) => {
+    const maxAttempts = 60; // 最多轮询 60 次（2 分钟）
+    const interval = 2000; // 2 秒间隔
+
+    for (let attempt = 0; attempt < maxAttempts; attempt++) {
+      try {
+        const response = await fetch(`/api/analysis/${analysisId}/status`);
+        const data = await response.json();
+
+        if (!data.success) {
+          throw new Error(data.error?.message || '获取分析状态失败');
+        }
+
+        const { status, progress, result } = data.data;
+
+        // 更新进度
+        setAnalysisProgress(progress || 0);
+
+        if (status === 'completed') {
+          setState((prev) => ({
+            ...prev,
+            status: 'completed',
+            analysisData: result,
+          }));
+          setAnalysisStage('completed');
+          return;
+        }
+
+        if (status === 'failed') {
+          throw new Error('分析失败');
+        }
+
+        // 等待下一次轮询
+        await new Promise((resolve) => setTimeout(resolve, interval));
+      } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : '分析失败';
+        setState((prev) => ({
+          ...prev,
+          status: 'error',
+          error: errorMessage,
+        }));
+        setAnalysisStage('error');
+        return;
+      }
+    }
+
+    // 超时
+    setState((prev) => ({
+      ...prev,
+      status: 'error',
+      error: '分析超时，请稍后重试',
+    }));
+    setAnalysisStage('error');
+  };
+
+  // 提交反馈
+  const handleFeedback = useCallback(
+    async (feedback: 'accurate' | 'inaccurate'): Promise<void> => {
+      if (!state.analysisId) return;
+
+      try {
+        const response = await fetch(`/api/analysis/${state.analysisId}/feedback`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ feedback }),
+        });
+
+        const data = await response.json();
+
+        if (!data.success) {
+          console.error('提交反馈失败:', data.error);
+        }
+      } catch (error) {
+        console.error('提交反馈失败:', error);
+      }
+    },
+    [state.analysisId]
+  );
+
+  // 重新分析
+  const handleReset = useCallback(() => {
+    setState({
+      status: 'idle',
+      imageData: null,
+      analysisData: null,
+      analysisId: null,
+      error: null,
+    });
+    resetAnalysis();
+  }, [resetAnalysis]);
+
+  return (
+    <Container maxWidth="lg" sx={{ py: 4 }}>
+      {/* 页面标题 */}
+      <Box sx={{ mb: 4, textAlign: 'center' }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1, mb: 2 }}>
+          <PsychologyIcon sx={{ fontSize: 40, color: 'primary.main' }} />
+          <Typography variant="h3" component="h1" fontWeight="bold">
+            AI 风格分析
+          </Typography>
+        </Box>
+        <Typography variant="body1" color="text.secondary">
+          上传图片，获取专业的四维度风格分析（光影、构图、色彩、艺术风格）
+        </Typography>
+      </Box>
+
+      {/* 错误提示 */}
+      {state.error && (
+        <Alert severity="error" sx={{ mb: 3 }} onClose={() => setState((prev) => ({ ...prev, error: null }))}>
+          {state.error}
+        </Alert>
+      )}
+
+      {/* 步骤 1: 上传图片 */}
+      {(state.status === 'idle' || state.status === 'uploading') && (
+        <Box sx={{ mb: 4 }}>
+          <Typography variant="h5" gutterBottom fontWeight="medium">
+            步骤 1: 上传图片
+          </Typography>
+          <ImageUploader
+            onUploadSuccess={handleUploadSuccess}
+            onUploadError={handleUploadError}
+          />
+        </Box>
+      )}
+
+      {/* 步骤 2: 开始分析 */}
+      {state.status === 'ready' && state.imageData && (
+        <Box sx={{ mb: 4 }}>
+          <Typography variant="h5" gutterBottom fontWeight="medium">
+            步骤 2: 开始分析
+          </Typography>
+          <Box
+            sx={{
+              p: 3,
+              border: '1px solid',
+              borderColor: 'divider',
+              borderRadius: 2,
+              bgcolor: 'background.paper',
+            }}
+          >
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
+              <img
+                src={state.imageData.url}
+                alt="已上传图片"
+                style={{
+                  width: 100,
+                  height: 100,
+                  objectFit: 'cover',
+                  borderRadius: 8,
+                }}
+              />
+              <Box>
+                <Typography variant="body1" fontWeight="medium">
+                  {state.imageData.filePath?.split('/').pop() || 'Uploaded Image'}
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  {(state.imageData.fileSize / 1024 / 1024).toFixed(2)} MB · {state.imageData.width}x{state.imageData.height}
+                </Typography>
+              </Box>
+            </Box>
+            <Button
+              variant="contained"
+              size="large"
+              onClick={handleStartAnalysis}
+              startIcon={<PsychologyIcon />}
+              data-testid="analyze-button"
+              sx={{
+                bgcolor: 'primary.main',
+                '&:hover': {
+                  bgcolor: 'primary.dark',
+                },
+              }}
+            >
+              开始分析
+            </Button>
+          </Box>
+        </Box>
+      )}
+
+      {/* 分析进度 */}
+      {state.status === 'analyzing' && (
+        <Box sx={{ mb: 4 }}>
+          <Typography variant="h5" gutterBottom fontWeight="medium">
+            正在分析...
+          </Typography>
+          <Box
+            sx={{
+              p: 3,
+              border: '1px solid',
+              borderColor: 'divider',
+              borderRadius: 2,
+              bgcolor: 'background.paper',
+            }}
+            data-testid="progress-display"
+          >
+            <ProgressDisplay type="analysis" />
+            <Box sx={{ mt: 2, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <CircularProgress size={20} sx={{ mr: 1 }} />
+              <Typography
+                variant="body2"
+                color="text.secondary"
+                data-testid="analysis-status"
+              >
+                分析中，请稍候...
+              </Typography>
+            </Box>
+          </Box>
+        </Box>
+      )}
+
+      {/* 分析结果 */}
+      {state.status === 'completed' && state.analysisData && (
+        <Box data-testid="analysis-result">
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 3 }}>
+            <Typography variant="h5" fontWeight="medium">
+              分析结果
+            </Typography>
+            <Button variant="outlined" onClick={handleReset}>
+              分析新图片
+            </Button>
+          </Box>
+
+          {/* 低置信度警告 */}
+          {state.analysisData.overallConfidence < 0.6 && (
+            <Box sx={{ mb: 3 }}>
+              <Alert severity="warning" sx={{ mb: 2 }}>
+                分析置信度较低，结果可能不够准确。建议尝试使用更清晰的图片。
+              </Alert>
+              <Button
+                variant="outlined"
+                onClick={handleReset}
+                startIcon={<PsychologyIcon />}
+                sx={{
+                  borderColor: 'warning.main',
+                  color: 'warning.main',
+                  '&:hover': {
+                    borderColor: 'warning.dark',
+                    bgcolor: 'warning.main',
+                    color: 'warning.contrastText',
+                  },
+                }}
+              >
+                重新分析
+              </Button>
+            </Box>
+          )}
+
+          {/* 分析结果卡片 */}
+          <AnalysisCard analysisData={state.analysisData} />
+
+          {/* 用户反馈 */}
+          <Box
+            sx={{
+              mt: 3,
+              p: 3,
+              border: '1px solid',
+              borderColor: 'divider',
+              borderRadius: 2,
+              bgcolor: 'background.paper',
+            }}
+          >
+            <Typography variant="h6" gutterBottom>
+              这个分析结果准确吗？
+            </Typography>
+            <FeedbackButtons onFeedback={handleFeedback} />
+          </Box>
+        </Box>
+      )}
+    </Container>
+  );
+}

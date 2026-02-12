@@ -1,4 +1,6 @@
 import { replicate } from './index';
+import type { AnalysisData } from '@/types/analysis';
+import { extractJsonFromResponse, parseAnalysisResponse } from '@/lib/analysis/parser';
 
 /**
  * Input parameters for image analysis
@@ -173,3 +175,122 @@ Image URL: ${imageUrl}`;
     };
   }
 }
+
+// ============================================================================
+// Style Analysis Functions (Epic 3: Story 3-1)
+// ============================================================================
+
+/**
+ * Analyze image style using Replicate vision model
+ * Extracts four dimensions of style: lighting, composition, color, and artistic style
+ *
+ * @param imageUrl - URL of the image to analyze
+ * @returns Structured style analysis data
+ *
+ * @throws Error if analysis fails after max retries
+ */
+export async function analyzeImageStyle(imageUrl: string): Promise<AnalysisData> {
+  const model = process.env.REPLICATE_VISION_MODEL_ID || 'yorickvp/llava-13b:2facb4a274b3e660f8e3b2db36195b5e4f2b6b5e';
+  const MAX_RETRIES = 3;
+  const TIMEOUT = 60000; // 60 seconds
+
+  const prompt = `Analyze the visual style of this image and extract the following four dimensions:
+
+1. **Lighting & Shadow**: Identify the main light source direction, light-shadow contrast, shadow characteristics
+2. **Composition**: Identify the viewpoint, visual balance, depth of field
+3. **Color**: Identify the main color palette, color contrast, color temperature
+4. **Artistic Style**: Identify the style movement, art period, emotional tone
+
+For each dimension, provide 3-5 specific feature tags with confidence scores (0-1).
+
+Return the result in JSON format:
+{
+  "dimensions": {
+    "lighting": {
+      "name": "光影",
+      "features": [
+        {"name": "主光源方向", "value": "侧光", "confidence": 0.85},
+        {"name": "光影对比度", "value": "高对比度", "confidence": 0.9},
+        {"name": "阴影特征", "value": "柔和阴影", "confidence": 0.8}
+      ],
+      "confidence": 0.85
+    },
+    "composition": {
+      "name": "构图",
+      "features": [
+        {"name": "视角", "value": "平视", "confidence": 0.92},
+        {"name": "画面平衡", "value": "对称构图", "confidence": 0.88}
+      ],
+      "confidence": 0.90
+    },
+    "color": {
+      "name": "色彩",
+      "features": [
+        {"name": "主色调", "value": "暖色调", "confidence": 0.95},
+        {"name": "色彩对比度", "value": "中等对比", "confidence": 0.82}
+      ],
+      "confidence": 0.88
+    },
+    "artisticStyle": {
+      "name": "艺术风格",
+      "features": [
+        {"name": "风格流派", "value": "印象派", "confidence": 0.78},
+        {"name": "艺术时期", "value": "现代", "confidence": 0.85}
+      ],
+      "confidence": 0.81
+    }
+  },
+  "overallConfidence": 0.86
+}`;
+
+  const startTime = Date.now();
+
+  for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), TIMEOUT);
+
+      const output = await replicate.run(
+        model as `${string}/${string}` | `${string}/${string}:${string}`,
+        {
+          input: {
+            image: imageUrl,
+            prompt: prompt,
+            max_tokens: 1000,
+          },
+        }
+      );
+
+      clearTimeout(timeoutId);
+
+      // Extract and parse response
+      const outputStr = typeof output === 'string' ? output : JSON.stringify(output);
+      const cleanedJson = extractJsonFromResponse(outputStr);
+      const analysisData = parseAnalysisResponse(cleanedJson);
+
+      // Add metadata
+      analysisData.modelUsed = model;
+      analysisData.analysisDuration = (Date.now() - startTime) / 1000;
+
+      return analysisData;
+    } catch (error) {
+      if (attempt === MAX_RETRIES) {
+        console.error('Replicate Vision API failed after max retries', {
+          error,
+          imageUrl,
+          attempts: attempt,
+        });
+        throw new Error('分析失败，请稍后重试');
+      }
+
+      // Exponential backoff
+      const delay = Math.pow(2, attempt) * 1000;
+      console.warn(`Analysis attempt ${attempt} failed, retrying in ${delay}ms...`, error);
+      await new Promise((resolve) => setTimeout(resolve, delay));
+    }
+  }
+
+  // This should never be reached, but TypeScript needs it
+  throw new Error('分析失败，请稍后重试');
+}
+

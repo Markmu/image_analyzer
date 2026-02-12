@@ -1,4 +1,4 @@
-import { pgTable, text, varchar, integer, timestamp, uniqueIndex, index, uuid } from 'drizzle-orm/pg-core';
+import { pgTable, text, varchar, integer, timestamp, uniqueIndex, index, uuid, serial, real, jsonb } from 'drizzle-orm/pg-core';
 
 /**
  * NextAuth 认证表
@@ -112,3 +112,56 @@ export const images = pgTable('images', {
   userIdIdx: index('images_user_id_idx').on(table.userId),
   batchIdIdx: index('images_batch_id_idx').on(table.batchId),
 }));
+
+// ============================================================================
+// 分析结果表 (analysis_results) - Epic 3: Story 3-1 风格分析
+// ============================================================================
+export const analysisResults = pgTable('analysis_results', {
+  id: serial('id').primaryKey(),
+  userId: varchar('user_id', { length: 255 }).notNull().references(() => user.id, { onDelete: 'cascade' }),
+  imageId: varchar('image_id', { length: 64 }).notNull().references(() => images.id, { onDelete: 'cascade' }),
+  analysisData: jsonb('analysis_data').notNull(),
+  confidenceScore: real('confidence_score').notNull(),
+  feedback: varchar('feedback', { length: 32 }),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+}, (table) => ({
+  userIdIdx: index('analysis_results_user_id_idx').on(table.userId),
+  imageIdIdx: index('analysis_results_image_id_idx').on(table.imageId),
+}));
+
+// ============================================================================
+// 风格分析类型定义
+// ============================================================================
+
+/**
+ * 单个风格特征
+ */
+export interface StyleFeature {
+  name: string;
+  value: string;
+  confidence: number;
+}
+
+/**
+ * 风格维度（光影、构图、色彩、艺术风格）
+ */
+export interface StyleDimension {
+  name: string;
+  features: StyleFeature[];
+  confidence: number;
+}
+
+/**
+ * 完整的分析数据
+ */
+export interface AnalysisData {
+  dimensions: {
+    lighting: StyleDimension;
+    composition: StyleDimension;
+    color: StyleDimension;
+    artisticStyle: StyleDimension;
+  };
+  overallConfidence: number;
+  modelUsed: string;
+  analysisDuration: number;
+}
