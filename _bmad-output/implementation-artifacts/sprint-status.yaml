@@ -54,11 +54,11 @@ development_status:
   epic-1-retrospective: done
 
   # Epic 2: 图片上传与管理
-  epic-2: in-progress
+  epic-2: done
   2-1-image-upload: done
   2-2-batch-upload: done
   2-3-upload-validation: done
-  2-4-progress-feedback: ready-for-dev
+  2-4-progress-feedback: done
   epic-2-retrospective: optional
 
   # Epic 3: AI 风格分析

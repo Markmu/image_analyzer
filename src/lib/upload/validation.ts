@@ -16,6 +16,9 @@ import {
   CONCURRENCY_LIMIT,
 } from './constants';
 
+// Re-export constants for convenience
+export { MAX_FILE_SIZE, MIN_DIMENSION, MAX_DIMENSION, ALLOWED_FORMATS, MAX_FILES, CONCURRENCY_LIMIT };
+
 export interface ValidationResult {
   success: boolean;
   width?: number;

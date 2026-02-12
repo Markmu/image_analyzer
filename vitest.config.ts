@@ -13,6 +13,7 @@ export default defineConfig({
       'tests/**/*.test.{ts,tsx}',
       'tests/**/*.spec.{ts,tsx}',
       'src/features/**/*.test.{ts,tsx}',
+      'src/**/*.test.{ts,tsx}',
     ],
     coverage: {
       provider: 'v8',

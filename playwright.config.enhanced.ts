@@ -38,8 +38,6 @@ export default defineConfig({
   expect: {
     timeout: 10 * 1000, // 10s for assertions
   },
-  actionTimeout: 15 * 1000, // 15s for actions
-  navigationTimeout: 30 * 1000, // 30s for navigation
 
   // ============================================
   // REPORTERS
@@ -107,7 +105,7 @@ export default defineConfig({
         ...devices['Desktop Chrome'],
         baseURL: process.env.BASE_URL || 'http://localhost:3000',
         trace: 'retain-on-failure',
-        video: 'on-first-failure',
+        video: 'retain-on-failure',
         screenshot: 'only-on-failure',
       },
       fullyParallel: false, // ⚠️ File-level parallel only
