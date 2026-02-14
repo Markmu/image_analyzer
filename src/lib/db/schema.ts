@@ -172,13 +172,20 @@ export interface AnalysisData {
 export const batchAnalysisResults = pgTable('batch_analysis_results', {
   id: serial('id').primaryKey(),
   userId: varchar('user_id', { length: 255 }).notNull().references(() => user.id, { onDelete: 'cascade' }),
-  mode: varchar('mode', { length: 32 }).notNull(), // 'serial' | 'parallel'
+  mode: varchar('mode', { length: 32 }).notNull(), // 'serial' | 'parallel' | 'single'
   totalImages: integer('total_images').notNull(),
   completedImages: integer('completed_images').notNull().default(0),
   failedImages: integer('failed_images').notNull().default(0),
   skippedImages: integer('skipped_images').notNull().default(0),
   status: varchar('status', { length: 32 }).notNull(), // 'pending' | 'processing' | 'completed' | 'partial' | 'failed'
   creditUsed: integer('credit_used').notNull().default(0),
+
+  // === 队列相关字段 (Story 3-3) ===
+  queuePosition: integer('queue_position'), // 队列位置
+  estimatedWaitTime: integer('estimated_wait_time'), // 预计等待秒数
+  isQueued: boolean('is_queued').notNull().default(false), // 是否在队列中
+  queuedAt: timestamp('queued_at'), // 入队时间
+
   createdAt: timestamp('created_at').notNull().defaultNow(),
   completedAt: timestamp('completed_at'),
 }, (table) => ({

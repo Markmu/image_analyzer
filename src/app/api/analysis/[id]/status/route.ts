@@ -7,10 +7,11 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import type { AnalysisStage } from '@/lib/utils/time-estimation';
 import { getDb } from '@/lib/db';
-import { analysisResults } from '@/lib/db/schema';
-import { eq } from 'drizzle-orm';
+import { analysisResults, batchAnalysisResults, images } from '@/lib/db/schema';
+import { eq, and, desc } from 'drizzle-orm';
+import { auth } from '@/lib/auth';
+import type { AnalysisStage } from '@/lib/utils/time-estimation';
 
 // 模拟的分析任务存储（实际应用中应该使用数据库或 Redis）
 const analysisTasks = new Map<string, {
@@ -45,8 +46,72 @@ export async function GET(
     // 检查是否是数字 ID（真实数据库记录）
     const numericId = parseInt(analysisId, 10);
     if (!isNaN(numericId)) {
-      // 查询数据库中的真实分析结果
       const db = getDb();
+
+      // 首先查询批量分析记录表（异步任务）
+      const batchResults = await db
+        .select()
+        .from(batchAnalysisResults)
+        .where(eq(batchAnalysisResults.id, numericId))
+        .limit(1);
+
+      if (batchResults.length > 0) {
+        const batch = batchResults[0];
+
+        // 如果是已完成的任务，尝试获取分析结果
+        if (batch.status === 'completed' || batch.status === 'partial') {
+          const analysisResultList = await db
+            .select()
+            .from(analysisResults)
+            .orderBy(desc(analysisResults.createdAt))
+            .limit(1);
+
+          if (analysisResultList.length > 0) {
+            const result = analysisResultList[0];
+            return NextResponse.json({
+              success: true,
+              data: {
+                id: batch.id,
+                status: batch.status,
+                progress: {
+                  completed: batch.completedImages,
+                  total: batch.totalImages,
+                  failed: batch.failedImages,
+                },
+                result: result.analysisData,
+                confidenceScore: result.confidenceScore,
+                createdAt: batch.createdAt,
+                completedAt: batch.completedAt,
+                queuePosition: batch.queuePosition,
+                estimatedWaitTime: batch.estimatedWaitTime,
+                isQueued: batch.isQueued,
+              },
+            });
+          }
+        }
+
+        // 返回任务状态
+        return NextResponse.json({
+          success: true,
+          data: {
+            id: batch.id,
+            status: batch.status,
+            progress: {
+              completed: batch.completedImages,
+              total: batch.totalImages,
+              failed: batch.failedImages,
+            },
+            result: null,
+            createdAt: batch.createdAt,
+            completedAt: batch.completedAt,
+            queuePosition: batch.queuePosition,
+            estimatedWaitTime: batch.estimatedWaitTime,
+            isQueued: batch.isQueued,
+          },
+        });
+      }
+
+      // 查询已完成的标准分析结果
       const results = await db
         .select()
         .from(analysisResults)
@@ -58,9 +123,13 @@ export async function GET(
         return NextResponse.json({
           success: true,
           data: {
-            analysisId: result.id,
+            id: result.id,
             status: 'completed',
-            progress: 100,
+            progress: {
+              completed: 1,
+              total: 1,
+              failed: 0,
+            },
             result: result.analysisData,
             confidenceScore: result.confidenceScore,
             feedback: result.feedback,

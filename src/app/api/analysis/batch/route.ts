@@ -1,9 +1,11 @@
 /**
  * 批量分析 API 端点
  *
- * AC-2: 批量分析 API 端点
- * AC-6: Credit 系统集成
- * AC-7: 内容安全检查
+ * Story 3-3: 分析进度与队列管理
+ * AC-1: 并发控制机制
+ * AC-2: 等待队列透明化
+ * AC-5: 高并发场景处理
+ * AC-6: 后台异步处理
  */
 
 import { NextRequest, NextResponse } from 'next/server';
@@ -13,6 +15,16 @@ import { eq, and, inArray } from 'drizzle-orm';
 import { auth } from '@/lib/auth';
 import { checkCredits, deductCredits, refundCredits } from '@/lib/credit';
 import { executeBatchAnalysis } from '@/lib/analysis/batch';
+import {
+  getUserSubscriptionTier,
+  getMaxConcurrent,
+  checkUserConcurrencyLimit,
+  addActiveTask,
+  removeActiveTask,
+  addToQueue,
+  activateTask,
+  processQueue,
+} from '@/lib/analysis/queue';
 
 /**
  * POST /api/analysis/batch
@@ -24,7 +36,7 @@ import { executeBatchAnalysis } from '@/lib/analysis/batch';
  *
  * Response:
  * - success: boolean
- * - data: { batchId, status, creditRequired }
+ * - data: { batchId, status, creditRequired, queuePosition?, estimatedWaitTime? }
  *
  * Errors:
  * - UNAUTHORIZED: 用户未登录
@@ -33,6 +45,7 @@ import { executeBatchAnalysis } from '@/lib/analysis/batch';
  * - IMAGE_NOT_FOUND: 图片不存在
  * - FORBIDDEN: 图片不属于当前用户
  * - INSUFFICIENT_CREDITS: Credit 不足
+ * - QUEUE_FULL: 队列已满
  */
 export async function POST(request: NextRequest) {
   try {
@@ -130,11 +143,58 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 5. 先创建批量分析记录，获取 batchId
+    // 5. 检查并发限制（AC-1: 并发控制机制）
+    const tier = await getUserSubscriptionTier(userId);
+    const concurrencyCheck = await checkUserConcurrencyLimit(userId, tier);
+
+    // 6. 先创建批量分析记录，获取 batchId
     const { createBatchAnalysis } = await import('@/lib/analysis/batch');
     const batchId = await createBatchAnalysis(userId, imageIds, mode);
 
-    // 6. 扣除 credit（此时可以传入正确的 batchId）
+    // 7. 如果队列已满，返回 503（AC-5: 高并发场景处理）
+    if (!concurrencyCheck.canProcess) {
+      // 更新任务为入队状态
+      await db
+        .update(batchAnalysisResults)
+        .set({
+          isQueued: true,
+          queuedAt: new Date(),
+          status: 'pending',
+          queuePosition: concurrencyCheck.queuePosition,
+          estimatedWaitTime: concurrencyCheck.estimatedWaitTime,
+        })
+        .where(eq(batchAnalysisResults.id, batchId));
+
+      // 添加到等待队列
+      addToQueue({
+        id: batchId,
+        userId,
+        status: 'pending',
+        isQueued: true,
+        queuePosition: concurrencyCheck.queuePosition || 1,
+        estimatedWaitTime: concurrencyCheck.estimatedWaitTime || 60,
+        createdAt: new Date(),
+        queuedAt: new Date(),
+      });
+
+      return NextResponse.json(
+        {
+          success: false,
+          error: {
+            code: 'QUEUE_FULL',
+            message: `服务器繁忙，当前有 ${getMaxConcurrent(tier)} 个任务正在处理`,
+            data: {
+              queuePosition: concurrencyCheck.queuePosition,
+              estimatedWaitTime: concurrencyCheck.estimatedWaitTime,
+              maxConcurrent: getMaxConcurrent(tier),
+            },
+          },
+        },
+        { status: 503 }
+      );
+    }
+
+    // 8. 扣除 credit（此时可以传入正确的 batchId）
     const deducted = await deductCredits(
       userId,
       creditRequired,
@@ -161,7 +221,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 7. 异步执行批量分析（带错误追踪）
+    // 9. 标记为活跃任务
+    addActiveTask(userId);
+
+    // 10. 异步执行批量分析（带错误追踪）
     const analysisPromise = executeBatchAnalysis(batchId, {
       userId,
       imageIds,
@@ -195,6 +258,11 @@ export async function POST(request: NextRequest) {
       } catch (refundError) {
         console.error('Failed to refund credits:', refundError);
       }
+
+      removeActiveTask(userId);
+
+      // 处理队列中的下一个任务
+      await processQueue();
     });
 
     // 忽略 Promise，不等待完成
@@ -205,7 +273,7 @@ export async function POST(request: NextRequest) {
         success: true,
         data: {
           batchId,
-          status: 'pending',
+          status: 'processing',
           creditRequired,
         },
       },
