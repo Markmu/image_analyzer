@@ -165,3 +165,75 @@ export interface AnalysisData {
   modelUsed: string;
   analysisDuration: number;
 }
+
+// ============================================================================
+// 批量分析结果表 (batch_analysis_results) - Epic 3: Story 3-2 批量分析
+// ============================================================================
+export const batchAnalysisResults = pgTable('batch_analysis_results', {
+  id: serial('id').primaryKey(),
+  userId: varchar('user_id', { length: 255 }).notNull().references(() => user.id, { onDelete: 'cascade' }),
+  mode: varchar('mode', { length: 32 }).notNull(), // 'serial' | 'parallel'
+  totalImages: integer('total_images').notNull(),
+  completedImages: integer('completed_images').notNull().default(0),
+  failedImages: integer('failed_images').notNull().default(0),
+  skippedImages: integer('skipped_images').notNull().default(0),
+  status: varchar('status', { length: 32 }).notNull(), // 'pending' | 'processing' | 'completed' | 'partial' | 'failed'
+  creditUsed: integer('credit_used').notNull().default(0),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+  completedAt: timestamp('completed_at'),
+}, (table) => ({
+  userIdIdx: index('batch_results_user_id_idx').on(table.userId),
+  statusIdx: index('batch_results_status_idx').on(table.status),
+}));
+
+// ============================================================================
+// 批量分析图片关联表 (batch_analysis_images)
+// ============================================================================
+export const batchAnalysisImages = pgTable('batch_analysis_images', {
+  id: serial('id').primaryKey(),
+  batchId: integer('batch_id').notNull().references(() => batchAnalysisResults.id, { onDelete: 'cascade' }),
+  imageId: varchar('image_id', { length: 64 }).notNull().references(() => images.id, { onDelete: 'cascade' }),
+  imageOrder: integer('image_order').notNull(),
+  status: varchar('status', { length: 32 }).notNull(), // 'pending' | 'processing' | 'completed' | 'failed' | 'skipped'
+  errorMessage: text('error_message'),
+  analysisResultId: integer('analysis_result_id').references(() => analysisResults.id, { onDelete: 'set null' }),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+  completedAt: timestamp('completed_at'),
+}, (table) => ({
+  batchIdIdx: index('batch_images_batch_id_idx').on(table.batchId),
+  imageIdIdx: index('batch_images_image_id_idx').on(table.imageId),
+}));
+
+// ============================================================================
+// 内容审核日志表 (content_moderation_logs)
+// ============================================================================
+export const contentModerationLogs = pgTable('content_moderation_logs', {
+  id: serial('id').primaryKey(),
+  userId: varchar('user_id', { length: 255 }).notNull().references(() => user.id, { onDelete: 'cascade' }),
+  imageId: varchar('image_id', { length: 64 }).notNull().references(() => images.id, { onDelete: 'cascade' }),
+  action: varchar('action', { length: 32 }).notNull(), // 'approved' | 'rejected'
+  reason: varchar('reason', { length: 255 }),
+  confidence: real('confidence'),
+  batchId: integer('batch_id'), // 可选，关联批量分析
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+}, (table) => ({
+  userIdIdx: index('moderation_logs_user_id_idx').on(table.userId),
+  imageIdIdx: index('moderation_logs_image_id_idx').on(table.imageId),
+}));
+
+// ============================================================================
+// Credit 交易历史表 (credit_transactions)
+// ============================================================================
+export const creditTransactions = pgTable('credit_transactions', {
+  id: serial('id').primaryKey(),
+  userId: varchar('user_id', { length: 255 }).notNull().references(() => user.id, { onDelete: 'cascade' }),
+  type: varchar('type', { length: 32 }).notNull(), // 'deduct' | 'refund' | 'purchase' | 'bonus'
+  amount: integer('amount').notNull(),
+  balanceAfter: integer('balance_after').notNull(),
+  reason: varchar('reason', { length: 255 }).notNull(),
+  batchId: integer('batch_id'), // 可选，关联批量分析
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+}, (table) => ({
+  userIdIdx: index('credit_transactions_user_id_idx').on(table.userId),
+  batchIdIdx: index('credit_transactions_batch_id_idx').on(table.batchId),
+}));

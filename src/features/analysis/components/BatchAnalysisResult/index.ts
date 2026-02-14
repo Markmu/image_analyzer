@@ -1,0 +1,1 @@
+export { BatchAnalysisResult } from './BatchAnalysisResult';
