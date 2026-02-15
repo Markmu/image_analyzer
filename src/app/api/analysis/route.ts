@@ -2,9 +2,10 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getDb } from '@/lib/db';
 import { user, images, analysisResults, batchAnalysisResults } from '@/lib/db/schema';
 import { eq, and } from 'drizzle-orm';
-import { analyzeImageStyle } from '@/lib/replicate/vision';
+import { analyzeImageWithModel, getDefaultModel } from '@/lib/replicate/vision';
 import { validateImageComplexity } from '@/lib/replicate/vision';
 import { auth } from '@/lib/auth';
+import { canUserUseModel, recordModelUsage } from '@/lib/analysis/models';
 import {
   getUserSubscriptionTier,
   getMaxConcurrent,
@@ -58,6 +59,7 @@ export async function POST(request: NextRequest) {
     }
 
     const imageId = body.imageId;
+    const modelId = typeof body.modelId === 'string' ? body.modelId : null;
     const db = getDb();
 
     // 2. 验证图片存在且属于当前用户
@@ -92,6 +94,33 @@ export async function POST(request: NextRequest) {
           message: '图片已分析过',
         },
       });
+    }
+
+    // 3. 验证模型选择（如果有指定）
+    let usedModelId = modelId;
+    if (!usedModelId) {
+      // 使用默认模型
+      usedModelId = getDefaultModel();
+    }
+
+    // 检查用户是否有权限使用指定模型
+    if (modelId) {
+      const permission = await canUserUseModel(userId, modelId);
+      if (!permission.allowed) {
+        return NextResponse.json(
+          {
+            success: false,
+            error: {
+              code: 'MODEL_UNAVAILABLE',
+              message: permission.reason || '无法使用该模型',
+              data: {
+                upgradeTier: modelId,
+              },
+            },
+          },
+          { status: 403 }
+        );
+      }
     }
 
     // 4. 检查用户 credit 余额
@@ -176,7 +205,7 @@ export async function POST(request: NextRequest) {
     addActiveTask(userId);
 
     // 10. 异步执行分析（不等待完成）
-    executeAnalysisAsync(batchId, imageId, image.filePath, userId).catch(async (error) => {
+    executeAnalysisAsync(batchId, imageId, image.filePath, userId, usedModelId).catch(async (error) => {
       console.error('Async analysis failed:', error);
 
       // 更新任务状态为失败
@@ -208,6 +237,7 @@ export async function POST(request: NextRequest) {
       data: {
         analysisId: batchId,
         status: 'processing',
+        modelUsed: usedModelId,
         message: '分析已开始',
       },
     });
@@ -233,7 +263,8 @@ async function executeAnalysisAsync(
   batchId: number,
   imageId: string,
   filePath: string,
-  userId: string
+  userId: string,
+  modelId: string = 'qwen3-vl'
 ): Promise<void> {
   const db = getDb();
 
@@ -257,10 +288,10 @@ async function executeAnalysisAsync(
       throw new Error('图片内容安全检查未通过，无法分析');
     }
 
-    // 执行风格分析
-    const analysisData = await analyzeImageStyle(filePath);
+    // 执行风格分析（使用指定模型）
+    const analysisData = await analyzeImageWithModel(filePath, modelId);
 
-    // 保存分析结果
+    // 保存分析结果（包含使用的模型 ID）
     const [insertedResult] = await db
       .insert(analysisResults)
       .values({
@@ -268,6 +299,7 @@ async function executeAnalysisAsync(
         imageId,
         analysisData: JSON.parse(JSON.stringify(analysisData)),
         confidenceScore: analysisData.overallConfidence,
+        modelId: modelId,
       })
       .returning();
 
@@ -281,13 +313,16 @@ async function executeAnalysisAsync(
       })
       .where(eq(batchAnalysisResults.id, batchId));
 
+    // 记录模型使用统计
+    await recordModelUsage(modelId, userId, true, analysisData.analysisDuration);
+
     // 标记任务完成
     removeActiveTask(userId);
 
     // 处理队列中的下一个任务
     await processQueue();
 
-    console.log(`Analysis completed for batch ${batchId}, image ${imageId}`);
+    console.log(`Analysis completed for batch ${batchId}, image ${imageId} using model ${modelId}`);
   } catch (error) {
     console.error('Analysis failed:', error);
 
@@ -309,6 +344,9 @@ async function executeAnalysisAsync(
         .set({ creditBalance: userList[0].creditBalance + 1 })
         .where(eq(user.id, userId));
     }
+
+    // 记录模型使用统计（失败）
+    await recordModelUsage(modelId, userId, false, 0);
 
     removeActiveTask(userId);
     throw error;

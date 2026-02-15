@@ -1,4 +1,4 @@
-import { pgTable, text, varchar, integer, timestamp, uniqueIndex, index, uuid, serial, real, jsonb } from 'drizzle-orm/pg-core';
+import { pgTable, text, varchar, integer, timestamp, uniqueIndex, index, uuid, serial, real, jsonb, boolean } from 'drizzle-orm/pg-core';
 
 /**
  * NextAuth 认证表
@@ -123,6 +123,8 @@ export const analysisResults = pgTable('analysis_results', {
   analysisData: jsonb('analysis_data').notNull(),
   confidenceScore: real('confidence_score').notNull(),
   feedback: varchar('feedback', { length: 32 }),
+  // === 模型相关字段 (Story 3-4) ===
+  modelId: varchar('model_id', { length: 50 }), // 使用的模型 ID
   createdAt: timestamp('created_at').notNull().defaultNow(),
 }, (table) => ({
   userIdIdx: index('analysis_results_user_id_idx').on(table.userId),
@@ -244,3 +246,46 @@ export const creditTransactions = pgTable('credit_transactions', {
   userIdIdx: index('credit_transactions_user_id_idx').on(table.userId),
   batchIdIdx: index('credit_transactions_batch_id_idx').on(table.batchId),
 }));
+
+// ============================================================================
+// 模型配置表 (model_config) - Epic 3: Story 3-4 视觉模型集成
+// ============================================================================
+export const modelConfig = pgTable('model_config', {
+  id: varchar('id', { length: 50 }).primaryKey(),
+  name: varchar('name', { length: 100 }).notNull(),
+  description: text('description'),
+  enabled: boolean('enabled').notNull().default(true),
+  isDefault: boolean('is_default').notNull().default(false),
+  requiresTier: varchar('requires_tier', { length: 20 }), // free | lite | standard
+  costPerCall: real('cost_per_call'),
+  avgDuration: real('avg_duration'),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+  updatedAt: timestamp('updated_at'),
+});
+
+// ============================================================================
+// 模型使用统计表 (model_usage_stats) - Epic 3: Story 3-4 视觉模型集成
+// ============================================================================
+export const modelUsageStats = pgTable('model_usage_stats', {
+  id: serial('id').primaryKey(),
+  modelId: varchar('model_id', { length: 50 }).notNull(),
+  userId: varchar('user_id', { length: 255 }).notNull().references(() => user.id, { onDelete: 'cascade' }),
+  successCount: integer('success_count').notNull().default(0),
+  failureCount: integer('failure_count').notNull().default(0),
+  totalDuration: real('total_duration').notNull().default(0),
+  lastUsedAt: timestamp('last_used_at'),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+}, (table) => ({
+  modelIdIdx: index('model_usage_stats_model_id_idx').on(table.modelId),
+  userIdIdx: index('model_usage_stats_user_id_idx').on(table.userId),
+}));
+
+// ============================================================================
+// 用户模型偏好表 (user_model_preferences) - Epic 3: Story 3-4 视觉模型集成
+// ============================================================================
+export const userModelPreferences = pgTable('user_model_preferences', {
+  id: serial('id').primaryKey(),
+  userId: varchar('user_id', { length: 255 }).notNull().references(() => user.id, { onDelete: 'cascade' }).unique(),
+  preferredModelId: varchar('preferred_model_id', { length: 50 }),
+  updatedAt: timestamp('updated_at').notNull().defaultNow(),
+});

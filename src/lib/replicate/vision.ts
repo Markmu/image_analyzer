@@ -1,6 +1,7 @@
 import { replicate } from './index';
 import type { AnalysisData } from '@/types/analysis';
 import { extractJsonFromResponse, parseAnalysisResponse } from '@/lib/analysis/parser';
+import { modelRegistry, getModelPrompt, MODEL_ERROR_CONFIG, handleModelError } from '@/lib/analysis/models';
 
 /**
  * Input parameters for image analysis
@@ -292,5 +293,135 @@ Return the result in JSON format:
 
   // This should never be reached, but TypeScript needs it
   throw new Error('分析失败，请稍后重试');
+}
+
+// ============================================================================
+// Multi-Model Support (Epic 3: Story 3-4)
+// ============================================================================
+
+/**
+ * Analyze image with a specific model
+ * Supports model selection and dynamic prompt adaptation
+ *
+ * @param imageUrl - URL of the image to analyze
+ * @param modelId - Model identifier (e.g., 'qwen3-vl', 'kimi-k2.5', 'gemini-flash')
+ * @returns Structured style analysis data
+ *
+ * @throws Error if analysis fails after max retries
+ * @throws Error if model is not found or disabled
+ */
+export async function analyzeImageWithModel(imageUrl: string, modelId: string): Promise<AnalysisData> {
+  // Get model configuration
+  const model = modelRegistry.getModelById(modelId);
+
+  if (!model) {
+    throw new Error(`模型 ${modelId} 不存在`);
+  }
+
+  if (!model.enabled) {
+    throw new Error(`模型 ${modelId} 已禁用`);
+  }
+
+  const MAX_RETRIES = MODEL_ERROR_CONFIG.maxRetries;
+  const TIMEOUT = 60000; // 60 seconds
+
+  // Get model-specific prompt
+  const prompt = getModelPrompt(modelId);
+
+  const startTime = Date.now();
+
+  for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+    try {
+      const output = await replicate.run(
+        model.replicateModelId as `${string}/${string}` | `${string}/${string}:${string}`,
+        {
+          input: {
+            image: imageUrl,
+            prompt: prompt,
+            max_tokens: 1000,
+          },
+        }
+      );
+
+      // Extract and parse response
+      const outputStr = typeof output === 'string' ? output : JSON.stringify(output);
+      const cleanedJson = extractJsonFromResponse(outputStr);
+      const analysisData = parseAnalysisResponse(cleanedJson);
+
+      // Add metadata
+      analysisData.modelUsed = modelId;
+      analysisData.analysisDuration = (Date.now() - startTime) / 1000;
+
+      return analysisData;
+    } catch (error) {
+      // Check if error is retryable
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      const isRetryable = MODEL_ERROR_CONFIG.retryableErrors.some((e) =>
+        errorMessage.toUpperCase().includes(e)
+      );
+
+      if (attempt === MAX_RETRIES || !isRetryable) {
+        console.error(`Model ${modelId} failed after ${attempt} attempts`, {
+          error,
+          imageUrl,
+          attempts: attempt,
+        });
+
+        // Re-throw with user-friendly message
+        if (isRetryable) {
+          throw new Error('分析超时，请稍后重试');
+        }
+        throw new Error(`模型 ${modelId} 暂时不可用，请稍后重试或选择其他模型`);
+      }
+
+      // Exponential backoff
+      const delay = Math.pow(2, attempt) * MODEL_ERROR_CONFIG.retryDelayMs;
+      console.warn(`Model ${modelId} attempt ${attempt} failed, retrying in ${delay}ms...`, error);
+      await new Promise((resolve) => setTimeout(resolve, delay));
+    }
+  }
+
+  throw new Error('分析失败，请稍后重试');
+}
+
+/**
+ * Get the default model for style analysis
+ * Uses the model's default setting or falls back to qwen3-vl
+ */
+export function getDefaultModel(): string {
+  const defaultModel = modelRegistry.getDefaultModel();
+  return defaultModel?.id || 'qwen3-vl';
+}
+
+/**
+ * List all available models for the user based on their subscription tier
+ */
+export async function getAvailableModelsForUser(userId: string): Promise<{
+  models: Array<{
+    id: string;
+    name: string;
+    description: string;
+    features: string[];
+    isDefault: boolean;
+    enabled: boolean;
+    requiresTier: string;
+  }>;
+  tier: string;
+}> {
+  const { getUserAvailableModels } = await import('@/lib/analysis/models');
+  const { models, tier } = await getUserAvailableModels(userId);
+
+  return {
+    models: models.map((m) => ({
+      id: m.id,
+      name: m.name,
+      description: m.description,
+      features: m.features,
+      isDefault: m.isDefault,
+      enabled: m.enabled,
+      requiresTier: m.requiresTier,
+    })),
+    tier,
+  };
 }
 
