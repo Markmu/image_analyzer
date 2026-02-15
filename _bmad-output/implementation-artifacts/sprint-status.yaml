@@ -67,7 +67,7 @@ development_status:
   3-2-batch-analysis: done
   3-3-analysis-progress: completed
   3-4-vision-model-integration: completed
-  3-5-confidence-scoring: backlog
+  3-5-confidence-scoring: done
   epic-3-retrospective: optional
 
   # Epic 4: 内容安全与合规

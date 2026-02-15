@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getDb } from '@/lib/db';
-import { user, images, analysisResults, batchAnalysisResults } from '@/lib/db/schema';
+import { user, images, analysisResults, batchAnalysisResults, confidenceLogs } from '@/lib/db/schema';
 import { eq, and } from 'drizzle-orm';
 import { analyzeImageWithModel, getDefaultModel } from '@/lib/replicate/vision';
 import { validateImageComplexity } from '@/lib/replicate/vision';
@@ -17,6 +17,12 @@ import {
   activateTask,
   processQueue,
 } from '@/lib/analysis/queue';
+import {
+  extractConfidenceFromAnalysisData,
+  generateConfidenceWarning,
+  type ConfidenceScores,
+  type ConfidenceWarning as ConfidenceWarningType,
+} from '@/lib/analysis/confidence';
 
 /**
  * POST /api/analysis
@@ -86,12 +92,18 @@ export async function POST(request: NextRequest) {
       .limit(1);
 
     if (existingAnalysis.length > 0) {
+      const existing = existingAnalysis[0];
+      const confidenceScores = existing.confidenceScores as ConfidenceScores | null;
+      const warning = confidenceScores ? generateConfidenceWarning(confidenceScores) : null;
+
       return NextResponse.json({
         success: true,
         data: {
-          analysisId: existingAnalysis[0].id,
+          analysisId: existing.id,
           status: 'completed',
           message: '图片已分析过',
+          confidenceScores: confidenceScores || undefined,
+          lowConfidenceWarning: warning || undefined,
         },
       });
     }
@@ -291,7 +303,11 @@ async function executeAnalysisAsync(
     // 执行风格分析（使用指定模型）
     const analysisData = await analyzeImageWithModel(filePath, modelId);
 
-    // 保存分析结果（包含使用的模型 ID）
+    // 提取置信度分数
+    const confidenceScores = extractConfidenceFromAnalysisData(analysisData);
+    const warning = generateConfidenceWarning(confidenceScores);
+
+    // 保存分析结果（包含使用的模型 ID 和置信度分数）
     const [insertedResult] = await db
       .insert(analysisResults)
       .values({
@@ -300,8 +316,18 @@ async function executeAnalysisAsync(
         analysisData: JSON.parse(JSON.stringify(analysisData)),
         confidenceScore: analysisData.overallConfidence,
         modelId: modelId,
+        confidenceScores: JSON.parse(JSON.stringify(confidenceScores)),
+        retryCount: 0,
       })
       .returning();
+
+    // 记录置信度日志
+    await db.insert(confidenceLogs).values({
+      analysisId: insertedResult.id,
+      confidenceScores: JSON.parse(JSON.stringify(confidenceScores)),
+      isLowConfidence: confidenceScores.overall < 70,
+      triggeredWarning: warning !== null,
+    });
 
     // 更新批量分析记录状态
     await db

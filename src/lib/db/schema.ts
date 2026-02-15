@@ -125,6 +125,9 @@ export const analysisResults = pgTable('analysis_results', {
   feedback: varchar('feedback', { length: 32 }),
   // === 模型相关字段 (Story 3-4) ===
   modelId: varchar('model_id', { length: 50 }), // 使用的模型 ID
+  // === 置信度相关字段 (Story 3-5) ===
+  confidenceScores: jsonb('confidence_scores'), // ConfidenceScores
+  retryCount: integer('retry_count').default(0), // 重试次数
   createdAt: timestamp('created_at').notNull().defaultNow(),
 }, (table) => ({
   userIdIdx: index('analysis_results_user_id_idx').on(table.userId),
@@ -289,3 +292,20 @@ export const userModelPreferences = pgTable('user_model_preferences', {
   preferredModelId: varchar('preferred_model_id', { length: 50 }),
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
 });
+
+// ============================================================================
+// 置信度日志表 (confidence_logs) - Epic 3: Story 3-5 置信度评分
+// ============================================================================
+export const confidenceLogs = pgTable('confidence_logs', {
+  id: serial('id').primaryKey(),
+  analysisId: integer('analysis_id').references(() => analysisResults.id, { onDelete: 'set null' }),
+  modelUsageStatId: integer('model_usage_stat_id').references(() => modelUsageStats.id, { onDelete: 'set null' }),
+  confidenceScores: jsonb('confidence_scores').notNull(),
+  isLowConfidence: boolean('is_low_confidence').notNull(),
+  triggeredWarning: boolean('triggered_warning').notNull(),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+}, (table) => ({
+  createdIdx: index('confidence_logs_created_idx').on(table.createdAt),
+  lowConfidenceIdx: index('confidence_logs_low_confidence_idx').on(table.isLowConfidence),
+  modelIdx: index('confidence_logs_model_idx').on(table.modelUsageStatId),
+}));
