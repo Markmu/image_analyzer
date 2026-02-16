@@ -103,7 +103,18 @@ export default function AnalysisPage() {
   }, []);
 
   // 处理上传错误
-  const handleUploadError = useCallback((error: string) => {
+  const handleUploadError = useCallback((error: string, errorCode?: string) => {
+    if (errorCode === 'TERMS_NOT_AGREED') {
+      setTermsStatus({ hasAgreed: false, requiresAgreement: true });
+      setShowTermsDialog(true);
+      setState((prev) => ({
+        ...prev,
+        status: 'idle',
+        error: null,
+      }));
+      return;
+    }
+
     setState((prev) => ({
       ...prev,
       status: 'error',
@@ -258,9 +269,8 @@ export default function AnalysisPage() {
   if (isLoading) {
     return (
       <Container maxWidth="lg" sx={{ py: 8 }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1.5 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <CircularProgress size={20} />
-          <Typography variant="body1">正在检查登录状态...</Typography>
         </Box>
       </Container>
     );

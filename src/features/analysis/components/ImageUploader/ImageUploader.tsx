@@ -15,8 +15,27 @@ const ALLOWED_FORMATS = ['image/jpeg', 'image/png', 'image/webp'];
 
 interface ImageUploaderProps {
   onUploadSuccess?: (imageData: ImageData) => void;
-  onUploadError?: (error: string) => void;
+  onUploadError?: (error: string, errorCode?: string) => void;
 }
+
+const getUploadError = (err: unknown): { message: string; code?: string } => {
+  if (axios.isAxiosError(err)) {
+    const responseData = err.response?.data as
+      | { error?: { message?: string; code?: string } }
+      | undefined;
+
+    return {
+      message: responseData?.error?.message || err.message || 'Upload failed',
+      code: responseData?.error?.code,
+    };
+  }
+
+  if (err instanceof Error) {
+    return { message: err.message };
+  }
+
+  return { message: 'Upload failed' };
+};
 
 export function ImageUploader({ onUploadSuccess, onUploadError }: ImageUploaderProps) {
   const [uploadStatus, setUploadStatus] = useState<UploadStatus>('idle');
@@ -86,13 +105,14 @@ export function ImageUploader({ onUploadSuccess, onUploadError }: ImageUploaderP
           onUploadSuccess?.(response.data.data);
         } else {
           const errorMessage = response.data.error?.message || 'Upload failed';
+          const errorCode = response.data.error?.code;
           setValidationResult({
             valid: false,
             errors: [{ code: 'UPLOAD_ERROR', message: errorMessage }],
             warnings: [],
           });
           setUploadStatus('error');
-          onUploadError?.(errorMessage);
+          onUploadError?.(errorMessage, errorCode);
         }
       } catch (err) {
         if (axios.isCancel(err)) {
@@ -100,14 +120,14 @@ export function ImageUploader({ onUploadSuccess, onUploadError }: ImageUploaderP
           setUploadProgress(0);
           setValidationResult(null);
         } else {
-          const errorMessage = err instanceof Error ? err.message : 'Upload failed';
+          const { message: errorMessage, code: errorCode } = getUploadError(err);
           setValidationResult({
             valid: false,
             errors: [{ code: 'UPLOAD_ERROR', message: errorMessage }],
             warnings: [],
           });
           setUploadStatus('error');
-          onUploadError?.(errorMessage);
+          onUploadError?.(errorMessage, errorCode);
         }
       } finally {
         setCancelTokenSource(null);
