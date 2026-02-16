@@ -62,7 +62,7 @@ development_status:
   epic-2-retrospective: optional
 
   # Epic 3: AI 风格分析
-  epic-3: progress
+  epic-3: done
   3-1-style-analysis: done
   3-2-batch-analysis: done
   3-3-analysis-progress: completed
@@ -71,10 +71,10 @@ development_status:
   epic-3-retrospective: optional
 
   # Epic 4: 内容安全与合规
-  epic-4: backlog
-  4-1-content-moderation: backlog
-  4-2-generation-safety: backlog
-  4-3-privacy-compliance: backlog
+  epic-4: done
+  4-1-content-moderation: done
+  4-2-generation-safety: done
+  4-3-privacy-compliance: done
   epic-4-retrospective: optional
 
   # Epic 5: 模版生成与管理

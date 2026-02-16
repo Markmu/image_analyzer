@@ -26,6 +26,15 @@ export const user = pgTable('user', {
   creditBalance: integer('credit_balance').notNull().default(0),
   subscriptionTier: varchar('subscription_tier', { length: 32 }).notNull().default('free'),
 
+  // === Story 4-1: 服务条款同意字段 ===
+  agreedToTermsAt: timestamp('agreed_to_terms_at'), // 用户同意条款的时间
+  termsVersion: varchar('terms_version', { length: 32 }), // 同意的条款版本
+
+  // === Story 4-3: 隐私合规字段 ===
+  dataSharingEnabled: boolean('data_sharing_enabled').notNull().default(true), // 是否允许数据分享用于服务改进
+  doNotSellEnabled: boolean('do_not_sell_enabled').notNull().default(false), // CCPA: "Do Not Sell" 选项
+  privacySettingsUpdatedAt: timestamp('privacy_settings_updated_at'), // 隐私设置最后更新时间
+
   // 时间戳
   createdAt: timestamp('created_at').notNull().defaultNow(),
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
@@ -106,11 +115,15 @@ export const images = pgTable('images', {
   // Batch upload fields (Story 2-2)
   batchId: uuid('batch_id'), // 批次 ID，关联同批次上传的图片
   uploadOrder: integer('upload_order'), // 上传顺序
+  // === Story 4-1: 数据保留字段 ===
+  expiresAt: timestamp('expires_at'), // 图片过期时间
+  deletionNotifiedAt: timestamp('deletion_notified_at'), // 删除通知发送时间
   createdAt: timestamp('created_at').notNull().defaultNow(),
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
 }, (table) => ({
   userIdIdx: index('images_user_id_idx').on(table.userId),
   batchIdIdx: index('images_batch_id_idx').on(table.batchId),
+  expiresIdx: index('images_expires_idx').on(table.expiresAt),
 }));
 
 // ============================================================================
@@ -217,20 +230,70 @@ export const batchAnalysisImages = pgTable('batch_analysis_images', {
 }));
 
 // ============================================================================
-// 内容审核日志表 (content_moderation_logs)
+// 内容审核日志表 (content_moderation_logs) - Epic 4: Story 4-1 内容审核
 // ============================================================================
 export const contentModerationLogs = pgTable('content_moderation_logs', {
   id: serial('id').primaryKey(),
   userId: varchar('user_id', { length: 255 }).notNull().references(() => user.id, { onDelete: 'cascade' }),
-  imageId: varchar('image_id', { length: 64 }).notNull().references(() => images.id, { onDelete: 'cascade' }),
-  action: varchar('action', { length: 32 }).notNull(), // 'approved' | 'rejected'
-  reason: varchar('reason', { length: 255 }),
-  confidence: real('confidence'),
+  imageId: varchar('image_id', { length: 64 }).references(() => images.id, { onDelete: 'set null' }),
+  contentType: varchar('content_type', { length: 32 }).notNull(), // 'image' | 'text'
+  moderationResult: jsonb('moderation_result').notNull().$type<ModerationResult>(), // 详细审核结果
+  action: varchar('action', { length: 32 }).notNull(), // 'approved' | 'rejected' | 'flagged'
+  reason: text('reason'), // 拒绝或标记的原因
   batchId: integer('batch_id'), // 可选，关联批量分析
+  // Story 4-2: 生成安全功能新增字段
+  generationId: integer('generation_id'), // 可选，关联生成请求
+  riskLevel: varchar('risk_level', { length: 16 }), // 'low' | 'medium' | 'high'
+  requiresManualReview: boolean('requires_manual_review').default(false), // 是否需要人工审核
   createdAt: timestamp('created_at').notNull().defaultNow(),
 }, (table) => ({
   userIdIdx: index('moderation_logs_user_id_idx').on(table.userId),
   imageIdIdx: index('moderation_logs_image_id_idx').on(table.imageId),
+  generationIdIdx: index('moderation_logs_generation_id_idx').on(table.generationId),
+  riskLevelIdx: index('moderation_logs_risk_level_idx').on(table.riskLevel),
+  createdIdx: index('moderation_logs_created_idx').on(table.createdAt),
+}));
+
+// ============================================================================
+// 审核结果类型定义 (ModerationResult) - Epic 4: Story 4-1
+// ============================================================================
+
+/**
+ * 内容审核结果
+ */
+export interface ModerationResult {
+  isApproved: boolean;
+  confidence: number; // 0-1
+  categories: {
+    violence: number; // 0-1
+    sexual: number; // 0-1
+    hate: number; // 0-1
+    harassment: number; // 0-1
+    selfHarm: number; // 0-1
+  };
+  action: 'approved' | 'rejected' | 'flagged';
+  reason?: string;
+}
+
+// ============================================================================
+// 人工审核队列表 (manual_review_queue) - Epic 4: Story 4-2 生成安全
+// ============================================================================
+
+export const manualReviewQueue = pgTable('manual_review_queue', {
+  id: serial('id').primaryKey(),
+  generationRequestId: integer('generation_request_id').notNull(), // 关联生成请求
+  userId: varchar('user_id', { length: 255 }).notNull().references(() => user.id, { onDelete: 'cascade' }),
+  prompt: text('prompt').notNull(), // 用户提交的提示词
+  riskLevel: varchar('risk_level', { length: 16 }).notNull(), // 'low' | 'medium' | 'high'
+  status: varchar('status', { length: 32 }).notNull().default('pending'), // 'pending' | 'approved' | 'rejected'
+  reviewedBy: varchar('reviewed_by', { length: 255 }), // 审核管理员 ID
+  reviewNotes: text('review_notes'), // 审核备注
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+  reviewedAt: timestamp('reviewed_at'),
+}, (table) => ({
+  statusIdx: index('manual_review_status_idx').on(table.status),
+  userIdIdx: index('manual_review_user_id_idx').on(table.userId),
+  createdIdx: index('manual_review_created_idx').on(table.createdAt),
 }));
 
 // ============================================================================

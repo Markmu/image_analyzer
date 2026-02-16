@@ -344,9 +344,22 @@ async function analyzeSingleImage(
         await db.insert(contentModerationLogs).values({
           userId,
           imageId,
+          contentType: 'image',
+          moderationResult: {
+            isApproved: false,
+            confidence: complexityCheck.confidence,
+            categories: {
+              violence: 0,
+              sexual: 0,
+              hate: 0,
+              harassment: 0,
+              selfHarm: 0,
+            },
+            action: 'rejected',
+            reason: 'Content safety check failed',
+          },
           action: 'rejected',
-          reason: 'inappropriate_content',
-          confidence: complexityCheck.confidence,
+          reason: 'Content safety check failed',
           batchId,
         });
 
