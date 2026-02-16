@@ -6,6 +6,7 @@ import { analyzeImageWithModel, getDefaultModel } from '@/lib/replicate/vision';
 import { validateImageComplexity } from '@/lib/replicate/vision';
 import { auth } from '@/lib/auth';
 import { canUserUseModel, recordModelUsage } from '@/lib/analysis/models';
+import { analyzeImageAsync } from '@/lib/replicate/async';
 import {
   getUserSubscriptionTier,
   getMaxConcurrent,
@@ -66,6 +67,7 @@ export async function POST(request: NextRequest) {
 
     const imageId = body.imageId;
     const modelId = typeof body.modelId === 'string' ? body.modelId : null;
+    const useWebhook = body.useWebhook === true;
     const db = getDb();
 
     // 2. 验证图片存在且属于当前用户
@@ -152,11 +154,45 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 5. 检查并发限制（AC-1: 并发控制机制）
+    // 5. Webhook 模式：使用 Replicate Webhook 异步处理
+    if (useWebhook) {
+      try {
+        const result = await analyzeImageAsync({
+          userId,
+          imageUrl: image.filePath,
+          modelId: usedModelId || 'qwen3-vl',
+          creditCost: 1,
+        });
+
+        return NextResponse.json({
+          success: true,
+          data: {
+            predictionId: result.predictionId,
+            status: 'pending',
+            modelUsed: usedModelId,
+            message: '异步分析任务已创建，请通过 predictionId 查询结果',
+          },
+        });
+      } catch (error) {
+        console.error('Webhook analysis failed:', error);
+        return NextResponse.json(
+          {
+            success: false,
+            error: {
+              code: 'ASYNC_ANALYSIS_FAILED',
+              message: error instanceof Error ? error.message : '异步分析创建失败',
+            },
+          },
+          { status: 500 }
+        );
+      }
+    }
+
+    // 6. 检查并发限制（AC-1: 并发控制机制）
     const tier = await getUserSubscriptionTier(userId);
     const concurrencyCheck = await checkUserConcurrencyLimit(userId, tier);
 
-    // 6. 创建批量分析记录（用于跟踪任务状态）
+    // 7. 创建批量分析记录（用于跟踪任务状态）
     const [batchRecord] = await db
       .insert(batchAnalysisResults)
       .values({
@@ -176,7 +212,7 @@ export async function POST(request: NextRequest) {
 
     const batchId = batchRecord.id;
 
-    // 7. 队列已满，返回 503（AC-5: 高并发场景处理）
+    // 8. 队列已满，返回 503（AC-5: 高并发场景处理）
     if (!concurrencyCheck.canProcess) {
       // 将任务加入等待队列
       addToQueue({
@@ -207,16 +243,16 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 8. 扣除 credit
+    // 9. 扣除 credit
     await db
       .update(user)
       .set({ creditBalance: userData.creditBalance - 1 })
       .where(eq(user.id, userId));
 
-    // 9. 标记为活跃任务
+    // 10. 标记为活跃任务
     addActiveTask(userId);
 
-    // 10. 异步执行分析（不等待完成）
+    // 11. 异步执行分析（不等待完成）
     executeAnalysisAsync(batchId, imageId, image.filePath, userId, usedModelId).catch(async (error) => {
       console.error('Async analysis failed:', error);
 
