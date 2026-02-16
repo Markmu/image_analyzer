@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 
 /**
@@ -11,15 +11,17 @@ import { useSession } from 'next-auth/react';
 export function useRequireAuth() {
   const { data: session, status } = useSession();
   const router = useRouter();
+  const pathname = usePathname();
 
   useEffect(() => {
     if (status === 'loading') return; // 还在加载中
 
     if (!session) {
       // 未登录，重定向到登录页 (Story 1-3, AC-3)
-      router.push('/api/auth/signin');
+      const callbackUrl = pathname || '/';
+      router.push(`/api/auth/signin?callbackUrl=${encodeURIComponent(callbackUrl)}`);
     }
-  }, [session, status, router]);
+  }, [session, status, router, pathname]);
 
   return {
     session,

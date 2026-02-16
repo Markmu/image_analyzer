@@ -17,6 +17,7 @@ import { FeedbackButtons } from '@/features/analysis/components/AnalysisResult/F
 import type { ImageData } from '@/features/analysis/components/ImageUploader/types';
 import type { AnalysisData } from '@/types/analysis';
 import { useProgressStore } from '@/stores/useProgressStore';
+import { useRequireAuth } from '@/features/auth/hooks/useRequireAuth';
 
 type AnalysisStatus = 'idle' | 'uploading' | 'ready' | 'analyzing' | 'completed' | 'error';
 
@@ -29,6 +30,7 @@ interface AnalysisState {
 }
 
 export default function AnalysisPage() {
+  const { isLoading, isAuthenticated } = useRequireAuth();
   const [state, setState] = useState<AnalysisState>({
     status: 'idle',
     imageData: null,
@@ -205,6 +207,25 @@ export default function AnalysisPage() {
     });
     resetAnalysis();
   }, [resetAnalysis]);
+
+  if (isLoading) {
+    return (
+      <Container maxWidth="lg" sx={{ py: 8 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1.5 }}>
+          <CircularProgress size={20} />
+          <Typography variant="body1">正在检查登录状态...</Typography>
+        </Box>
+      </Container>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return (
+      <Container maxWidth="lg" sx={{ py: 8 }}>
+        <Alert severity="info">请先登录后再上传图片，正在跳转到登录页面...</Alert>
+      </Container>
+    );
+  }
 
   return (
     <Container maxWidth="lg" sx={{ py: 4 }}>

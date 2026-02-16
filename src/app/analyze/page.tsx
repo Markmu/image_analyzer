@@ -1,10 +1,12 @@
 'use client';
 
 import { useState } from 'react';
+import { useRequireAuth } from '@/features/auth/hooks/useRequireAuth';
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024;
 
 export default function AnalyzePage() {
+  const { isLoading, isAuthenticated } = useRequireAuth();
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState('');
   const [showAnalysis, setShowAnalysis] = useState(false);
@@ -34,6 +36,20 @@ export default function AnalyzePage() {
       setUploading(false);
     }
   };
+
+  if (isLoading) {
+    return <div className="mx-auto max-w-3xl px-6 py-10">正在检查登录状态...</div>;
+  }
+
+  if (!isAuthenticated) {
+    return (
+      <div className="mx-auto max-w-3xl px-6 py-10">
+        <div className="rounded border border-blue-200 bg-blue-50 p-3 text-blue-700">
+          请先登录后再上传图片，正在跳转到登录页面...
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="mx-auto max-w-3xl px-6 py-10">
