@@ -24,8 +24,11 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const body = await request.json();
-    const version = body.version || CURRENT_TERMS_VERSION;
+    const body = await request.json().catch(() => null);
+    const version =
+      body && typeof body === 'object' && 'version' in body && typeof body.version === 'string'
+        ? body.version
+        : CURRENT_TERMS_VERSION;
 
     // 更新用户同意时间
     const [updatedUser] = await db

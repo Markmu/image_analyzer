@@ -235,7 +235,13 @@ export async function checkUserConcurrencyLimit(
  * @returns 等待中的任务数
  */
 function getUserWaitingCount(userId: string): number {
-  return getUserWaitingCount(userId);
+  let count = 0;
+  for (const entry of waitingQueue) {
+    if (entry.userId === userId) {
+      count++;
+    }
+  }
+  return count;
 }
 
 /**

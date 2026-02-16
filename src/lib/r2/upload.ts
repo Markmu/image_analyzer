@@ -1,6 +1,6 @@
 import { Upload } from '@aws-sdk/lib-storage';
 import { PutObjectCommand, CopyObjectCommand } from '@aws-sdk/client-s3';
-import { r2, getBucketName } from './index';
+import { r2, getBucketName, getPublicUrl } from './index';
 
 /**
  * Upload options for R2
@@ -137,15 +137,6 @@ export async function copyToR2(
     url: getPublicUrl(destinationKey),
     size: 0,
   };
-}
-
-/**
- * Get the public URL for an R2 object
- * @param key - The object key
- * @returns Public URL
- */
-function getPublicUrl(key: string): string {
-  return `https://${process.env.R2_BUCKET_NAME}.${process.env.R2_ACCOUNT_ID}.r2.cloudflarestorage.com/${key}`;
 }
 
 /**

@@ -11,7 +11,6 @@ import ValidationStatus from '../ValidationStatus';
 import FirstTimeGuide from '../FirstTimeGuide';
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
-const ALLOWED_FORMATS = ['image/jpeg', 'image/png', 'image/webp'];
 
 interface ImageUploaderProps {
   onUploadSuccess?: (imageData: ImageData) => void;
@@ -50,27 +49,6 @@ export function ImageUploader({ onUploadSuccess, onUploadError }: ImageUploaderP
     setValidationResult(result);
     return result;
   }, []);
-
-  const uploadFile = useCallback(
-    async (file: File) => {
-      // Run validation first
-      const validation = await validateFile(file);
-
-      if (!validation.valid) {
-        onUploadError?.(validation.errors[0]?.message || 'Validation failed');
-        return;
-      }
-
-      // If there are warnings, wait for user to decide
-      if (validation.warnings.length > 0) {
-        setPendingFile(file);
-        return;
-      }
-
-      proceedWithUpload(file);
-    },
-    [validateFile, onUploadError]
-  );
 
   const proceedWithUpload = useCallback(
     async (file: File) => {
@@ -134,6 +112,27 @@ export function ImageUploader({ onUploadSuccess, onUploadError }: ImageUploaderP
       }
     },
     [onUploadSuccess, onUploadError]
+  );
+
+  const uploadFile = useCallback(
+    async (file: File) => {
+      // Run validation first
+      const validation = await validateFile(file);
+
+      if (!validation.valid) {
+        onUploadError?.(validation.errors[0]?.message || 'Validation failed');
+        return;
+      }
+
+      // If there are warnings, wait for user to decide
+      if (validation.warnings.length > 0) {
+        setPendingFile(file);
+        return;
+      }
+
+      proceedWithUpload(file);
+    },
+    [onUploadError, proceedWithUpload, validateFile]
   );
 
   const cancelUpload = useCallback(() => {

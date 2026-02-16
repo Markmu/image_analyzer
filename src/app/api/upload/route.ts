@@ -4,9 +4,6 @@ import { db } from '@/lib/db';
 import { images, user } from '@/lib/db/schema';
 import { uploadToR2 } from '@/lib/r2/upload';
 import { deleteFromR2 } from '@/lib/r2/download';
-import { getModerationFunction } from '@/lib/moderation/image-moderation';
-import { logModeration } from '@/lib/moderation/log-moderation';
-import { getModerationMessage } from '@/lib/moderation/messages';
 import { getExpirationDate } from '@/lib/config/retention';
 import { eq } from 'drizzle-orm';
 import sharp from 'sharp';
@@ -22,9 +19,7 @@ const ALLOWED_FORMATS = ['image/jpeg', 'image/png', 'image/webp'];
  *
  * Upload an image to R2 and save metadata to database
  *
- * Story 4-1: 集成内容审核
- * - AC-1: 版权确认（前端实现，后端验证）
- * - AC-3: 图片内容审核
+ * Story 4-1
  * - AC-6: 数据保留策略
  *
  * TODO: Future Enhancements (Story 2-1):
@@ -76,21 +71,6 @@ export async function POST(request: NextRequest) {
     // 3. Parse form data
     const formData = await request.formData();
     const file = formData.get('file') as File | null;
-    const copyrightConfirmed = formData.get('copyrightConfirmed') === 'true'; // Story 4-1 AC-1
-
-    // 验证版权确认（Story 4-1 AC-1）
-    if (!copyrightConfirmed) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: {
-            code: 'COPYRIGHT_NOT_CONFIRMED',
-            message: '请确认您拥有此图片的使用权利',
-          },
-        },
-        { status: 400 }
-      );
-    }
 
     if (!file) {
       return NextResponse.json(
@@ -204,49 +184,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 9. 内容审核（Story 4-1 AC-3）
-    const moderateFn = getModerationFunction();
-    const moderationResult = await moderateFn(uploadResult.url);
-
-    console.log('[Upload] Moderation result:', moderationResult);
-
-    // 记录审核日志
-    await logModeration({
-      userId: session.user.id,
-      contentType: 'image',
-      result: moderationResult,
-    });
-
-    // 如果审核不通过，删除已上传的图片
-    if (!moderationResult.isApproved) {
-      await deleteFromR2(uploadResult.key);
-
-      const message = getModerationMessage(
-        moderationResult.categories,
-        { violence: 0.7, sexual: 0.7, hate: 0.7, harassment: 0.7, selfHarm: 0.7 }
-      );
-
-      return NextResponse.json(
-        {
-          success: false,
-          error: {
-            code: 'CONTENT_REJECTED',
-            message: message.title,
-            details: {
-              reason: moderationResult.reason,
-              suggestion: message.suggestion,
-              policyLink: '/content-policy',
-            },
-          },
-        },
-        { status: 400 }
-      );
-    }
-
-    // 10. 计算数据过期时间（Story 4-1 AC-6）
+    // 9. 计算数据过期时间（Story 4-1 AC-6）
     const expiresAt = getExpirationDate(userInfo.subscriptionTier as any);
 
-    // 11. Save metadata to database
+    // 10. Save metadata to database
     const imageId = `${timestamp}-${random}`;
     try {
       await db.insert(images).values({
@@ -275,7 +216,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 12. Return success response
+    // 11. Return success response
     return NextResponse.json(
       {
         success: true,
@@ -287,11 +228,6 @@ export async function POST(request: NextRequest) {
           width,
           height,
           url: uploadResult.url,
-          moderation: {
-            // Story 4-1: 审核结果
-            status: moderationResult.action,
-            confidence: moderationResult.confidence,
-          },
           expiresAt, // Story 4-1: 过期时间
         },
       },

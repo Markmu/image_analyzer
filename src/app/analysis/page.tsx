@@ -35,6 +35,8 @@ interface TermsStatus {
   requiresAgreement: boolean;
 }
 
+const TERMS_VERSION = '1.0';
+
 export default function AnalysisPage() {
   const { isLoading, isAuthenticated } = useRequireAuth();
   const [state, setState] = useState<AnalysisState>({
@@ -78,6 +80,7 @@ export default function AnalysisPage() {
     const res = await fetch('/api/user/agree-terms', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ version: TERMS_VERSION }),
     });
     const data = await res.json();
     if (data.success) {
