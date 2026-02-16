@@ -4,7 +4,7 @@
 
 import { render, screen } from '@testing-library/react';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { TermScroller, SimpleTermDisplay } from '../TermScroller';
+import { TermScroller } from '../TermScroller';
 
 describe('TermScroller 组件', () => {
   beforeEach(() => {
@@ -40,21 +40,5 @@ describe('TermScroller 组件', () => {
 
     // 空数组不应该渲染任何内容
     expect(container.firstChild).toBe(null);
-  });
-});
-
-describe('SimpleTermDisplay 组件', () => {
-  it('应该渲染术语', () => {
-    render(<SimpleTermDisplay term="测试术语" />);
-
-    expect(screen.getByText('测试术语')).toBeInTheDocument();
-  });
-
-  it('应该有淡入淡出动画', () => {
-    const { container } = render(<SimpleTermDisplay term="测试术语" />);
-
-    // 检查是否有 transition 样式
-    const termElement = screen.getByText('测试术语');
-    expect(termElement).toBeInTheDocument();
   });
 });

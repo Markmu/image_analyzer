@@ -3,7 +3,7 @@
  */
 
 import { renderHook, act } from '@testing-library/react';
-import { useProgressStore } from '../useProgressStore';
+import { useProgressStore } from '@/stores/useProgressStore';
 
 describe('useProgressStore', () => {
   beforeEach(() => {

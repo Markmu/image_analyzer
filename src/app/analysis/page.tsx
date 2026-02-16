@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect, Fragment } from 'react';
 import {
   Box,
   Container,
@@ -14,6 +14,7 @@ import { ImageUploader } from '@/features/analysis/components/ImageUploader';
 import { ProgressDisplay } from '@/features/analysis/components/ProgressDisplay';
 import { AnalysisCard } from '@/features/analysis/components/AnalysisResult/AnalysisCard';
 import { FeedbackButtons } from '@/features/analysis/components/AnalysisResult/FeedbackButtons';
+import { TermsDialog } from '@/components/shared/TermsDialog';
 import type { ImageData } from '@/features/analysis/components/ImageUploader/types';
 import type { AnalysisData } from '@/types/analysis';
 import { useProgressStore } from '@/stores/useProgressStore';
@@ -29,6 +30,11 @@ interface AnalysisState {
   error: string | null;
 }
 
+interface TermsStatus {
+  hasAgreed: boolean;
+  requiresAgreement: boolean;
+}
+
 export default function AnalysisPage() {
   const { isLoading, isAuthenticated } = useRequireAuth();
   const [state, setState] = useState<AnalysisState>({
@@ -38,12 +44,53 @@ export default function AnalysisPage() {
     analysisId: null,
     error: null,
   });
+  const [showTermsDialog, setShowTermsDialog] = useState(false);
+  const [termsStatus, setTermsStatus] = useState<TermsStatus | null>(null);
 
   const {
     setAnalysisStage,
     setAnalysisProgress,
     resetAnalysis,
   } = useProgressStore();
+
+  // 检查用户条款同意状态
+  useEffect(() => {
+    if (!isAuthenticated) return;
+
+    async function checkTermsStatus() {
+      try {
+        const res = await fetch('/api/user/terms-status');
+        const data = await res.json();
+        if (data.success && data.data.requiresAgreement) {
+          setTermsStatus(data.data);
+          setShowTermsDialog(true);
+        }
+      } catch (err) {
+        console.error('Failed to check terms status:', err);
+      }
+    }
+
+    checkTermsStatus();
+  }, [isAuthenticated]);
+
+  // 处理同意条款
+  const handleAgreeTerms = async () => {
+    const res = await fetch('/api/user/agree-terms', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+    });
+    const data = await res.json();
+    if (data.success) {
+      setShowTermsDialog(false);
+      setTermsStatus({ hasAgreed: true, requiresAgreement: false });
+    }
+    return data;
+  };
+
+  // 处理取消同意
+  const handleCancelTerms = () => {
+    setShowTermsDialog(false);
+  };
 
   // 处理上传成功
   const handleUploadSuccess = useCallback((imageData: ImageData) => {
@@ -228,7 +275,8 @@ export default function AnalysisPage() {
   }
 
   return (
-    <Container maxWidth="lg" sx={{ py: 4 }}>
+    <Fragment>
+      <Container maxWidth="lg" sx={{ py: 4 }}>
       {/* 页面标题 */}
       <Box sx={{ mb: 4, textAlign: 'center' }}>
         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1, mb: 2 }}>
@@ -406,5 +454,12 @@ export default function AnalysisPage() {
         </Box>
       )}
     </Container>
+
+      <TermsDialog
+        open={showTermsDialog}
+        onAgree={handleAgreeTerms}
+        onCancel={handleCancelTerms}
+      />
+    </Fragment>
   );
 }

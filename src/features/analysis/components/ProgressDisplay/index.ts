@@ -4,7 +4,7 @@
 
 export { ProgressBar } from './ProgressBar';
 export { StageIndicator } from './StageIndicator';
-export { TermScroller, SimpleTermDisplay } from './TermScroller';
+export { TermScroller } from './TermScroller';
 export { BatchProgressDisplay } from './BatchProgressDisplay';
 export { MobileProgressBar, QueuePositionDisplay } from './MobileProgressBar';
 export { ProgressDisplay } from './index';

@@ -10,6 +10,19 @@ process.env.NEXTAUTH_URL = 'http://localhost:3000';
 process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/test';
 // NODE_ENV is read-only, so we skip setting it
 
+// Mock localStorage
+const localStorageMock = {
+  getItem: vi.fn(),
+  setItem: vi.fn(),
+  removeItem: vi.fn(),
+  clear: vi.fn(),
+};
+Object.defineProperty(window, 'localStorage', {
+  value: localStorageMock,
+  writable: true,
+  configurable: true,
+});
+
 afterEach(() => {
   cleanup();
 });
