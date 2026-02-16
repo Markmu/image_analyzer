@@ -30,8 +30,10 @@ const AnalysisDataSchema = z.object({
     artisticStyle: StyleDimensionSchema,
   }),
   overallConfidence: z.number().min(0).max(1),
-  modelUsed: z.string(),
-  analysisDuration: z.number(),
+  // Model raw output usually doesn't include these fields.
+  // They are filled by service layer after parsing.
+  modelUsed: z.string().default('unknown'),
+  analysisDuration: z.number().default(0),
 });
 
 /**

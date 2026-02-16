@@ -8,6 +8,11 @@ import {
   Button,
   Alert,
   CircularProgress,
+  FormControl,
+  InputLabel,
+  MenuItem,
+  Select,
+  Chip,
 } from '@mui/material';
 import { Psychology as PsychologyIcon } from '@mui/icons-material';
 import { ImageUploader } from '@/features/analysis/components/ImageUploader';
@@ -35,6 +40,17 @@ interface TermsStatus {
   requiresAgreement: boolean;
 }
 
+interface AnalysisModelOption {
+  id: string;
+  name: string;
+  description: string;
+  features: string[];
+  isDefault: boolean;
+  enabled: boolean;
+  requiresTier: 'free' | 'lite' | 'standard';
+  isLocked: boolean;
+}
+
 const TERMS_VERSION = '1.0';
 
 export default function AnalysisPage() {
@@ -48,6 +64,9 @@ export default function AnalysisPage() {
   });
   const [showTermsDialog, setShowTermsDialog] = useState(false);
   const [termsStatus, setTermsStatus] = useState<TermsStatus | null>(null);
+  const [models, setModels] = useState<AnalysisModelOption[]>([]);
+  const [selectedModelId, setSelectedModelId] = useState<string>('');
+  const [modelsLoading, setModelsLoading] = useState(false);
 
   const {
     setAnalysisStage,
@@ -73,6 +92,41 @@ export default function AnalysisPage() {
     }
 
     checkTermsStatus();
+  }, [isAuthenticated]);
+
+  // 拉取可用模型并设置默认选中项
+  useEffect(() => {
+    if (!isAuthenticated) return;
+
+    async function loadModels() {
+      setModelsLoading(true);
+      try {
+        const res = await fetch('/api/analysis/models');
+        const data = await res.json();
+
+        if (!data.success || !data.data?.models) {
+          return;
+        }
+
+        const enabledModels = (data.data.models as AnalysisModelOption[]).filter((m) => m.enabled);
+        setModels(enabledModels);
+
+        const defaultModel =
+          enabledModels.find((m) => m.isDefault && !m.isLocked) ||
+          enabledModels.find((m) => !m.isLocked) ||
+          enabledModels[0];
+
+        if (defaultModel) {
+          setSelectedModelId(defaultModel.id);
+        }
+      } catch (err) {
+        console.error('Failed to load analysis models:', err);
+      } finally {
+        setModelsLoading(false);
+      }
+    }
+
+    loadModels();
   }, [isAuthenticated]);
 
   // 处理同意条款
@@ -147,6 +201,7 @@ export default function AnalysisPage() {
         },
         body: JSON.stringify({
           imageId: state.imageData.imageId,
+          modelId: selectedModelId || undefined,
         }),
       });
 
@@ -173,7 +228,7 @@ export default function AnalysisPage() {
       }));
       setAnalysisStage('error');
     }
-  }, [state.imageData, setAnalysisStage, setAnalysisProgress]);
+  }, [state.imageData, selectedModelId, setAnalysisStage, setAnalysisProgress]);
 
   // 轮询分析状态
   const pollAnalysisStatus = async (analysisId: number) => {
@@ -357,6 +412,35 @@ export default function AnalysisPage() {
                   {(state.imageData.fileSize / 1024 / 1024).toFixed(2)} MB · {state.imageData.width}x{state.imageData.height}
                 </Typography>
               </Box>
+            </Box>
+            <Box sx={{ mb: 2 }}>
+              <FormControl fullWidth size="small" disabled={modelsLoading || models.length === 0}>
+                <InputLabel id="analysis-model-select-label">分析模型</InputLabel>
+                <Select
+                  labelId="analysis-model-select-label"
+                  label="分析模型"
+                  value={selectedModelId}
+                  onChange={(e) => setSelectedModelId(e.target.value)}
+                  data-testid="analysis-model-select"
+                >
+                  {models.map((model) => (
+                    <MenuItem key={model.id} value={model.id} disabled={model.isLocked}>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, width: '100%' }}>
+                        <Typography variant="body2" sx={{ flexGrow: 1 }}>
+                          {model.name}
+                        </Typography>
+                        {model.isDefault && <Chip size="small" label="默认" />}
+                        {model.isLocked && <Chip size="small" color="warning" label={`需 ${model.requiresTier}`} />}
+                      </Box>
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+              {selectedModelId && (
+                <Typography variant="body2" sx={{ mt: 1, color: '#475569' }}>
+                  {models.find((m) => m.id === selectedModelId)?.description}
+                </Typography>
+              )}
             </Box>
             <Button
               variant="contained"

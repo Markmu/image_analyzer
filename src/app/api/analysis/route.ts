@@ -7,6 +7,7 @@ import { validateImageComplexity } from '@/lib/replicate/vision';
 import { auth } from '@/lib/auth';
 import { canUserUseModel, recordModelUsage } from '@/lib/analysis/models';
 import { analyzeImageAsync } from '@/lib/replicate/async';
+import { getPublicDownloadUrl } from '@/lib/r2/download';
 import {
   getUserSubscriptionTier,
   getMaxConcurrent,
@@ -85,6 +86,10 @@ export async function POST(request: NextRequest) {
     }
 
     const image = imageList[0];
+    const imageUrl =
+      image.filePath.startsWith('http://') || image.filePath.startsWith('https://')
+        ? image.filePath
+        : getPublicDownloadUrl(image.filePath);
 
     // 3. 检查是否已经分析过
     const existingAnalysis = await db
@@ -159,7 +164,7 @@ export async function POST(request: NextRequest) {
       try {
         const result = await analyzeImageAsync({
           userId,
-          imageUrl: image.filePath,
+          imageUrl,
           modelId: usedModelId || 'qwen3-vl',
           creditCost: 1,
         });
@@ -253,7 +258,7 @@ export async function POST(request: NextRequest) {
     addActiveTask(userId);
 
     // 11. 异步执行分析（不等待完成）
-    executeAnalysisAsync(batchId, imageId, image.filePath, userId, usedModelId).catch(async (error) => {
+    executeAnalysisAsync(batchId, imageId, imageUrl, userId, usedModelId).catch(async (error) => {
       console.error('Async analysis failed:', error);
 
       // 更新任务状态为失败
@@ -310,7 +315,7 @@ export async function POST(request: NextRequest) {
 async function executeAnalysisAsync(
   batchId: number,
   imageId: string,
-  filePath: string,
+  imageUrl: string,
   userId: string,
   modelId: string = 'qwen3-vl'
 ): Promise<void> {
@@ -323,21 +328,15 @@ async function executeAnalysisAsync(
       .set({ status: 'processing' })
       .where(eq(batchAnalysisResults.id, batchId));
 
-    // 内容安全检查
-    try {
-      const complexityCheck = await validateImageComplexity(filePath);
-
-      if (complexityCheck.complexity === 'high' && complexityCheck.confidence > 0.8) {
-        throw new Error('Content safety check failed');
-      }
-    } catch (safetyError) {
-      console.error('Content safety check error:', safetyError);
-      // 如果安全检查失败，抛出错误
+    // 内容复杂度检查：仅在明确高复杂度且高置信时拦截。
+    // 检查服务异常时降级放行，避免外部模型波动导致整条分析失败。
+    const complexityCheck = await validateImageComplexity(imageUrl);
+    if (complexityCheck.complexity === 'high' && complexityCheck.confidence > 0.8) {
       throw new Error('图片内容安全检查未通过，无法分析');
     }
 
     // 执行风格分析（使用指定模型）
-    const analysisData = await analyzeImageWithModel(filePath, modelId);
+    const analysisData = await analyzeImageWithModel(imageUrl, modelId);
 
     // 提取置信度分数
     const confidenceScores = extractConfidenceFromAnalysisData(analysisData);

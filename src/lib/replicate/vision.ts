@@ -114,6 +114,46 @@ interface ComplexityValidationResponse {
   [key: string]: unknown;
 }
 
+function shouldRetryWithoutPinnedVersion(error: unknown): boolean {
+  const message = error instanceof Error ? error.message : String(error);
+  return (
+    message.includes('Invalid version or not permitted') ||
+    message.includes('The specified version does not exist') ||
+    message.includes('status 422')
+  );
+}
+
+function toUnpinnedModel(model: string): string | null {
+  const separatorIndex = model.indexOf(':');
+  if (separatorIndex <= 0) return null;
+  return model.slice(0, separatorIndex);
+}
+
+async function runModelWithVersionFallback(
+  model: string,
+  input: Record<string, unknown>
+): Promise<unknown> {
+  try {
+    return await replicate.run(model as `${string}/${string}` | `${string}/${string}:${string}`, {
+      input,
+    });
+  } catch (error) {
+    const unpinnedModel = toUnpinnedModel(model);
+    if (!unpinnedModel || !shouldRetryWithoutPinnedVersion(error)) {
+      throw error;
+    }
+
+    console.warn('[replicate] pinned model version unavailable, retrying with latest model', {
+      pinnedModel: model,
+      fallbackModel: unpinnedModel,
+    });
+
+    return replicate.run(unpinnedModel as `${string}/${string}` | `${string}/${string}:${string}`, {
+      input,
+    });
+  }
+}
+
 /**
  * Validates image complexity using AI vision model
  * Analyzes the image to determine if it's suitable for style analysis
@@ -121,7 +161,12 @@ interface ComplexityValidationResponse {
  * @returns Complexity analysis with subject count, complexity level, and confidence
  */
 export async function validateImageComplexity(imageUrl: string): Promise<ComplexityAnalysis> {
-  const model = process.env.REPLICATE_VISION_MODEL_ID || 'qwen/qwen-vl-max:7b';
+  const defaultModel = modelRegistry.getDefaultModel();
+  const model =
+    process.env.REPLICATE_COMPLEXITY_MODEL_ID?.trim() ||
+    defaultModel?.replicateModelId ||
+    process.env.REPLICATE_VISION_MODEL_ID ||
+    'lucataco/qwen3-vl-8b-instruct';
 
   const prompt = `Analyze this image for style analysis suitability and respond ONLY with valid JSON in this exact format:
 {
@@ -137,19 +182,14 @@ Guidelines:
 - confidence: How confident are you in this analysis? (0.0-1.0)
 - reason: Brief explanation in Chinese
 
-Image URL: ${imageUrl}`;
+  Image URL: ${imageUrl}`;
 
   try {
-    const response = await replicate.run(
-      model as `${string}/${string}` | `${string}/${string}:${string}`,
-      {
-        input: {
-          image: imageUrl,
-          prompt: prompt,
-          max_tokens: 300,
-        },
-      }
-    );
+    const response = await runModelWithVersionFallback(model, {
+      image: imageUrl,
+      prompt: prompt,
+      max_tokens: 300,
+    });
 
     const respObj = response as ComplexityValidationResponse;
 
@@ -167,7 +207,8 @@ Image URL: ${imageUrl}`;
     };
   } catch (error) {
     // Fallback to conservative defaults on API error
-    console.error('Complexity validation failed:', error);
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    console.error('Complexity validation failed:', errorMessage);
     return {
       subjectCount: 1,
       complexity: 'medium',
@@ -332,16 +373,11 @@ export async function analyzeImageWithModel(imageUrl: string, modelId: string): 
 
   for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
     try {
-      const output = await replicate.run(
-        model.replicateModelId as `${string}/${string}` | `${string}/${string}:${string}`,
-        {
-          input: {
-            image: imageUrl,
-            prompt: prompt,
-            max_tokens: 1000,
-          },
-        }
-      );
+      const output = await runModelWithVersionFallback(model.replicateModelId, {
+        image: imageUrl,
+        prompt: prompt,
+        max_tokens: 1000,
+      });
 
       // Extract and parse response
       const outputStr = typeof output === 'string' ? output : JSON.stringify(output);
@@ -424,4 +460,3 @@ export async function getAvailableModelsForUser(userId: string): Promise<{
     tier,
   };
 }
-
