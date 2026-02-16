@@ -86,7 +86,7 @@ export default function ConfidenceWarning({
       icon={<WarningIcon />}
       action={
         <Button
-          color="inherit"
+          sx={{ color: 'text.primary' }}
           size="small"
           onClick={() => setExpanded(!expanded)}
           endIcon={expanded ? <ExpandLessIcon /> : <ExpandMoreIcon />}

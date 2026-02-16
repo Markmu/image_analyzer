@@ -20,7 +20,7 @@ export function SignOutButton() {
       onClick={handleSignOut}
       disabled={isSigningOut}
       variant="text"
-      color="inherit"
+      sx={{ color: 'text.primary' }}
       startIcon={isSigningOut ? <CircularProgress size={16} /> : undefined}
       data-testid="sign-out-button"
     >

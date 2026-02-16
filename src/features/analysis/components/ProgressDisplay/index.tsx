@@ -137,7 +137,7 @@ export const ProgressDisplay: React.FC<ProgressDisplayProps> = ({
           <Box
             component="p"
             sx={{
-              color: 'rgba(255, 255, 255, 0.8)',
+              color: '#334155',
               fontSize: '0.875rem',
               m: 0,
             }}

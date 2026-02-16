@@ -10,15 +10,15 @@ export function Header() {
   const isAuthenticated = status === 'authenticated';
 
   return (
-    <header className="flex items-center justify-between p-4 border-b border-slate-800">
+    <header className="flex items-center justify-between border-b border-slate-200 bg-white p-4">
       {/* Logo - 占位符 */}
-      <div className="text-xl font-bold text-slate-100">
+      <div className="text-xl font-bold text-slate-900">
         Image Analyzer
       </div>
 
       {/* Navigation - 占位符 */}
       <nav className="hidden md:flex gap-6">
-        <Link href="/" className="text-slate-300 hover:text-white">
+        <Link href="/" className="text-slate-700 hover:text-slate-900">
           首页
         </Link>
       </nav>

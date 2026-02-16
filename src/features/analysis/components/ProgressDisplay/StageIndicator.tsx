@@ -96,12 +96,12 @@ export const StageIndicator: React.FC<StageIndicatorProps> = ({ currentStage, sx
                     ? 'rgba(34, 197, 94, 0.2)'
                     : currentStageIndex > index
                     ? 'rgba(34, 197, 94, 0.1)'
-                    : 'rgba(255, 255, 255, 0.05)',
+                    : 'rgba(15, 23, 42, 0.04)',
                 border: '2px solid',
                 borderColor:
                   currentStageIndex >= index
                     ? '#22C55E'
-                    : 'rgba(255, 255, 255, 0.2)',
+                    : '#cbd5e1',
                 transition: 'all 0.3s ease',
                 position: 'relative',
               }}
@@ -110,7 +110,7 @@ export const StageIndicator: React.FC<StageIndicatorProps> = ({ currentStage, sx
                 sx: {
                   fontSize: 28,
                   color:
-                    currentStageIndex >= index ? '#22C55E' : 'rgba(255, 255, 255, 0.5)',
+                    currentStageIndex >= index ? '#22C55E' : '#94a3b8',
                 },
               })}
 
@@ -145,7 +145,7 @@ export const StageIndicator: React.FC<StageIndicatorProps> = ({ currentStage, sx
               variant="caption"
               sx={{
                 mt: 1,
-                color: 'rgba(255, 255, 255, 0.7)',
+                color: '#475569',
                 fontWeight: currentStageIndex === index ? 'bold' : 'normal',
                 fontSize: '0.75rem',
               }}
@@ -161,7 +161,7 @@ export const StageIndicator: React.FC<StageIndicatorProps> = ({ currentStage, sx
                 width: { xs: '30px', sm: '50px', md: '70px' },
                 height: '2px',
                 backgroundColor:
-                  currentStageIndex > index ? '#22C55E' : 'rgba(255, 255, 255, 0.2)',
+                  currentStageIndex > index ? '#22C55E' : '#cbd5e1',
                 mx: 1,
                 transition: 'background-color 0.3s ease',
                 position: 'relative',

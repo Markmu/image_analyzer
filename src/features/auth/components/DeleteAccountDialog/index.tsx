@@ -120,7 +120,12 @@ export function DeleteAccountDialog({
       </DialogContent>
 
       <DialogActions>
-        <Button onClick={handleClose} disabled={isDeleting} color="inherit" data-testid="delete-account-cancel-button">
+        <Button
+          onClick={handleClose}
+          disabled={isDeleting}
+          sx={{ color: 'text.primary' }}
+          data-testid="delete-account-cancel-button"
+        >
           取消
         </Button>
         <Button

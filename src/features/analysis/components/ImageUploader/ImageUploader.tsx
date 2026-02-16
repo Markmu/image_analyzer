@@ -157,16 +157,16 @@ export function ImageUploader({ onUploadSuccess, onUploadError }: ImageUploaderP
         {...getRootProps()}
         sx={{
           border: '2px dashed',
-          borderColor: isDragActive ? '#22C55E' : 'rgba(255, 255, 255, 0.2)',
+          borderColor: isDragActive ? '#22C55E' : '#cbd5e1',
           borderRadius: '12px',
           padding: '48px 24px',
           textAlign: 'center',
           cursor: uploadStatus === 'uploading' ? 'not-allowed' : 'pointer',
           transition: 'all 0.2s ease',
-          backgroundColor: isDragActive ? 'rgba(34, 197, 94, 0.1)' : 'transparent',
+          backgroundColor: isDragActive ? 'rgba(34, 197, 94, 0.08)' : '#f8fafc',
           '&:hover': {
-            borderColor: uploadStatus === 'uploading' ? 'rgba(255, 255, 255, 0.2)' : '#22C55E',
-            backgroundColor: uploadStatus === 'uploading' ? 'transparent' : 'rgba(34, 197, 94, 0.1)',
+            borderColor: uploadStatus === 'uploading' ? '#cbd5e1' : '#22C55E',
+            backgroundColor: uploadStatus === 'uploading' ? '#f8fafc' : 'rgba(34, 197, 94, 0.08)',
           },
         }}
         data-testid="drop-zone"
@@ -176,13 +176,13 @@ export function ImageUploader({ onUploadSuccess, onUploadError }: ImageUploaderP
           sx={{
             fontSize: 48,
             mb: 2,
-            color: isDragActive ? '#22C55E' : 'rgba(255, 255, 255, 0.7)',
+            color: isDragActive ? '#22C55E' : '#64748b',
           }}
         />
-        <Typography variant="h6" sx={{ mb: 1, color: 'white' }}>
+        <Typography variant="h6" sx={{ mb: 1, color: 'text.primary' }}>
           {isDragActive ? 'Drop image here' : 'Drag & drop an image'}
         </Typography>
-        <Typography variant="body2" sx={{ color: 'rgba(255, 255, 255, 0.6)' }}>
+        <Typography variant="body2" sx={{ color: 'text.secondary' }}>
           or click to select (Max 10MB)
         </Typography>
       </Box>
@@ -195,14 +195,14 @@ export function ImageUploader({ onUploadSuccess, onUploadError }: ImageUploaderP
             sx={{
               height: 8,
               borderRadius: 4,
-              backgroundColor: 'rgba(255, 255, 255, 0.1)',
+              backgroundColor: '#e2e8f0',
               '& .MuiLinearProgress-bar': {
                 backgroundColor: '#22C55E',
               },
             }}
             data-testid="upload-progress"
           />
-          <Typography variant="body2" sx={{ mt: 1, color: 'rgba(255, 255, 255, 0.7)' }}>
+          <Typography variant="body2" sx={{ mt: 1, color: 'text.secondary' }}>
             Uploading... {uploadProgress}%
           </Typography>
           {uploadProgress > 0 && (
@@ -210,7 +210,15 @@ export function ImageUploader({ onUploadSuccess, onUploadError }: ImageUploaderP
               onClick={cancelUpload}
               variant="outlined"
               size="small"
-              sx={{ mt: 2, borderColor: 'rgba(255, 255, 255, 0.3)', color: 'rgba(255, 255, 255, 0.7)' }}
+              sx={{
+                mt: 2,
+                borderColor: '#cbd5e1',
+                color: 'text.primary',
+                '&:hover': {
+                  borderColor: '#94a3b8',
+                  backgroundColor: '#f8fafc',
+                },
+              }}
               data-testid="cancel-upload-btn"
             >
               Cancel

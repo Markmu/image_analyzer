@@ -46,7 +46,7 @@ export function ValidationStatus({ result, onContinueAnyway, onChangeImage, isMo
       sx={{
         mt: 3,
         backgroundColor: 'rgba(34, 197, 94, 0.1)',
-        color: '#22C55E',
+        color: '#166534',
         border: '1px solid #22C55E',
         borderRadius: '8px',
       }}
@@ -77,7 +77,7 @@ function ValidationError({ errors, isMobile = false }: ValidationErrorProps) {
       sx={{
         mt: 3,
         backgroundColor: 'rgba(239, 68, 68, 0.1)',
-        color: '#EF4444',
+        color: '#991b1b',
         border: '1px solid #EF4444',
         borderRadius: '8px',
       }}
@@ -91,14 +91,14 @@ function ValidationError({ errors, isMobile = false }: ValidationErrorProps) {
               primary={error.message}
               primaryTypographyProps={{
                 variant: 'body2',
-                sx: { color: 'rgba(255, 255, 255, 0.9)' },
+                sx: { color: 'text.primary' },
               }}
             />
             {error.details && isMobile && (
               <Button
                 size="small"
                 onClick={() => setExpanded(!expanded)}
-                sx={{ mt: 1, color: 'rgba(255, 255, 255, 0.7)' }}
+                sx={{ mt: 1, color: 'text.secondary' }}
                 data-testid="view-details-btn"
               >
                 {expanded ? '隐藏' : '查看详细建议'}
@@ -109,7 +109,8 @@ function ValidationError({ errors, isMobile = false }: ValidationErrorProps) {
                 sx={{
                   mt: 2,
                   p: 2,
-                  backgroundColor: 'rgba(0, 0, 0, 0.2)',
+                  backgroundColor: '#f8fafc',
+                  border: '1px solid #e2e8f0',
                   borderRadius: '4px',
                   width: '100%',
                 }}
@@ -117,10 +118,10 @@ function ValidationError({ errors, isMobile = false }: ValidationErrorProps) {
               >
                 {Object.entries(error.details).map(([key, value]) => (
                   <Box key={key} sx={{ mb: 1 }}>
-                    <Typography variant="caption" sx={{ color: 'rgba(255, 255, 255, 0.6)' }}>
+                    <Typography variant="caption" sx={{ color: 'text.secondary' }}>
                       {key}:
                     </Typography>
-                    <Typography variant="body2" sx={{ color: 'rgba(255, 255, 255, 0.9)', ml: 1 }}>
+                    <Typography variant="body2" sx={{ color: 'text.primary', ml: 1 }}>
                       {String(value)}
                     </Typography>
                   </Box>
@@ -153,7 +154,7 @@ function ValidationWarning({ warnings, onContinueAnyway, onChangeImage, isMobile
       sx={{
         mt: 3,
         backgroundColor: 'rgba(251, 191, 36, 0.1)',
-        color: '#FBBF24',
+        color: '#92400e',
         border: '1px solid #FBBF24',
         borderRadius: '8px',
       }}
@@ -168,11 +169,11 @@ function ValidationWarning({ warnings, onContinueAnyway, onChangeImage, isMobile
               secondary={warning.suggestion}
               primaryTypographyProps={{
                 variant: 'body2',
-                sx: { color: 'rgba(255, 255, 255, 0.9)' },
+                sx: { color: 'text.primary' },
               }}
               secondaryTypographyProps={{
                 variant: 'caption',
-                sx: { color: 'rgba(255, 255, 255, 0.6)' },
+                sx: { color: 'text.secondary' },
               }}
             />
           </ListItem>
@@ -192,8 +193,8 @@ function ValidationWarning({ warnings, onContinueAnyway, onChangeImage, isMobile
             onClick={onChangeImage}
             size={isMobile ? 'large' : 'medium'}
             sx={{
-              borderColor: 'rgba(255, 255, 255, 0.3)',
-              color: 'rgba(255, 255, 255, 0.7)',
+              borderColor: '#cbd5e1',
+              color: 'text.primary',
               minWidth: isMobile ? '100%' : 'auto',
               minHeight: isMobile ? '48px' : 'auto',
             }}

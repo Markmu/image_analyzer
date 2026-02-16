@@ -89,7 +89,7 @@ export function AnalysisCard({ analysisData }: AnalysisCardProps) {
           borderColor: confidenceLevel.color,
         }}
       >
-        <Typography variant="body2" color="text.secondary" gutterBottom>
+        <Typography variant="body2" sx={{ color: '#475569' }} gutterBottom>
           整体置信度
         </Typography>
         <Typography variant="h4" fontWeight="bold" sx={{ color: confidenceLevel.color }}>

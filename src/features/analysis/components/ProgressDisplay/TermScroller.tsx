@@ -28,7 +28,7 @@ export const TermScroller: React.FC<TermScrollerProps> = ({ terms, sx }) => {
         variant="body1"
         sx={{
           fontFamily: '"JetBrains Mono", monospace',
-          color: 'rgba(255, 255, 255, 0.7)',
+          color: '#475569',
           minHeight: 24,
           display: 'flex',
           alignItems: 'center',

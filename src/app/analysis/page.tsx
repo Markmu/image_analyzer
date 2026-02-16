@@ -216,7 +216,7 @@ export default function AnalysisPage() {
             AI 风格分析
           </Typography>
         </Box>
-        <Typography variant="body1" color="text.secondary">
+        <Typography variant="body1" sx={{ color: '#475569' }}>
           上传图片，获取专业的四维度风格分析（光影、构图、色彩、艺术风格）
         </Typography>
       </Box>
@@ -271,7 +271,7 @@ export default function AnalysisPage() {
                 <Typography variant="body1" fontWeight="medium">
                   {state.imageData.filePath?.split('/').pop() || 'Uploaded Image'}
                 </Typography>
-                <Typography variant="body2" color="text.secondary">
+                <Typography variant="body2" sx={{ color: '#475569' }}>
                   {(state.imageData.fileSize / 1024 / 1024).toFixed(2)} MB · {state.imageData.width}x{state.imageData.height}
                 </Typography>
               </Box>
@@ -316,7 +316,7 @@ export default function AnalysisPage() {
               <CircularProgress size={20} sx={{ mr: 1 }} />
               <Typography
                 variant="body2"
-                color="text.secondary"
+                sx={{ color: '#475569' }}
                 data-testid="analysis-status"
               >
                 分析中，请稍候...

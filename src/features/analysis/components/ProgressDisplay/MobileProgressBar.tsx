@@ -30,9 +30,9 @@ export const MobileProgressBar: React.FC<MobileProgressBarProps> = ({
       position="sticky"
       sx={{
         top: 0,
-        backgroundColor: 'rgba(15, 23, 42, 0.95)',
+        backgroundColor: 'rgba(255, 255, 255, 0.96)',
         backdropFilter: 'blur(8px)',
-        borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
+        borderBottom: '1px solid #e2e8f0',
         zIndex: 100,
         ...sx,
       }}
@@ -55,7 +55,7 @@ export const MobileProgressBar: React.FC<MobileProgressBarProps> = ({
             <Typography
               variant="caption"
               sx={{
-                color: 'rgba(255, 255, 255, 0.6)',
+                color: '#64748b',
                 fontSize: '0.75rem',
                 display: 'block',
               }}
@@ -87,7 +87,7 @@ export const MobileProgressBar: React.FC<MobileProgressBarProps> = ({
           left: 0,
           right: 0,
           height: 3,
-          backgroundColor: 'rgba(255, 255, 255, 0.1)',
+          backgroundColor: '#e2e8f0',
         }}
       >
         <Box

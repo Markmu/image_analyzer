@@ -174,7 +174,7 @@ export function TermsDialog({ open, onAgree, onCancel }: TermsDialogProps) {
           />
 
           <Box sx={{ display: 'flex', gap: 2, justifyContent: 'flex-end' }}>
-            <Button onClick={onCancel} color="inherit" disabled={isLoading}>
+            <Button onClick={onCancel} sx={{ color: 'text.primary' }} disabled={isLoading}>
               取消
             </Button>
             <Button

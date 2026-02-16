@@ -55,7 +55,7 @@ export function FirstTimeGuide({ onDismiss }: FirstTimeGuideProps) {
       sx={{
         p: 3,
         mb: 3,
-        backgroundColor: 'rgba(34, 197, 94, 0.1)',
+        backgroundColor: '#f0fdf4',
         border: '1px solid #22C55E',
         borderRadius: '12px',
       }}
@@ -65,7 +65,7 @@ export function FirstTimeGuide({ onDismiss }: FirstTimeGuideProps) {
         <CheckCircle />
         最佳实践提示
       </Typography>
-      <Typography variant="body2" paragraph sx={{ color: 'rgba(255, 255, 255, 0.9)' }}>
+      <Typography variant="body2" paragraph sx={{ color: 'text.primary' }}>
         为了获得最好的分析效果,建议使用:
       </Typography>
 
@@ -73,7 +73,7 @@ export function FirstTimeGuide({ onDismiss }: FirstTimeGuideProps) {
         <Typography variant="subtitle2" sx={{ color: '#22C55E', mb: 1 }}>
           ✓ 推荐场景:
         </Typography>
-        <ul style={{ margin: 0, paddingLeft: '20px', color: 'rgba(255, 255, 255, 0.8)' }}>
+        <ul style={{ margin: 0, paddingLeft: '20px', color: '#334155' }}>
           <li>单个主体(人物、物体或产品)</li>
           <li>静态场景(非动作照片)</li>
           <li>清晰的风格特征(明显的光影、色彩、构图)</li>
@@ -84,7 +84,7 @@ export function FirstTimeGuide({ onDismiss }: FirstTimeGuideProps) {
         <Typography variant="subtitle2" sx={{ color: '#FBBF24', mb: 1 }}>
           ✗ 避免使用:
         </Typography>
-        <ul style={{ margin: 0, paddingLeft: '20px', color: 'rgba(255, 255, 255, 0.8)' }}>
+        <ul style={{ margin: 0, paddingLeft: '20px', color: '#334155' }}>
           <li>多个主体(&gt;5个)</li>
           <li>动态场景(运动照片)</li>
           <li>模糊或低分辨率图片</li>
@@ -95,7 +95,7 @@ export function FirstTimeGuide({ onDismiss }: FirstTimeGuideProps) {
         <Grid xs={12} sm={6}>
           <Card
             sx={{
-              backgroundColor: 'rgba(34, 197, 94, 0.1)',
+              backgroundColor: '#f0fdf4',
               border: '1px solid #22C55E',
             }}
             data-testid="good-example"
@@ -114,7 +114,7 @@ export function FirstTimeGuide({ onDismiss }: FirstTimeGuideProps) {
               <Typography variant="caption">好的示例</Typography>
             </CardMedia>
             <CardContent>
-              <Typography variant="caption" sx={{ color: 'rgba(255, 255, 255, 0.7)' }}>
+              <Typography variant="caption" sx={{ color: '#475569' }}>
                 单主体、风格明显
               </Typography>
             </CardContent>
@@ -123,7 +123,7 @@ export function FirstTimeGuide({ onDismiss }: FirstTimeGuideProps) {
         <Grid xs={12} sm={6}>
           <Card
             sx={{
-              backgroundColor: 'rgba(239, 68, 68, 0.1)',
+              backgroundColor: '#fef2f2',
               border: '1px solid #EF4444',
             }}
             data-testid="bad-example"
@@ -142,7 +142,7 @@ export function FirstTimeGuide({ onDismiss }: FirstTimeGuideProps) {
               <Typography variant="caption">不好的示例</Typography>
             </CardMedia>
             <CardContent>
-              <Typography variant="caption" sx={{ color: 'rgba(255, 255, 255, 0.7)' }}>
+              <Typography variant="caption" sx={{ color: '#475569' }}>
                 多主体、动态场景
               </Typography>
             </CardContent>

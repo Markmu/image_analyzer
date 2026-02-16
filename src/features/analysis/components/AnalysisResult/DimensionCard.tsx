@@ -45,7 +45,7 @@ export function DimensionCard({ dimensionType, dimension }: DimensionCardProps) 
 
         {/* 维度置信度 */}
         <Box sx={{ mb: 2 }}>
-          <Typography variant="caption" color="text.secondary">
+          <Typography variant="caption" sx={{ color: '#475569' }}>
             置信度
           </Typography>
           <Typography variant="body2" fontWeight="medium">
