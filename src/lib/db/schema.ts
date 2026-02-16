@@ -302,15 +302,19 @@ export const manualReviewQueue = pgTable('manual_review_queue', {
 export const creditTransactions = pgTable('credit_transactions', {
   id: serial('id').primaryKey(),
   userId: varchar('user_id', { length: 255 }).notNull().references(() => user.id, { onDelete: 'cascade' }),
-  type: varchar('type', { length: 32 }).notNull(), // 'deduct' | 'refund' | 'purchase' | 'bonus'
+  type: varchar('type', { length: 64 }).notNull(), // 'deduct' | 'refund' | 'purchase' | 'bonus' | 'analysis_prehold' | 'analysis_complete' | 'topup' | 'subscription' | 'gift' | 'admin_adjustment'
   amount: integer('amount').notNull(),
   balanceAfter: integer('balance_after').notNull(),
   reason: varchar('reason', { length: 255 }).notNull(),
   batchId: integer('batch_id'), // 可选，关联批量分析
+  // Webhook 相关字段
+  transactionId: varchar('transaction_id', { length: 64 }), // UUID 关联预扣和回补
+  predictionId: varchar('prediction_id', { length: 128 }), // 关联 Replicate prediction
   createdAt: timestamp('created_at').notNull().defaultNow(),
 }, (table) => ({
   userIdIdx: index('credit_transactions_user_id_idx').on(table.userId),
   batchIdIdx: index('credit_transactions_batch_id_idx').on(table.batchId),
+  transactionIdIdx: index('credit_transactions_transaction_id_idx').on(table.transactionId),
 }));
 
 // ============================================================================
@@ -371,4 +375,26 @@ export const confidenceLogs = pgTable('confidence_logs', {
   createdIdx: index('confidence_logs_created_idx').on(table.createdAt),
   lowConfidenceIdx: index('confidence_logs_low_confidence_idx').on(table.isLowConfidence),
   modelIdx: index('confidence_logs_model_idx').on(table.modelUsageStatId),
+}));
+
+// ============================================================================
+// Replicate 预测表 (replicate_predictions) - Webhook 支持
+// ============================================================================
+export const replicatePredictions = pgTable('replicate_predictions', {
+  id: serial('id').primaryKey(),
+  predictionId: varchar('prediction_id', { length: 128 }).notNull().unique(),
+  userId: varchar('user_id', { length: 255 }).notNull().references(() => user.id, { onDelete: 'cascade' }),
+  taskType: varchar('task_type', { length: 32 }).notNull(), // 'analysis' | 'generation'
+  modelId: varchar('model_id', { length: 64 }).notNull(),
+  status: varchar('status', { length: 32 }).notNull().default('pending'), // 'pending' | 'processing' | 'completed' | 'failed'
+  input: jsonb('input').notNull(),
+  output: jsonb('output'),
+  creditTransactionId: integer('credit_transaction_id').references(() => creditTransactions.id, { onDelete: 'set null' }),
+  errorMessage: text('error_message'),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+  completedAt: timestamp('completed_at'),
+}, (table) => ({
+  userIdIdx: index('replicate_predictions_user_id_idx').on(table.userId),
+  statusIdx: index('replicate_predictions_status_idx').on(table.status),
+  predictionIdIdx: uniqueIndex('replicate_predictions_prediction_id_idx').on(table.predictionId),
 }));
