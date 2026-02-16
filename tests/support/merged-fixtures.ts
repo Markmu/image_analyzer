@@ -168,35 +168,6 @@ const utilityFixtures = base.extend<{
 export const test = mergeTests(utilityFixtures, customFixtures);
 export { expect } from '@playwright/test';
 
-// ============================================
-// GLOBAL TEST CLEANUP HOOK
-// ============================================
-/**
- * 自动清理钩子 - 在每个测试后运行
- *
- * 确保测试间完全隔离，防止状态污染
- * 特别解决了移动端测试的隔离问题
- */
-test.afterEach(async ({ page }, testInfo) => {
-  // 跳过 API 测试（没有 page 对象）
-  if (!page) {
-    return;
-  }
-
-  try {
-    // 执行全局清理
-    await registerGlobalCleanup(page, {
-      skipBrowserCleanup: false,
-      verifyCleanup: true,
-      verbose: testInfo.project.name.includes('mobile'), // 移动端测试输出详细日志
-    });
-  } catch (error) {
-    // 记录清理错误，但不让测试失败（测试本身可能已经失败了）
-    const errorMessage = error instanceof Error ? error.message : String(error);
-    console.warn(`⚠️  Cleanup error in ${testInfo.title}: ${errorMessage}`);
-  }
-});
-
 export function getBaseURL(): string {
   return process.env.BASE_URL || 'http://localhost:3000';
 }

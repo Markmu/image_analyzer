@@ -112,7 +112,7 @@ export const StageIndicator: React.FC<StageIndicatorProps> = ({ currentStage, sx
                   color:
                     currentStageIndex >= index ? '#22C55E' : '#94a3b8',
                 },
-              })}
+              } as any)}
 
               {/* 脉冲动画 - 当前阶段 */}
               {currentStageIndex === index && (

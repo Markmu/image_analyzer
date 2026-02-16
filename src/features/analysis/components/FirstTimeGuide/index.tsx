@@ -92,7 +92,7 @@ export function FirstTimeGuide({ onDismiss }: FirstTimeGuideProps) {
       </Box>
 
       <Grid container spacing={2} sx={{ mb: 2 }}>
-        <Grid xs={12} sm={6}>
+        <Grid size={{ xs: 12, sm: 6 }}>
           <Card
             sx={{
               backgroundColor: '#f0fdf4',
@@ -120,7 +120,7 @@ export function FirstTimeGuide({ onDismiss }: FirstTimeGuideProps) {
             </CardContent>
           </Card>
         </Grid>
-        <Grid xs={12} sm={6}>
+        <Grid size={{ xs: 12, sm: 6 }}>
           <Card
             sx={{
               backgroundColor: '#fef2f2',

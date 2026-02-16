@@ -200,7 +200,9 @@ export default function ConfidenceExplanation({
       }
       arrow
     >
-      {children || (
+      {children ? (
+        <>{children}</>
+      ) : (
         <IconButton size="small" aria-label="置信度说明">
           <HelpIcon fontSize="small" />
         </IconButton>

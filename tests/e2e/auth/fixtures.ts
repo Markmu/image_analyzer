@@ -1,4 +1,4 @@
-import { test as base } from '@playwright/test';
+import { test as base, type Page } from '@playwright/test';
 
 /**
  * Authentication Fixture for Story 1-4: User Menu UI
@@ -16,7 +16,7 @@ export interface AuthFixtures {
 }
 
 export const test = base.extend<AuthFixtures>({
-  authenticatedPage: async ({ page }, use) => {
+  authenticatedPage: async ({ page }: { page: Page }, use: (page: Page) => Promise<void>) => {
     // TODO: Implement authentication flow
     // Step 1: Navigate to login page
     // Step 2: Fill in credentials

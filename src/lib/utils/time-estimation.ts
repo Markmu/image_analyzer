@@ -38,7 +38,11 @@ const historyData: HistoryData = {
 const getMovingAverage = (stage: AnalysisStage): number => {
   const history = historyData[stage];
   if (history.length === 0) {
-    return STAGE_DURATION[stage] || 30;
+    // 只对有定义的 stage 返回默认值
+    if (stage in STAGE_DURATION) {
+      return STAGE_DURATION[stage as keyof typeof STAGE_DURATION] || 30;
+    }
+    return 30;
   }
   const sum = history.reduce((acc, val) => acc + val, 0);
   return sum / history.length;

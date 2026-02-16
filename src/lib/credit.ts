@@ -46,8 +46,7 @@ export async function deductCredits(
         .select()
         .from(user)
         .where(eq(user.id, userId))
-        .limit(1)
-        .forUpdate();
+        .limit(1);
 
       if (!userData || userData.creditBalance < amount) {
         return false;
@@ -100,8 +99,7 @@ export async function refundCredits(
         .select()
         .from(user)
         .where(eq(user.id, userId))
-        .limit(1)
-        .forUpdate();
+        .limit(1);
 
       if (!userData) {
         return false;

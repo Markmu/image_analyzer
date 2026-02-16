@@ -18,7 +18,7 @@ import { processReview } from '@/lib/moderation/manual-review-queue';
  */
 export async function POST(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     // 验证用户身份
@@ -35,7 +35,8 @@ export async function POST(
     // const isAdmin = session.user.role === 'admin';
     // if (!isAdmin) { ... }
 
-    const reviewId = parseInt(params.id, 10);
+    const { id } = await params;
+    const reviewId = parseInt(id, 10);
 
     if (isNaN(reviewId)) {
       return NextResponse.json(

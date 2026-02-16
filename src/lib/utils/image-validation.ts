@@ -336,7 +336,7 @@ export interface ApiValidationResponse {
  */
 export const validateWithApi = async (
   imageUrl: string
-): Promise<ValidationResult & { analysis?: ApiValidationResponse['data']['analysis'] }> => {
+): Promise<ValidationResult & { analysis?: NonNullable<ApiValidationResponse['data']>['analysis'] }> => {
   try {
     const response = await fetch('/api/validate', {
       method: 'POST',
@@ -419,7 +419,7 @@ export const validateWithApi = async (
 export const validateImageUploadComplete = async (
   file: File,
   imageUrl?: string
-): Promise<ValidationResult & { analysis?: ApiValidationResponse['data']['analysis'] }> => {
+): Promise<ValidationResult & { analysis?: NonNullable<ApiValidationResponse['data']>['analysis'] }> => {
   // Step 1: Local validation (fast, synchronous)
   const localResult = await validateImageUpload(file);
 

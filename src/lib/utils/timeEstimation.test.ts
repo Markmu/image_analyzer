@@ -2,7 +2,7 @@
  * 时间估算算法测试
  */
 
-import { describe, it, expect, beforeEach } from '@jest/globals';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import {
   calculateAnalysisTime,
   calculateUploadTime,
@@ -10,7 +10,7 @@ import {
   adjustEstimate,
   recordStageDuration,
   type AnalysisStage,
-} from '../time-estimation';
+} from './time-estimation';
 
 describe('时间估算算法', () => {
   beforeEach(() => {
@@ -145,8 +145,8 @@ describe('时间估算算法', () => {
 
     it('实际速度低于 75% 应增加 25% 时间', () => {
       const originalEstimate = 60;
-      const actualElapsed = 45; // 已经用了 45 秒但只完成了 35%
-      const currentProgress = 35;
+      const actualElapsed = 30; // 已经用了 30 秒但只完成了 36% - 实际速度 1.2
+      const currentProgress = 36; // 低于估算速度的 75%
 
       const result = adjustEstimate(originalEstimate, actualElapsed, currentProgress);
       expect(result).toBe(originalEstimate * 1.25);
