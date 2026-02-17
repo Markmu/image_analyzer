@@ -90,7 +90,7 @@ export function AnalysisCard({ analysisData }: AnalysisCardProps) {
       <Box
         sx={{
           display: 'grid',
-          gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' },
+          gridTemplateColumns: { xs: '1fr', md: '1fr 1fr', lg: 'repeat(4, minmax(0, 1fr))' },
           gap: 2,
         }}
       >

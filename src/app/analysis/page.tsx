@@ -346,7 +346,7 @@ export default function AnalysisPage() {
           </Typography>
         </Box>
         <Typography variant="body1" sx={{ color: '#475569' }}>
-          上传图片，获取专业的四维度风格分析（光影、构图、色彩、艺术风格）
+          专业视图信息层级：上传参考图后直接进入统一分析工作台（四维度、质量指标、可复用结果）
         </Typography>
       </Box>
 
@@ -357,11 +357,11 @@ export default function AnalysisPage() {
         </Alert>
       )}
 
-      {/* 步骤 1: 上传图片 */}
+      {/* 参考图片上传区 */}
       {(state.status === 'idle' || state.status === 'uploading') && (
         <Box sx={{ mb: 4 }}>
           <Typography variant="h5" gutterBottom fontWeight="medium">
-            步骤 1: 上传图片
+            参考图片
           </Typography>
           <ImageUploader
             onUploadSuccess={handleUploadSuccess}
@@ -370,11 +370,11 @@ export default function AnalysisPage() {
         </Box>
       )}
 
-      {/* 步骤 2: 开始分析 */}
+      {/* 分析配置区 */}
       {state.status === 'ready' && state.imageData && (
         <Box sx={{ mb: 4 }}>
           <Typography variant="h5" gutterBottom fontWeight="medium">
-            步骤 2: 开始分析
+            分析配置
           </Typography>
           <Box
             sx={{
@@ -455,7 +455,7 @@ export default function AnalysisPage() {
       {state.status === 'analyzing' && (
         <Box sx={{ mb: 4 }}>
           <Typography variant="h5" gutterBottom fontWeight="medium">
-            正在分析...
+            分析进行中
           </Typography>
           <Box
             sx={{
@@ -469,7 +469,7 @@ export default function AnalysisPage() {
             aria-busy="true"
             aria-live="polite"
           >
-            <ProgressDisplay type="analysis" />
+            <ProgressDisplay type="analysis" showStageIndicator={false} />
             <Box sx={{ mt: 2, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <CircularProgress size={20} sx={{ mr: 1 }} />
               <Typography
@@ -478,7 +478,7 @@ export default function AnalysisPage() {
                 data-testid="analysis-status"
                 role="status"
               >
-                分析中，请稍候...
+                正在进行风格分析，请稍候...
               </Typography>
             </Box>
           </Box>
@@ -490,7 +490,7 @@ export default function AnalysisPage() {
         <Box data-testid="analysis-result">
           <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 3 }}>
             <Typography variant="h5" fontWeight="medium">
-              分析结果
+              分析结果（专业视图）
             </Typography>
             <Button variant="outlined" onClick={handleReset}>
               分析新图片

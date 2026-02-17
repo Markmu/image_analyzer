@@ -104,38 +104,6 @@
             color: var(--text-secondary);
         }
 
-        /* ===== 模式切换 ===== */
-        .mode-switch {
-            display: flex;
-            justify-content: center;
-            gap: 16px;
-            margin-bottom: 32px;
-        }
-
-        .mode-btn {
-            padding: 12px 24px;
-            border: 2px solid transparent;
-            border-radius: var(--radius-lg);
-            background: var(--bg-secondary);
-            color: var(--text-primary);
-            font-family: 'Poppins', sans-serif;
-            font-size: 1rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-
-        .mode-btn:hover {
-            border-color: var(--accent-tech, #22C55E);
-            transform: translateY(-2px);
-        }
-
-        .mode-btn.active {
-            background: #22C55E;
-            color: white;
-            border-color: #22C55E;
-        }
-
         /* ===== 优化说明 ===== */
         .optimization-note {
             background: rgba(34, 197, 94, 0.1);
@@ -170,13 +138,13 @@
             margin-bottom: 24px;
         }
 
-        @media (max-width: 1024px) {
+        @media (max-width: 1023px) {
             .main-layout {
                 grid-template-columns: 100px 1fr;
             }
         }
 
-        @media (max-width: 768px) {
+        @media (max-width: 767px) {
             .main-layout {
                 grid-template-columns: 1fr;
             }
@@ -229,6 +197,40 @@
         /* ===== 分析结果卡片（放大）===== */
         .analysis-result {
             padding: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .analysis-header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 16px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        [data-theme="beginner"] .analysis-header {
+            border-bottom-color: rgba(30, 41, 59, 0.1);
+        }
+
+        .analysis-title {
+            font-size: 1.25rem;
+            margin-bottom: 4px;
+        }
+
+        .analysis-subtitle {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+
+        .analysis-quality-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 10px;
         }
 
         .quality-badge {
@@ -242,7 +244,6 @@
             color: #22C55E;
             font-size: 0.875rem;
             font-weight: 600;
-            margin-bottom: 16px;
         }
 
         .quality-badge .icon {
@@ -250,11 +251,29 @@
             height: 20px;
         }
 
+        .quality-metrics {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .quality-metric {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 10px;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            background: rgba(34, 197, 94, 0.12);
+            border: 1px solid rgba(34, 197, 94, 0.35);
+            color: #22C55E;
+        }
+
         .style-tags {
             display: flex;
             flex-wrap: wrap;
             gap: 8px;
-            margin-bottom: 16px;
         }
 
         .style-tag {
@@ -273,9 +292,8 @@
         /* ===== 四维度分析 ===== */
         .four-dimensions {
             display: grid;
-            grid-template-columns: 1fr 1fr;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
             gap: 12px;
-            margin-top: 16px;
         }
 
         .dimension-card {
@@ -283,7 +301,7 @@
             background: rgba(255, 255, 255, 0.05);
             border: 1px solid rgba(255, 255, 255, 0.1);
             border-radius: 8px;
-            text-align: center;
+            text-align: left;
             font-size: 0.875rem;
         }
 
@@ -294,13 +312,49 @@
 
         .dimension-card .icon {
             font-size: 1.5rem;
-            margin-bottom: 8px;
+            margin-bottom: 0;
+            flex-shrink: 0;
         }
 
         .dimension-card .term {
             font-family: 'JetBrains Mono', monospace;
             font-weight: 600;
             color: var(--accent-tech, #22C55E);
+        }
+
+        .dimension-head {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 8px;
+        }
+
+        .analysis-footer {
+            margin-top: 4px;
+            padding-top: 14px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        [data-theme="beginner"] .analysis-footer {
+            border-top-color: rgba(30, 41, 59, 0.1);
+        }
+
+        .analysis-footer-label {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+        }
+
+        .analysis-footer-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        @media (max-width: 1199px) {
+            .four-dimensions {
+                grid-template-columns: 1fr 1fr;
+            }
         }
 
         /* ===== 模版卡片（放大）===== */
@@ -559,11 +613,6 @@
                 font-size: 1.75rem;
             }
 
-            .mode-btn {
-                padding: 10px 16px;
-                font-size: 0.875rem;
-            }
-
             .reference-thumbnail {
                 flex-direction: row;
                 overflow-x: auto;
@@ -576,7 +625,16 @@
             }
 
             .four-dimensions {
-                grid-template-columns: 1fr 1fr;
+                grid-template-columns: 1fr;
+            }
+
+            .analysis-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .analysis-quality-row {
+                align-items: flex-start;
             }
         }
 
@@ -598,16 +656,6 @@
             <h1>image_analyzer - 设计方向 2（优化版 v2）</h1>
             <p>参考图片缩略化 + 分析结果/模版区域扩大 + 实时预览生成 + 生成结果展示</p>
         </header>
-
-        <!-- 模式切换 -->
-        <div class="mode-switch">
-            <button class="mode-btn" onclick="setTheme('beginner')" aria-label="切换到新手模式">
-                新手模式
-            </button>
-            <button class="mode-btn active" onclick="setTheme('professional')" aria-label="切换到专业模式">
-                专业模式
-            </button>
-        </div>
 
         <!-- 优化说明 -->
         <div class="optimization-note glass-card">
@@ -647,14 +695,27 @@
 
             <!-- 中间：分析结果（扩大） -->
             <div class="glass-card analysis-result">
-                <div class="quality-badge">
-                    <svg class="icon" viewBox="0 0 20 20" fill="currentColor">
-                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
-                    </svg>
-                    <span>256位用户 · 成功率94%</span>
+                <div class="analysis-header">
+                    <div>
+                        <h3 class="analysis-title">风格分析结果</h3>
+                        <p class="analysis-subtitle">综合 3 张参考图 · 专业视图信息层级展示</p>
+                    </div>
+                    <div class="quality-metric">专业视图</div>
                 </div>
 
-                <h3 style="margin-bottom: 12px;">风格分析结果</h3>
+                <div class="analysis-quality-row">
+                    <div class="quality-badge">
+                        <svg class="icon" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                        </svg>
+                        <span>256位用户 · 成功率94%</span>
+                    </div>
+                    <div class="quality-metrics">
+                        <span class="quality-metric">置信度 92%</span>
+                        <span class="quality-metric">平均耗时 47s</span>
+                        <span class="quality-metric">近7日 +18%</span>
+                    </div>
+                </div>
 
                 <div class="style-tags">
                     <span class="style-tag">赛博朋克</span>
@@ -665,57 +726,65 @@
                     <span class="style-tag">电影级光效</span>
                 </div>
 
-                <!-- 四维度分析（专业模式显示，新手模式隐藏） -->
+                <!-- 四维度分析（固定专业视图） -->
                 <div class="four-dimensions">
                     <div class="dimension-card" onclick="toggleDimensionDetail(this, 'rembrandt')" tabindex="0" role="button" aria-expanded="false">
-                        <div class="icon">💡</div>
-                        <div class="term">伦勃朗光</div>
-                        <div style="font-size: 0.75rem; color: var(--text-secondary);">侧上方打光</div>
+                        <div class="dimension-head">
+                            <div class="icon">💡</div>
+                            <div>
+                                <div class="term">伦勃朗光</div>
+                                <div style="font-size: 0.75rem; color: var(--text-secondary);">侧上方打光</div>
+                            </div>
+                        </div>
                         <div class="dimension-detail" style="display: none; margin-top: 8px; padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.1); font-size: 0.75rem; color: var(--text-secondary);">
                             <strong style="color: var(--accent-tech, #22C55E);">伦勃朗光</strong>：一种从侧上方打光的摄影技巧，创造戏剧性的阴影效果，常用于人像摄影，强调面部轮廓和情感表达。
                         </div>
                     </div>
                     <div class="dimension-card" onclick="toggleDimensionDetail(this, 'rule-thirds')" tabindex="0" role="button" aria-expanded="false">
-                        <div class="icon">📐</div>
-                        <div class="term">三分法</div>
-                        <div style="font-size: 0.75rem; color: var(--text-secondary);">黄金分割</div>
+                        <div class="dimension-head">
+                            <div class="icon">📐</div>
+                            <div>
+                                <div class="term">三分法</div>
+                                <div style="font-size: 0.75rem; color: var(--text-secondary);">黄金分割</div>
+                            </div>
+                        </div>
                         <div class="dimension-detail" style="display: none; margin-top: 8px; padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.1); font-size: 0.75rem; color: var(--text-secondary);">
                             <strong style="color: var(--accent-tech, #22C55E);">三分法构图</strong>：将画面分成九宫格，将主体放置在交叉点或线上，创造平衡且动态的构图，是摄影和绘画的基本构图法则。
                         </div>
                     </div>
                     <div class="dimension-card" onclick="toggleDimensionDetail(this, 'complementary')" tabindex="0" role="button" aria-expanded="false">
-                        <div class="icon">🎨</div>
-                        <div class="term">互补色</div>
-                        <div style="font-size: 0.75rem; color: var(--text-secondary);">蓝橙对比</div>
+                        <div class="dimension-head">
+                            <div class="icon">🎨</div>
+                            <div>
+                                <div class="term">互补色</div>
+                                <div style="font-size: 0.75rem; color: var(--text-secondary);">蓝橙对比</div>
+                            </div>
+                        </div>
                         <div class="dimension-detail" style="display: none; margin-top: 8px; padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.1); font-size: 0.75rem; color: var(--text-secondary);">
                             <strong style="color: var(--accent-tech, #22C55E);">互补色对比</strong>：色环上相对的两种颜色（如蓝与橙、紫与黄）同时使用，产生强烈的视觉冲击力和活力。
                         </div>
                     </div>
                     <div class="dimension-card" onclick="toggleDimensionDetail(this, 'digital-art')" tabindex="0" role="button" aria-expanded="false">
-                        <div class="icon">🖼️</div>
-                        <div class="term">数字艺术</div>
-                        <div style="font-size: 0.75rem; color: var(--text-secondary);">未来主义</div>
+                        <div class="dimension-head">
+                            <div class="icon">🖼️</div>
+                            <div>
+                                <div class="term">数字艺术</div>
+                                <div style="font-size: 0.75rem; color: var(--text-secondary);">未来主义</div>
+                            </div>
+                        </div>
                         <div class="dimension-detail" style="display: none; margin-top: 8px; padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.1); font-size: 0.75rem; color: var(--text-secondary);">
                             <strong style="color: var(--accent-tech, #22C55E);">数字艺术风格</strong>：融合科技与艺术的创作方式，运用数字工具创作具有未来感、科技感的视觉作品，强调创新和数字化表达。
                         </div>
                     </div>
                 </div>
 
-                <div style="margin-top: 20px; padding-top: 16px; border-top: 1px solid rgba(255, 255, 255, 0.1);">
-                    <div style="font-size: 0.875rem; color: var(--text-secondary); margin-bottom: 8px;">质量指标详情：</div>
-                    <div style="display: flex; flex-wrap: wrap; gap: 12px;">
-                        <div style="display: flex; align-items: center; gap: 4px; font-size: 0.875rem;">
-                            <span style="color: #22C55E;">✓</span> 参数完整
-                        </div>
-                        <div style="display: flex; align-items: center; gap: 4px; font-size: 0.875rem;">
-                            <span style="color: #22C55E;">✓</span> 格式验证
-                        </div>
-                        <div style="display: flex; align-items: center; gap: 4px; font-size: 0.875rem;">
-                            <span style="color: #22C55E;">✓</span> 256次使用
-                        </div>
-                        <div style="display: flex; align-items: center; gap: 4px; font-size: 0.875rem;">
-                            <span style="color: #22C55E;">✓</span> 4.8/5评分
-                        </div>
+                <div class="analysis-footer">
+                    <div class="analysis-footer-label">质量指标详情：</div>
+                    <div class="analysis-footer-list">
+                        <span class="quality-metric">✓ 参数完整</span>
+                        <span class="quality-metric">✓ 格式验证</span>
+                        <span class="quality-metric">✓ 256次使用</span>
+                        <span class="quality-metric">✓ 4.8/5评分</span>
                     </div>
                 </div>
             </div>
@@ -733,7 +802,7 @@
                 </div>
 
                 <div class="template-content">
-                    <code>/imagine prompt: [例如：一只猫] 赛博朋克风格，霓虹灯光，未来城市，高清摄影，8K分辨率，电影级光效，赛博朋克2077游戏风格，虚幻引擎渲染 --ar 16:9 --stylize 250 --quality 2 --v 6</code>
+                    <code id="template-code">/imagine prompt: [例如：一只猫] 赛博朋克风格，霓虹灯光，未来城市，高清摄影，8K分辨率，电影级光效，赛博朋克2077游戏风格，虚幻引擎渲染 --ar 16:9 --stylize 250 --quality 2 --v 6</code>
                 </div>
 
                 <!-- 实时预览生成区 -->
@@ -758,7 +827,7 @@
                     </div>
                 </div>
 
-                <button class="copy-btn" onclick="copyTemplate(this)" aria-label="复制完整模版到剪贴板" style="margin-bottom: 12px;">
+                <button id="copy-btn" class="copy-btn" onclick="copyTemplate(this)" aria-label="复制完整模版到剪贴板" style="margin-bottom: 12px;">
                     <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
                         <path d="M8 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z"/>
                         <path d="M6 3a2 2 0 00-2 2v11a2 2 0 002 2h8a2 2 0 002-2V5a2 2 0 00-2-2 3 3 0 01-3 3H9a3 3 0 01-3-3z"/>
@@ -859,23 +928,6 @@
     </div>
 
     <script>
-        // 模式切换
-        function setTheme(theme) {
-            document.body.setAttribute('data-theme', theme);
-
-            // 更新按钮状态
-            document.querySelectorAll('.mode-btn').forEach(btn => {
-                btn.classList.remove('active');
-            });
-            event.target.classList.add('active');
-
-            // 专业模式：显示四维度分析
-            const fourDimensions = document.querySelectorAll('.four-dimensions');
-            fourDimensions.forEach(el => {
-                el.style.display = theme === 'professional' ? 'grid' : 'none';
-            });
-        }
-
         // 选择参考图片
         function selectImage(index) {
             // 移除所有激活状态
@@ -890,26 +942,45 @@
             console.log('Selected image:', index);
         }
 
-        // 复制模版（模拟）
-        function copyTemplate(btn) {
-            // 显示 Toast
-            const toast = document.getElementById('toast');
-            toast.classList.add('show');
+        // 复制模版
+        async function copyTemplate(btn) {
+            const templateCode = document.getElementById('template-code');
+            const templateText = templateCode ? templateCode.textContent.trim() : '';
 
-            // 3秒后自动消失（最佳实践）
-            setTimeout(() => {
-                toast.classList.remove('show');
-            }, 3000);
+            if (!templateText) {
+                showToast('✗ 未找到可复制内容', 1500);
+                return;
+            }
 
-            // 按钮视觉反馈
-            const originalText = btn.innerHTML;
-            btn.innerHTML = '✓ 已复制！';
-            btn.style.background = '#16A34A';
+            try {
+                if (navigator.clipboard && window.isSecureContext) {
+                    await navigator.clipboard.writeText(templateText);
+                } else {
+                    const textArea = document.createElement('textarea');
+                    textArea.value = templateText;
+                    textArea.style.position = 'fixed';
+                    textArea.style.left = '-9999px';
+                    document.body.appendChild(textArea);
+                    textArea.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(textArea);
+                }
 
-            setTimeout(() => {
-                btn.innerHTML = originalText;
-                btn.style.background = '';
-            }, 2000);
+                showToast('✓ 已复制到剪贴板！', 1000);
+
+                if (btn) {
+                    const originalText = btn.innerHTML;
+                    btn.innerHTML = '✓ 已复制！';
+                    btn.style.background = '#16A34A';
+
+                    setTimeout(() => {
+                        btn.innerHTML = originalText;
+                        btn.style.background = '';
+                    }, 1200);
+                }
+            } catch (error) {
+                showToast('✗ 复制失败，请重试', 1500);
+            }
         }
 
         // 用户反馈
@@ -969,23 +1040,15 @@
         }
 
         // Toast 通知函数（复用）
-        function showToast(message) {
+        function showToast(message, duration = 3000) {
             const toast = document.getElementById('toast');
             toast.textContent = message;
             toast.classList.add('show');
 
             setTimeout(() => {
                 toast.classList.remove('show');
-            }, 3000);
+            }, duration);
         }
-
-        // 初始化：专业模式显示四维度分析
-        document.addEventListener('DOMContentLoaded', () => {
-            const fourDimensions = document.querySelectorAll('.four-dimensions');
-            fourDimensions.forEach(el => {
-                el.style.display = 'grid';
-            });
-        });
 
         // 四维度详情展开/折叠（Emma 建议）
         function toggleDimensionDetail(card, dimensionId) {
@@ -1033,6 +1096,18 @@
             // Tab 键：焦点可见
             if (e.key === 'Tab') {
                 document.body.classList.add('keyboard-nav');
+            }
+
+            // Ctrl/Cmd + C：快速复制完整模版（无文本选中时）
+            if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'c') {
+                const activeTag = document.activeElement ? document.activeElement.tagName : '';
+                const isEditable = activeTag === 'INPUT' || activeTag === 'TEXTAREA' || (document.activeElement && document.activeElement.isContentEditable);
+                const hasSelection = window.getSelection && window.getSelection().toString().length > 0;
+
+                if (!isEditable && !hasSelection) {
+                    e.preventDefault();
+                    copyTemplate(document.getElementById('copy-btn'));
+                }
             }
         });
 
