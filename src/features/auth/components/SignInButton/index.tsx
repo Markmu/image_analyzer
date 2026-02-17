@@ -1,6 +1,8 @@
 'use client';
 
 import { signIn } from 'next-auth/react';
+import { Button } from '@mui/material';
+import { Google as GoogleIcon } from '@mui/icons-material';
 
 /**
  * SignInButton 组件 - Google OAuth 登录按钮（简化版）
@@ -14,30 +16,23 @@ export function SignInButton() {
   };
 
   return (
-    <button
+    <Button
       onClick={handleSignIn}
       data-testid="google-login-button"
-      style={{
-        padding: '12px 24px',
-        fontSize: '16px',
-        fontWeight: 'bold',
-        color: '#fff',
-        backgroundColor: '#4285f4',
-        border: 'none',
-        borderRadius: '4px',
-        cursor: 'pointer',
-        display: 'flex',
-        alignItems: 'center',
-        gap: '8px',
+      variant="contained"
+      startIcon={<GoogleIcon />}
+      sx={{
+        minHeight: 44,
+        px: 3,
+        borderRadius: 1,
+        fontWeight: 600,
+        bgcolor: '#22C55E',
+        '&:hover': {
+          bgcolor: '#16A34A',
+        },
       }}
     >
-      <svg width="20" height="20" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-        <circle cx="12" cy="12" r="10" fill="white" />
-        <text x="12" y="16" textAnchor="middle" fontSize="11" fill="#4285f4" fontFamily="Arial, sans-serif">
-          G
-        </text>
-      </svg>
       使用 Google 登录
-    </button>
+    </Button>
   );
 }

@@ -10,20 +10,20 @@ export function Header() {
   const isAuthenticated = status === 'authenticated';
 
   return (
-    <header className="flex items-center justify-between border-b border-slate-200 bg-white p-4">
-      {/* Logo - 占位符 */}
-      <div className="text-xl font-bold text-slate-900">
+    <header className="sticky top-0 z-50 flex items-center justify-between border-b border-slate-200 bg-white/95 px-4 py-3 backdrop-blur">
+      <Link href="/" className="text-xl font-bold text-slate-900">
         Image Analyzer
-      </div>
+      </Link>
 
-      {/* Navigation - 占位符 */}
-      <nav className="hidden md:flex gap-6">
+      <nav className="flex items-center gap-6" aria-label="主导航">
         <Link href="/" className="text-slate-700 hover:text-slate-900">
           首页
         </Link>
+        <Link href="/analysis" className="text-slate-700 hover:text-slate-900">
+          风格分析
+        </Link>
       </nav>
 
-      {/* 右侧：登录状态相关 */}
       <div className="flex items-center gap-4">
         {isAuthenticated ? (
           <UserMenu />

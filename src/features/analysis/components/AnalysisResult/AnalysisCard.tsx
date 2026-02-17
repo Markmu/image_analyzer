@@ -4,6 +4,7 @@ import { Box, Paper, Typography } from '@mui/material';
 import PsychologyIcon from '@mui/icons-material/Psychology';
 import type { AnalysisData } from '@/types/analysis';
 import { DimensionCard } from './DimensionCard';
+import { AITransparencyBadge } from '@/components/shared/AITransparency';
 
 interface AnalysisCardProps {
   analysisData: AnalysisData;
@@ -58,23 +59,8 @@ export function AnalysisCard({ analysisData }: AnalysisCardProps) {
           </Typography>
         </Box>
 
-        {/* AI 透明度标注 */}
-        <Box
-          data-testid="ai-result-badge"
-          sx={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 1,
-            px: 2,
-            py: 1,
-            borderRadius: 1,
-            bgcolor: 'primary.main',
-            color: 'primary.contrastText',
-          }}
-        >
-          <Typography variant="body2" fontWeight="medium">
-            AI 分析结果
-          </Typography>
+        <Box data-testid="ai-result-badge">
+          <AITransparencyBadge size="small" />
         </Box>
       </Box>
 

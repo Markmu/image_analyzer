@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useCallback, useEffect, Fragment } from 'react';
+import Image from 'next/image';
 import {
   Box,
   Container,
@@ -35,11 +36,6 @@ interface AnalysisState {
   error: string | null;
 }
 
-interface TermsStatus {
-  hasAgreed: boolean;
-  requiresAgreement: boolean;
-}
-
 interface AnalysisModelOption {
   id: string;
   name: string;
@@ -63,7 +59,6 @@ export default function AnalysisPage() {
     error: null,
   });
   const [showTermsDialog, setShowTermsDialog] = useState(false);
-  const [termsStatus, setTermsStatus] = useState<TermsStatus | null>(null);
   const [models, setModels] = useState<AnalysisModelOption[]>([]);
   const [selectedModelId, setSelectedModelId] = useState<string>('');
   const [modelsLoading, setModelsLoading] = useState(false);
@@ -83,7 +78,6 @@ export default function AnalysisPage() {
         const res = await fetch('/api/user/terms-status');
         const data = await res.json();
         if (data.success && data.data.requiresAgreement) {
-          setTermsStatus(data.data);
           setShowTermsDialog(true);
         }
       } catch (err) {
@@ -139,7 +133,6 @@ export default function AnalysisPage() {
     const data = await res.json();
     if (data.success) {
       setShowTermsDialog(false);
-      setTermsStatus({ hasAgreed: true, requiresAgreement: false });
     }
     return data;
   };
@@ -162,7 +155,6 @@ export default function AnalysisPage() {
   // 处理上传错误
   const handleUploadError = useCallback((error: string, errorCode?: string) => {
     if (errorCode === 'TERMS_NOT_AGREED') {
-      setTermsStatus({ hasAgreed: false, requiresAgreement: true });
       setShowTermsDialog(true);
       setState((prev) => ({
         ...prev,
@@ -179,59 +171,8 @@ export default function AnalysisPage() {
     }));
   }, []);
 
-  // 开始分析
-  const handleStartAnalysis = useCallback(async () => {
-    if (!state.imageData) return;
-
-    setState((prev) => ({
-      ...prev,
-      status: 'analyzing',
-      error: null,
-    }));
-
-    setAnalysisStage('analyzing');
-    setAnalysisProgress(0);
-
-    try {
-      // 调用分析 API
-      const response = await fetch('/api/analysis', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          imageId: state.imageData.imageId,
-          modelId: selectedModelId || undefined,
-        }),
-      });
-
-      const data = await response.json();
-
-      if (!data.success) {
-        throw new Error(data.error?.message || '分析请求失败');
-      }
-
-      const analysisId = data.data.analysisId;
-      setState((prev) => ({
-        ...prev,
-        analysisId,
-      }));
-
-      // 开始轮询分析状态（不等待完成）
-      pollAnalysisStatus(analysisId);
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : '分析失败';
-      setState((prev) => ({
-        ...prev,
-        status: 'error',
-        error: errorMessage,
-      }));
-      setAnalysisStage('error');
-    }
-  }, [state.imageData, selectedModelId, setAnalysisStage, setAnalysisProgress]);
-
   // 轮询分析状态
-  const pollAnalysisStatus = async (analysisId: number) => {
+  const pollAnalysisStatus = useCallback(async (analysisId: number) => {
     const maxAttempts = 60; // 最多轮询 60 次（2 分钟）
     const interval = 2000; // 2 秒间隔
 
@@ -284,7 +225,58 @@ export default function AnalysisPage() {
       error: '分析超时，请稍后重试',
     }));
     setAnalysisStage('error');
-  };
+  }, [setAnalysisProgress, setAnalysisStage]);
+
+  // 开始分析
+  const handleStartAnalysis = useCallback(async () => {
+    if (!state.imageData) return;
+
+    setState((prev) => ({
+      ...prev,
+      status: 'analyzing',
+      error: null,
+    }));
+
+    setAnalysisStage('analyzing');
+    setAnalysisProgress(0);
+
+    try {
+      // 调用分析 API
+      const response = await fetch('/api/analysis', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          imageId: state.imageData.imageId,
+          modelId: selectedModelId || undefined,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!data.success) {
+        throw new Error(data.error?.message || '分析请求失败');
+      }
+
+      const analysisId = data.data.analysisId;
+      setState((prev) => ({
+        ...prev,
+        analysisId,
+      }));
+
+      // 开始轮询分析状态（不等待完成）
+      pollAnalysisStatus(analysisId);
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : '分析失败';
+      setState((prev) => ({
+        ...prev,
+        status: 'error',
+        error: errorMessage,
+      }));
+      setAnalysisStage('error');
+    }
+  }, [pollAnalysisStatus, selectedModelId, setAnalysisProgress, setAnalysisStage, state.imageData]);
 
   // 提交反馈
   const handleFeedback = useCallback(
@@ -394,15 +386,13 @@ export default function AnalysisPage() {
             }}
           >
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
-              <img
+              <Image
                 src={state.imageData.url}
                 alt="已上传图片"
-                style={{
-                  width: 100,
-                  height: 100,
-                  objectFit: 'cover',
-                  borderRadius: 8,
-                }}
+                width={100}
+                height={100}
+                unoptimized
+                style={{ objectFit: 'cover', borderRadius: 8 }}
               />
               <Box>
                 <Typography variant="body1" fontWeight="medium">
@@ -476,6 +466,8 @@ export default function AnalysisPage() {
               bgcolor: 'background.paper',
             }}
             data-testid="progress-display"
+            aria-busy="true"
+            aria-live="polite"
           >
             <ProgressDisplay type="analysis" />
             <Box sx={{ mt: 2, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -484,6 +476,7 @@ export default function AnalysisPage() {
                 variant="body2"
                 sx={{ color: '#475569' }}
                 data-testid="analysis-status"
+                role="status"
               >
                 分析中，请稍候...
               </Typography>

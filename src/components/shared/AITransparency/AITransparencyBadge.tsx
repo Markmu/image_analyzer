@@ -58,20 +58,22 @@ export function AITransparencyBadge({
       <Typography variant={textVariant} sx={{ fontWeight: 500 }}>
         {message}
       </Typography>
-      <Tooltip title="此分析由 AI 模型生成，仅供参考" arrow>
-        <IconButton
-          size="small"
-          sx={{
-            padding: 0.5,
-            color: 'inherit',
-            '&:hover': {
-              backgroundColor: 'rgba(255, 255, 255, 0.1)',
-            },
-          }}
-        >
-          <InfoIcon fontSize="small" />
-        </IconButton>
-      </Tooltip>
+      {showDetails ? (
+        <Tooltip title="此分析由 AI 模型生成，仅供参考" arrow>
+          <IconButton
+            size="small"
+            sx={{
+              padding: 0.5,
+              color: 'inherit',
+              '&:hover': {
+                backgroundColor: 'rgba(255, 255, 255, 0.1)',
+              },
+            }}
+          >
+            <InfoIcon fontSize="small" />
+          </IconButton>
+        </Tooltip>
+      ) : null}
     </Box>
   );
 }

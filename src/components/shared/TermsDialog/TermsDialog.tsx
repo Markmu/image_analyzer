@@ -93,7 +93,7 @@ export function TermsDialog({ open, onAgree, onCancel }: TermsDialogProps) {
           </Typography>
           <Box component="ul" sx={{ pl: 3 }}>
             <Typography component="li" variant="body2" color="text.secondary">
-              所有分析结果均由 AI 模型生成，会明确标注 "AI 分析结果"
+              所有分析结果均由 AI 模型生成，会明确标注“AI 分析结果”
             </Typography>
             <Typography component="li" variant="body2" color="text.secondary">
               AI 分析可能存在误差或偏差，不应用于关键决策
@@ -150,7 +150,7 @@ export function TermsDialog({ open, onAgree, onCancel }: TermsDialogProps) {
         <Box sx={{ p: 2, backgroundColor: 'info.light', borderRadius: 2 }}>
           <Typography variant="body2" color="text.primary">
             <strong>重要：</strong>
-            继续使用本服务即表示您同意遵守以上条款。如果您不同意，请点击"取消"退出。
+            继续使用本服务即表示您同意遵守以上条款。如果您不同意，请点击“取消”退出。
           </Typography>
         </Box>
       </DialogContent>

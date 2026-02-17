@@ -29,6 +29,7 @@ export function UserMenu() {
   const { user, isLoading } = useUserInfo();
   const { signOut } = useAuth();
   const isMobile = useMediaQuery('(max-width:767px)');
+  const menuId = isMobile ? 'user-menu-mobile' : 'user-menu-desktop';
 
   const handleClick = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);
@@ -89,6 +90,7 @@ export function UserMenu() {
 
   const menuBody = isMobile ? (
     <Menu
+      id={menuId}
       anchorEl={anchorEl}
       open={open}
       onClose={handleClose}
@@ -133,7 +135,7 @@ export function UserMenu() {
     </Menu>
   ) : (
     <Menu
-      id="user-menu"
+      id={menuId}
       aria-labelledby="user-menu-button"
       anchorEl={anchorEl}
       open={open}
@@ -202,10 +204,15 @@ export function UserMenu() {
         aria-label="用户菜单"
         aria-haspopup="true"
         aria-expanded={open}
+        aria-controls={open ? menuId : undefined}
         sx={{
           width: 48,
           height: 48,
           cursor: 'pointer',
+          '&:focus-visible': {
+            outline: '2px solid #22C55E',
+            outlineOffset: 2,
+          },
           '&:hover': {
             transform: 'translateY(-2px)',
             transition: 'transform 0.2s ease',

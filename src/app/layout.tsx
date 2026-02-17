@@ -29,7 +29,7 @@ export default function RootLayout({
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         <SessionProvider>
           <Header />
-          <main className="min-h-screen">
+          <main id="main-content" className="min-h-screen" tabIndex={-1}>
             {children}
           </main>
         </SessionProvider>

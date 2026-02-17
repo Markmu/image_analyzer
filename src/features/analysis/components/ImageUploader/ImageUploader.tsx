@@ -199,10 +199,10 @@ export function ImageUploader({ onUploadSuccess, onUploadError }: ImageUploaderP
           }}
         />
         <Typography variant="h6" sx={{ mb: 1, color: 'text.primary' }}>
-          {isDragActive ? 'Drop image here' : 'Drag & drop an image'}
+          {isDragActive ? '将图片拖放到这里' : '拖拽图片到此处'}
         </Typography>
         <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-          or click to select (Max 10MB)
+          或点击选择（最大 10MB）
         </Typography>
       </Box>
 
@@ -222,7 +222,7 @@ export function ImageUploader({ onUploadSuccess, onUploadError }: ImageUploaderP
             data-testid="upload-progress"
           />
           <Typography variant="body2" sx={{ mt: 1, color: 'text.secondary' }}>
-            Uploading... {uploadProgress}%
+            上传中... {uploadProgress}%
           </Typography>
           {uploadProgress > 0 && (
             <Button
@@ -240,7 +240,7 @@ export function ImageUploader({ onUploadSuccess, onUploadError }: ImageUploaderP
               }}
               data-testid="cancel-upload-btn"
             >
-              Cancel
+              取消上传
             </Button>
           )}
         </Box>
