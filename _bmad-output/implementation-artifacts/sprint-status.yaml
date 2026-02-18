@@ -116,3 +116,7 @@ development_status:
   9-2-retry-mechanisms: backlog
   9-3-user-education: backlog
   epic-9-retrospective: optional
+
+  # UX 升级任务（跨 Epic）
+  # 这些是跨多个 Epic 的技术债务和升级任务
+  ux-upgrade-1: done

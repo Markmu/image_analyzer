@@ -4,7 +4,7 @@
  */
 
 import React from 'react';
-import { Box, useTheme, useMediaQuery } from '@mui/material';
+import { Box, useTheme, useMediaQuery, type SxProps, type Theme } from '@mui/material';
 import { ProgressBar } from './ProgressBar';
 import { StageIndicator } from './StageIndicator';
 import { TermScroller } from './TermScroller';
@@ -14,7 +14,6 @@ import { QueuePositionDisplay } from './MobileProgressBar';
 import {
   useAnalysisStage,
   useAnalysisProgress,
-  useCurrentTerm,
   useQueuePosition,
   useBatchProgress,
   useAnalysisEstimatedTime,
@@ -28,7 +27,7 @@ export interface ProgressDisplayProps {
   showTermScroller?: boolean;
   showMobileProgress?: boolean;
   batchImages?: BatchImage[];
-  sx?: React.CSSProperties;
+  sx?: SxProps<Theme>;
 }
 
 export const ProgressDisplay: React.FC<ProgressDisplayProps> = ({
@@ -44,17 +43,26 @@ export const ProgressDisplay: React.FC<ProgressDisplayProps> = ({
 
   const stage = useAnalysisStage();
   const progress = useAnalysisProgress();
-  const currentTerm = useCurrentTerm();
   const queuePosition = useQueuePosition();
   const batchProgress = useBatchProgress();
   const estimatedTime = useAnalysisEstimatedTime();
+  const stageDescription =
+    stage === 'uploading'
+      ? '正在上传图片并进行基础校验'
+      : stage === 'analyzing'
+        ? '正在识别光影技巧、构图结构和色彩特征'
+        : stage === 'generating'
+          ? '正在生成可复用的分析结论'
+          : stage === 'completed'
+            ? '分析已完成'
+            : '准备分析中';
 
   // 如果需要显示移动端进度栏
   if (showMobileProgress && isMobile) {
     const stageLabel = stage === 'uploading' ? '上传中' :
                       stage === 'analyzing' ? '分析中' :
                       stage === 'generating' ? '生成中' : '';
-    return <MobileProgressBar progress={progress} stage={stageLabel} sx={sx as any} />;
+    return <MobileProgressBar progress={progress} stage={stageLabel} sx={sx} />;
   }
 
   // 上传进度显示
@@ -106,6 +114,29 @@ export const ProgressDisplay: React.FC<ProgressDisplayProps> = ({
         estimatedTime={estimatedTime}
         color={stage === 'error' ? 'error' : 'success'}
       />
+
+      {(stage === 'uploading' || stage === 'analyzing' || stage === 'generating') && (
+        <Box
+          sx={{
+            mb: 2,
+            p: 2,
+            borderRadius: 2,
+            border: '1px solid rgba(34, 197, 94, 0.25)',
+            backgroundColor: 'rgba(34, 197, 94, 0.08)',
+          }}
+          data-testid="analysis-stage-description"
+        >
+          <Box component="p" sx={{ m: 0, fontSize: '0.875rem', color: '#334155', fontWeight: 600 }}>
+            当前阶段：{stageDescription}
+          </Box>
+          <Box component="p" sx={{ m: 0, mt: 0.5, fontSize: '0.8125rem', color: '#475569' }}>
+            预计剩余时间：{estimatedTime}
+          </Box>
+          <Box component="p" sx={{ m: 0, mt: 0.5, fontSize: '0.8125rem', color: '#166534' }}>
+            质量承诺：优先保证分析准确性，结果将在完成后自动展示。
+          </Box>
+        </Box>
+      )}
 
       {/* 队列位置显示 */}
       {queuePosition && queuePosition > 0 && (

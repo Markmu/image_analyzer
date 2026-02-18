@@ -17,11 +17,11 @@ import {
   useTheme,
 } from '@mui/material';
 import {
-  CloudUpload,
-  CheckCircle,
-  Error as ErrorIcon,
-  Close,
-} from '@mui/icons-material';
+  Upload,
+  CircleCheck,
+  CircleX,
+  X,
+} from 'lucide-react';
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 const ALLOWED_FORMATS = ['image/jpeg', 'image/png', 'image/webp'];
@@ -69,6 +69,12 @@ interface FileState {
   result?: UploadResult;
 }
 
+interface BatchWarningDetails {
+  totalFiles?: number;
+  processedFiles?: number;
+  skippedFiles?: number;
+}
+
 export function BatchUploader({
   onBatchUploadSuccess,
   onBatchUploadError,
@@ -79,22 +85,18 @@ export function BatchUploader({
   const [isUploading, setIsUploading] = useState(false);
   const [completedCount, setCompletedCount] = useState(0);
   const [batchId, setBatchId] = useState<string | null>(null);
-  const [warning, setWarning] = useState<{ code: string; message: string; details: any } | null>(null);
+  const [warning, setWarning] = useState<{ code: string; message: string; details: BatchWarningDetails } | null>(null);
   const [estimatedTime, setEstimatedTime] = useState<number | null>(null);
   const cancelTokenSources = useRef<Map<string, CancelTokenSource>>(new Map());
   const startTimeRef = useRef<number | null>(null);
+  const filesRef = useRef<FileState[]>([]);
 
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
-  const isTablet = useMediaQuery(theme.breakpoints.between('sm', 'md'));
 
-  // Reset estimated time when upload starts
   useEffect(() => {
-    if (isUploading && completedCount === 0) {
-      startTimeRef.current = Date.now();
-      setEstimatedTime(null);
-    }
-  }, [isUploading, completedCount]);
+    filesRef.current = files;
+  }, [files]);
 
   // Calculate estimated time
   useEffect(() => {
@@ -108,15 +110,16 @@ export function BatchUploader({
 
   // Cleanup on unmount: cancel all uploads and revoke preview URLs
   useEffect(() => {
+    const cancelTokens = cancelTokenSources.current;
     return () => {
       // Cancel all ongoing uploads
-      cancelTokenSources.current.forEach((source) => {
+      cancelTokens.forEach((source) => {
         source.cancel('Component unmounted');
       });
-      cancelTokenSources.current.clear();
+      cancelTokens.clear();
 
       // Revoke all preview URLs to prevent memory leaks
-      files.forEach((file) => {
+      filesRef.current.forEach((file) => {
         if (file.preview) {
           URL.revokeObjectURL(file.preview);
         }
@@ -126,16 +129,6 @@ export function BatchUploader({
 
   const createFilePreview = useCallback((file: File): string => {
     return URL.createObjectURL(file);
-  }, []);
-
-  const removeFile = useCallback((id: string) => {
-    setFiles((prev) => {
-      const file = prev.find((f) => f.id === id);
-      if (file?.preview) {
-        URL.revokeObjectURL(file.preview);
-      }
-      return prev.filter((f) => f.id !== id);
-    });
   }, []);
 
   const cancelUpload = useCallback(() => {
@@ -155,6 +148,7 @@ export function BatchUploader({
     );
 
     setIsUploading(false);
+    setEstimatedTime(null);
     onBatchUploadCancel?.();
   }, [onBatchUploadCancel]);
 
@@ -193,6 +187,7 @@ export function BatchUploader({
     setIsUploading(true);
     setCompletedCount(0);
     setWarning(null);
+    setEstimatedTime(null);
     startTimeRef.current = Date.now();
 
     // Create cancel tokens for each upload
@@ -341,7 +336,7 @@ export function BatchUploader({
     } else if (results.some((r) => r.error?.code !== 'CANCELLED')) {
       onBatchUploadError?.('All uploads failed');
     }
-  }, [files, validateFile, batchId, onBatchUploadSuccess, onBatchUploadError, onBatchUploadCancel, onProgress]);
+  }, [files, validateFile, batchId, onBatchUploadSuccess, onBatchUploadError, onProgress]);
 
   const onDrop = useCallback(
     (acceptedFiles: File[]) => {
@@ -401,6 +396,7 @@ export function BatchUploader({
       {/* Drop zone */}
       <Box
         {...getRootProps()}
+        className={isDragActive ? 'ia-glass-card ia-glass-card--active' : 'ia-glass-card'}
         sx={{
           border: '2px dashed',
           borderColor: isDragActive ? '#22C55E' : 'rgba(255, 255, 255, 0.2)',
@@ -409,7 +405,7 @@ export function BatchUploader({
           textAlign: 'center',
           cursor: isUploading || files.length >= MAX_FILES ? 'not-allowed' : 'pointer',
           transition: 'all 0.2s ease',
-          backgroundColor: isDragActive ? 'rgba(34, 197, 94, 0.1)' : 'transparent',
+          backgroundColor: isDragActive ? 'rgba(34, 197, 94, 0.1)' : 'rgba(15, 23, 42, 0.5)',
           '&:hover': {
             borderColor:
               isUploading || files.length >= MAX_FILES
@@ -424,12 +420,11 @@ export function BatchUploader({
         data-testid="batch-drop-zone"
       >
         <input {...getInputProps()} data-testid="batch-file-input" />
-        <CloudUpload
-          sx={{
-            fontSize: 48,
-            mb: 2,
-            color: isDragActive ? '#22C55E' : 'rgba(255, 255, 255, 0.7)',
-          }}
+        <Upload
+          size={48}
+          color={isDragActive ? '#22C55E' : 'rgba(255, 255, 255, 0.7)'}
+          aria-hidden="true"
+          style={{ marginBottom: 16 }}
         />
         <Typography variant="h6" sx={{ mb: 1, color: 'white' }}>
           {isDragActive ? 'Drop images here' : 'Drag & drop multiple images'}
@@ -498,7 +493,6 @@ export function BatchUploader({
                 <ThumbnailCard
                   key={file.id}
                   file={file}
-                  onRemove={() => removeFile(file.id)}
                   onCancel={() => cancelSingleFile(file.id)}
                 />
               ))}
@@ -526,7 +520,6 @@ export function BatchUploader({
                 <ThumbnailCard
                   key={file.id}
                   file={file}
-                  onRemove={() => removeFile(file.id)}
                   onCancel={() => cancelSingleFile(file.id)}
                   compact
                 />
@@ -575,12 +568,11 @@ export function BatchUploader({
 
 interface ThumbnailCardProps {
   file: FileState;
-  onRemove: () => void;
   onCancel: () => void;
   compact?: boolean;
 }
 
-function ThumbnailCard({ file, onRemove, onCancel, compact = false }: ThumbnailCardProps) {
+function ThumbnailCard({ file, onCancel, compact = false }: ThumbnailCardProps) {
   const getStatusColor = () => {
     switch (file.status) {
       case 'completed':
@@ -597,11 +589,11 @@ function ThumbnailCard({ file, onRemove, onCancel, compact = false }: ThumbnailC
   const getStatusIcon = () => {
     switch (file.status) {
       case 'completed':
-        return <CheckCircle sx={{ color: '#22C55E', fontSize: 16 }} />;
+        return <CircleCheck size={16} color="#22C55E" aria-hidden="true" />;
       case 'failed':
-        return <ErrorIcon sx={{ color: '#EF4444', fontSize: 16 }} />;
+        return <CircleX size={16} color="#EF4444" aria-hidden="true" />;
       case 'cancelled':
-        return <Close sx={{ color: '#F59E0B', fontSize: 16 }} />;
+        return <X size={16} color="#F59E0B" aria-hidden="true" />;
       default:
         return null;
     }
@@ -681,6 +673,7 @@ function ThumbnailCard({ file, onRemove, onCancel, compact = false }: ThumbnailC
       {file.status === 'uploading' && (
         <IconButton
           size="small"
+          aria-label={`取消上传 ${file.file.name}`}
           onClick={(e) => {
             e.stopPropagation();
             onCancel();
@@ -696,7 +689,7 @@ function ThumbnailCard({ file, onRemove, onCancel, compact = false }: ThumbnailC
           }}
           data-testid={`cancel-${file.file.name}-button`}
         >
-          <Close sx={{ fontSize: 14, color: 'white' }} />
+          <X size={14} color="white" aria-hidden="true" />
         </IconButton>
       )}
 

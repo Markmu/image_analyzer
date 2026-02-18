@@ -19,13 +19,12 @@ import {
   Stack,
 } from '@mui/material';
 import {
-  Warning as WarningIcon,
-  Refresh as RefreshIcon,
-  ExpandMore as ExpandMoreIcon,
-  ExpandLess as ExpandLessIcon,
-} from '@mui/icons-material';
+  TriangleAlert,
+  RotateCcw,
+  ChevronDown,
+  ChevronUp,
+} from 'lucide-react';
 import type { ConfidenceWarning as ConfidenceWarningType, ConfidenceScores } from '@/lib/analysis/confidence';
-import ConfidenceBadge from '../ConfidenceBadge';
 
 interface ConfidenceWarningProps {
   /** 置信度警告信息 */
@@ -83,13 +82,13 @@ export default function ConfidenceWarning({
   return (
     <Alert
       severity={severity}
-      icon={<WarningIcon />}
+      icon={<TriangleAlert size={18} aria-hidden="true" />}
       action={
         <Button
           sx={{ color: 'text.primary' }}
           size="small"
           onClick={() => setExpanded(!expanded)}
-          endIcon={expanded ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+          endIcon={expanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
         >
           {expanded ? '收起' : '详情'}
         </Button>
@@ -135,7 +134,7 @@ export default function ConfidenceWarning({
               variant="contained"
               color="primary"
               size="small"
-              startIcon={<RefreshIcon />}
+              startIcon={<RotateCcw size={16} />}
               onClick={onRetry}
               disabled={disableRetry || isRetrying}
               sx={{ mt: 2 }}

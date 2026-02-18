@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { Box, Paper, Typography, Button, Grid, Card, CardMedia, CardContent } from '@mui/material';
-import { CheckCircle } from '@mui/icons-material';
+import { CircleCheck } from 'lucide-react';
 
 const GUIDE_DISMISSAL_KEY = 'image-upload-guide-dismissed';
 
@@ -62,7 +62,7 @@ export function FirstTimeGuide({ onDismiss }: FirstTimeGuideProps) {
       data-testid="first-time-guide"
     >
       <Typography variant="h6" gutterBottom sx={{ color: '#22C55E', display: 'flex', alignItems: 'center', gap: 1 }}>
-        <CheckCircle />
+        <CircleCheck size={20} aria-hidden="true" />
         最佳实践提示
       </Typography>
       <Typography variant="body2" paragraph sx={{ color: 'text.primary' }}>

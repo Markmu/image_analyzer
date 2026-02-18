@@ -8,8 +8,7 @@
 'use client';
 
 import { Box, Typography, Tooltip, IconButton } from '@mui/material';
-import SmartToyIcon from '@mui/icons-material/SmartToy';
-import InfoIcon from '@mui/icons-material/Info';
+import { Bot, Info } from 'lucide-react';
 
 interface AITransparencyBadgeProps {
   /**
@@ -38,7 +37,7 @@ export function AITransparencyBadge({
   message = 'AI 分析结果',
   size = 'medium',
 }: AITransparencyBadgeProps) {
-  const iconSize = size === 'small' ? 'small' : size === 'large' ? 'large' : 'medium';
+  const iconSize = size === 'small' ? 16 : size === 'large' ? 24 : 20;
   const textVariant = size === 'small' ? 'caption' : size === 'large' ? 'body1' : 'body2';
 
   return (
@@ -54,13 +53,14 @@ export function AITransparencyBadge({
         fontSize: textVariant === 'caption' ? '0.75rem' : textVariant === 'body1' ? '1rem' : '0.875rem',
       }}
     >
-      <SmartToyIcon fontSize={iconSize} />
+      <Bot size={iconSize} aria-hidden="true" />
       <Typography variant={textVariant} sx={{ fontWeight: 500 }}>
         {message}
       </Typography>
       {showDetails ? (
         <Tooltip title="此分析由 AI 模型生成，仅供参考" arrow>
           <IconButton
+            aria-label="AI 透明度说明"
             size="small"
             sx={{
               padding: 0.5,
@@ -70,7 +70,7 @@ export function AITransparencyBadge({
               },
             }}
           >
-            <InfoIcon fontSize="small" />
+            <Info size={16} aria-hidden="true" />
           </IconButton>
         </Tooltip>
       ) : null}

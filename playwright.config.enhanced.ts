@@ -28,7 +28,7 @@ export default defineConfig({
   // PROJECT & DIRECTORY CONFIGURATION
   // ============================================
   testDir: path.resolve(__dirname, 'tests'),
-  outputDir: path.resolve(__dirname, 'tests/test-results'),
+  outputDir: path.resolve(__dirname, 'tests/test-results/artifacts'),
   snapshotDir: path.resolve(__dirname, 'tests/snapshots'),
 
   // ============================================
@@ -44,7 +44,7 @@ export default defineConfig({
   // ============================================
   reporter: [
     ['html', {
-      outputFolder: 'tests/test-results/html-report',
+      outputFolder: 'playwright-report-enhanced',
       open: 'never'
     }],
     ['junit', {
@@ -127,7 +127,21 @@ export default defineConfig({
     },
 
     // ----------------------------------------
-    // PROJECT 4: Mobile E2E (for responsive testing)
+    // PROJECT 4: E2E WebKit (Safari parity)
+    // ----------------------------------------
+    {
+      name: 'e2e-webkit',
+      testMatch: /tests\/e2e\/.*\.spec\.ts/,
+      use: {
+        ...devices['Desktop Safari'],
+        baseURL: process.env.BASE_URL || 'http://localhost:3000',
+      },
+      fullyParallel: false,
+      workers: 1,
+    },
+
+    // ----------------------------------------
+    // PROJECT 5: Mobile E2E (for responsive testing)
     // ----------------------------------------
     {
       name: 'e2e-mobile',

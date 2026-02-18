@@ -1,7 +1,8 @@
 'use client';
 
-import { Box, Paper, Typography } from '@mui/material';
-import PsychologyIcon from '@mui/icons-material/Psychology';
+import { useMemo, useState } from 'react';
+import { Box, Paper, Typography, Button, Collapse } from '@mui/material';
+import { Brain, Copy, Check, ChevronDown, ChevronUp } from 'lucide-react';
 import type { AnalysisData } from '@/types/analysis';
 import { DimensionCard } from './DimensionCard';
 import { AITransparencyBadge } from '@/components/shared/AITransparency';
@@ -16,6 +17,8 @@ interface AnalysisCardProps {
  */
 export function AnalysisCard({ analysisData }: AnalysisCardProps) {
   const { overallConfidence, dimensions } = analysisData;
+  const [expanded, setExpanded] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   // 确定置信度等级
   const getConfidenceLevel = () => {
@@ -30,15 +33,29 @@ export function AnalysisCard({ analysisData }: AnalysisCardProps) {
   };
 
   const confidenceLevel = getConfidenceLevel();
+  const summaryText = useMemo(() => {
+    const lines = [
+      `整体置信度: ${(overallConfidence * 100).toFixed(0)}% (${confidenceLevel.label})`,
+      ...Object.values(dimensions).map(
+        (dimension) => `${dimension.name}: ${dimension.features.map((feature) => feature.value).join(' / ')}`
+      ),
+    ];
+    return lines.join('\n');
+  }, [confidenceLevel.label, dimensions, overallConfidence]);
+
+  const handleCopy = async () => {
+    await navigator.clipboard.writeText(summaryText);
+    setCopied(true);
+    window.setTimeout(() => setCopied(false), 1500);
+  };
 
   return (
     <Paper
       elevation={2}
+      className="ia-glass-card"
       sx={{
         p: 3,
-        bgcolor: 'background.paper',
-        border: '1px solid',
-        borderColor: 'divider',
+        bgcolor: 'rgba(15, 23, 42, 0.55)',
       }}
     >
       {/* Header */}
@@ -53,7 +70,7 @@ export function AnalysisCard({ analysisData }: AnalysisCardProps) {
         }}
       >
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <PsychologyIcon color="primary" />
+          <Brain size={24} color="#22c55e" aria-hidden="true" />
           <Typography variant="h5" fontWeight="bold">
             风格分析结果
           </Typography>
@@ -86,23 +103,49 @@ export function AnalysisCard({ analysisData }: AnalysisCardProps) {
         </Typography>
       </Box>
 
-      {/* 四维度分析 */}
-      <Box
-        sx={{
-          display: 'grid',
-          gridTemplateColumns: { xs: '1fr', md: '1fr 1fr', lg: 'repeat(4, minmax(0, 1fr))' },
-          gap: 2,
-        }}
-      >
-        {Object.entries(dimensions).map(([key, dimension]) => (
-          <Box key={key} data-testid={getTestId(key)}>
-            <DimensionCard
-              dimensionType={key}
-              dimension={dimension}
-            />
-          </Box>
-        ))}
+      <Box sx={{ mb: 3, display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+        <Button
+          variant="contained"
+          onClick={handleCopy}
+          startIcon={copied ? <Check size={18} /> : <Copy size={18} />}
+          data-testid="copy-analysis-summary"
+          sx={{
+            bgcolor: '#22C55E',
+            color: '#052e16',
+            '&:hover': { bgcolor: '#16A34A' },
+          }}
+        >
+          {copied ? '已复制' : '一键复制'}
+        </Button>
+        <Button
+          variant="outlined"
+          onClick={() => setExpanded((prev) => !prev)}
+          endIcon={expanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+          data-testid="toggle-analysis-details"
+        >
+          {expanded ? '收起详细分析' : '展开详细分析'}
+        </Button>
       </Box>
+
+      {/* 四维度分析 */}
+      <Collapse in={expanded} timeout={300}>
+        <Box
+          sx={{
+            display: 'grid',
+            gridTemplateColumns: { xs: '1fr', md: '1fr 1fr', lg: 'repeat(4, minmax(0, 1fr))' },
+            gap: 2,
+          }}
+        >
+          {Object.entries(dimensions).map(([key, dimension]) => (
+            <Box key={key} data-testid={getTestId(key)}>
+              <DimensionCard
+                dimensionType={key}
+                dimension={dimension}
+              />
+            </Box>
+          ))}
+        </Box>
+      </Collapse>
     </Paper>
   );
 }

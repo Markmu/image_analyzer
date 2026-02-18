@@ -4,7 +4,7 @@ import React, { useCallback, useState } from 'react';
 import { useDropzone } from 'react-dropzone';
 import axios, { CancelTokenSource } from 'axios';
 import { Box, Typography, LinearProgress, Button } from '@mui/material';
-import { CloudUpload } from '@mui/icons-material';
+import { Upload } from 'lucide-react';
 import type { ImageData, UploadStatus } from './types';
 import { validateImageUpload, type ValidationResult } from '@/lib/utils/image-validation';
 import ValidationStatus from '../ValidationStatus';
@@ -15,6 +15,7 @@ const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 interface ImageUploaderProps {
   onUploadSuccess?: (imageData: ImageData) => void;
   onUploadError?: (error: string, errorCode?: string) => void;
+  onAutoStartAnalysis?: (imageData: ImageData) => void;
 }
 
 const getUploadError = (err: unknown): { message: string; code?: string } => {
@@ -36,7 +37,7 @@ const getUploadError = (err: unknown): { message: string; code?: string } => {
   return { message: 'Upload failed' };
 };
 
-export function ImageUploader({ onUploadSuccess, onUploadError }: ImageUploaderProps) {
+export function ImageUploader({ onUploadSuccess, onUploadError, onAutoStartAnalysis }: ImageUploaderProps) {
   const [uploadStatus, setUploadStatus] = useState<UploadStatus>('idle');
   const [uploadProgress, setUploadProgress] = useState(0);
   const [validationResult, setValidationResult] = useState<ValidationResult | null>(null);
@@ -81,6 +82,7 @@ export function ImageUploader({ onUploadSuccess, onUploadError }: ImageUploaderP
           setUploadStatus('success');
           setPendingFile(null);
           onUploadSuccess?.(response.data.data);
+          onAutoStartAnalysis?.(response.data.data);
         } else {
           const errorMessage = response.data.error?.message || 'Upload failed';
           const errorCode = response.data.error?.code;
@@ -111,7 +113,7 @@ export function ImageUploader({ onUploadSuccess, onUploadError }: ImageUploaderP
         setCancelTokenSource(null);
       }
     },
-    [onUploadSuccess, onUploadError]
+    [onAutoStartAnalysis, onUploadSuccess, onUploadError]
   );
 
   const uploadFile = useCallback(
@@ -174,6 +176,7 @@ export function ImageUploader({ onUploadSuccess, onUploadError }: ImageUploaderP
 
       <Box
         {...getRootProps()}
+        className={isDragActive ? 'ia-glass-card ia-glass-card--active' : 'ia-glass-card'}
         sx={{
           border: '2px dashed',
           borderColor: isDragActive ? '#22C55E' : '#cbd5e1',
@@ -182,26 +185,26 @@ export function ImageUploader({ onUploadSuccess, onUploadError }: ImageUploaderP
           textAlign: 'center',
           cursor: uploadStatus === 'uploading' ? 'not-allowed' : 'pointer',
           transition: 'all 0.2s ease',
-          backgroundColor: isDragActive ? 'rgba(34, 197, 94, 0.08)' : '#f8fafc',
+          backgroundColor: isDragActive ? 'rgba(34, 197, 94, 0.08)' : 'rgba(15, 23, 42, 0.6)',
           '&:hover': {
             borderColor: uploadStatus === 'uploading' ? '#cbd5e1' : '#22C55E',
-            backgroundColor: uploadStatus === 'uploading' ? '#f8fafc' : 'rgba(34, 197, 94, 0.08)',
+            backgroundColor:
+              uploadStatus === 'uploading' ? 'rgba(15, 23, 42, 0.6)' : 'rgba(34, 197, 94, 0.08)',
           },
         }}
         data-testid="drop-zone"
       >
         <input {...getInputProps()} data-testid="image-upload-input" />
-        <CloudUpload
-          sx={{
-            fontSize: 48,
-            mb: 2,
-            color: isDragActive ? '#22C55E' : '#64748b',
-          }}
+        <Upload
+          size={48}
+          color={isDragActive ? '#22C55E' : '#94a3b8'}
+          aria-hidden="true"
+          style={{ marginBottom: 16 }}
         />
-        <Typography variant="h6" sx={{ mb: 1, color: 'text.primary' }}>
+        <Typography variant="h6" sx={{ mb: 1, color: '#f8fafc' }}>
           {isDragActive ? '将图片拖放到这里' : '拖拽图片到此处'}
         </Typography>
-        <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+        <Typography variant="body2" sx={{ color: '#cbd5e1' }}>
           或点击选择（最大 10MB）
         </Typography>
       </Box>

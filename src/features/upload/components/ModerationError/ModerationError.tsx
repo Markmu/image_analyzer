@@ -8,7 +8,7 @@
 'use client';
 
 import { Box, Typography, Button, Paper } from '@mui/material';
-import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
+import { CircleAlert } from 'lucide-react';
 import Link from 'next/link';
 
 interface ModerationErrorProps {
@@ -56,7 +56,7 @@ export function ModerationError({
       }}
     >
       <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2 }}>
-        <ErrorOutlineIcon color="error" sx={{ fontSize: 40 }} />
+        <CircleAlert size={40} color="#ef4444" aria-hidden="true" />
 
         <Box sx={{ flex: 1 }}>
           <Typography variant="h6" color="error.main" gutterBottom sx={{ fontWeight: 'bold' }}>

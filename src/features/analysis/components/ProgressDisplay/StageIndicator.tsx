@@ -6,18 +6,19 @@
 import React from 'react';
 import { Box, Typography, SxProps, Theme } from '@mui/material';
 import {
-  CloudUpload,
-  Psychology,
-  AutoAwesome,
-  CheckCircle,
-} from '@mui/icons-material';
+  Upload,
+  Brain,
+  Sparkles,
+  CircleCheck,
+  type LucideIcon,
+} from 'lucide-react';
 import type { AnalysisStage } from '@/lib/utils/time-estimation';
 
 export interface StageConfig {
   id: AnalysisStage;
   label: string;
   description: string;
-  icon: React.ReactNode;
+  icon: LucideIcon;
 }
 
 const STAGES: StageConfig[] = [
@@ -25,25 +26,25 @@ const STAGES: StageConfig[] = [
     id: 'uploading',
     label: '上传中',
     description: '正在上传图片',
-    icon: <CloudUpload />,
+    icon: Upload,
   },
   {
     id: 'analyzing',
     label: '分析中',
     description: 'AI 正在分析图片',
-    icon: <Psychology />,
+    icon: Brain,
   },
   {
     id: 'generating',
     label: '生成中',
     description: '正在生成提示词',
-    icon: <AutoAwesome />,
+    icon: Sparkles,
   },
   {
     id: 'completed',
     label: '完成',
     description: '分析完成',
-    icon: <CheckCircle />,
+    icon: CircleCheck,
   },
 ];
 
@@ -106,13 +107,11 @@ export const StageIndicator: React.FC<StageIndicatorProps> = ({ currentStage, sx
                 position: 'relative',
               }}
             >
-              {React.cloneElement(stage.icon as React.ReactElement, {
-                sx: {
-                  fontSize: 28,
-                  color:
-                    currentStageIndex >= index ? '#22C55E' : '#94a3b8',
-                },
-              } as any)}
+              <stage.icon
+                size={28}
+                color={currentStageIndex >= index ? '#22C55E' : '#94a3b8'}
+                aria-hidden="true"
+              />
 
               {/* 脉冲动画 - 当前阶段 */}
               {currentStageIndex === index && (

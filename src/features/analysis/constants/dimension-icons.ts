@@ -4,14 +4,11 @@
  * Icons for each style dimension
  */
 
-import WbSunnyIcon from '@mui/icons-material/WbSunny';
-import PhotoSizeSelectLargeIcon from '@mui/icons-material/PhotoSizeSelectLarge';
-import PaletteIcon from '@mui/icons-material/Palette';
-import TheaterComedyIcon from '@mui/icons-material/TheaterComedy';
+import { Sun, Grid3X3, Palette, Sparkles } from 'lucide-react';
 
 export const dimensionIcons = {
-  lighting: WbSunnyIcon,        // 光影 ☀️
-  composition: PhotoSizeSelectLargeIcon,  // 构图 🖼️
-  color: PaletteIcon,              // 色彩 🎨
-  artisticStyle: TheaterComedyIcon,  // 艺术风格 🎭
+  lighting: Sun, // 光影 ☀️
+  composition: Grid3X3, // 构图 🖼️
+  color: Palette, // 色彩 🎨
+  artisticStyle: Sparkles, // 艺术风格 🎭
 } as const;

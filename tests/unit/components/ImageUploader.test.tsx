@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, fireEvent } from '@testing-library/react';
 import { ImageUploader } from '@/features/analysis/components/ImageUploader/ImageUploader';
 
 // Mock axios
@@ -18,6 +18,14 @@ vi.mock('axios', () => ({
 
 import axios from 'axios';
 
+vi.mock('@/lib/utils/image-validation', () => ({
+  validateImageUpload: vi.fn(async () => ({
+    valid: true,
+    errors: [],
+    warnings: [],
+  })),
+}));
+
 const mockAxiosPost = axios.post as any;
 
 describe('ImageUploader', () => {
@@ -30,14 +38,14 @@ describe('ImageUploader', () => {
       render(<ImageUploader />);
 
       expect(screen.getByTestId('drop-zone')).toBeInTheDocument();
-      expect(screen.getByText(/drag & drop an image/i)).toBeInTheDocument();
-      expect(screen.getByText(/or click to select/i)).toBeInTheDocument();
+      expect(screen.getByText('拖拽图片到此处')).toBeInTheDocument();
+      expect(screen.getByText(/或点击选择/)).toBeInTheDocument();
     });
 
     it('should render with correct title', () => {
       render(<ImageUploader />);
 
-      expect(screen.getByText(/drag & drop/i)).toBeInTheDocument();
+      expect(screen.getByText('拖拽图片到此处')).toBeInTheDocument();
     });
   });
 
@@ -45,7 +53,7 @@ describe('ImageUploader', () => {
     it('should display correct file size limit', () => {
       render(<ImageUploader />);
 
-      expect(screen.getByText(/max 10mb/i)).toBeInTheDocument();
+      expect(screen.getByText(/最大 10MB/)).toBeInTheDocument();
     });
   });
 
@@ -84,6 +92,36 @@ describe('ImageUploader', () => {
       // Component should render with callback
       expect(screen.getByTestId('drop-zone')).toBeInTheDocument();
       expect(onSuccess).not.toHaveBeenCalled();
+    });
+
+    it('should call onAutoStartAnalysis after successful upload', async () => {
+      const onAutoStartAnalysis = vi.fn();
+      const file = new File(['test'], 'test.jpg', { type: 'image/jpeg' });
+      Object.defineProperty(file, 'size', { value: 5 * 1024 * 1024 });
+
+      mockAxiosPost.mockResolvedValueOnce({
+        data: {
+          success: true,
+          data: {
+            imageId: 'test-id',
+            filePath: 'images/test/test.jpg',
+            fileSize: 5 * 1024 * 1024,
+            fileFormat: 'JPEG',
+            width: 800,
+            height: 600,
+            url: 'https://example.com/test.jpg',
+          },
+        },
+      });
+
+      render(<ImageUploader onAutoStartAnalysis={onAutoStartAnalysis} />);
+      fireEvent.change(screen.getByTestId('image-upload-input'), {
+        target: { files: [file] },
+      });
+
+      await waitFor(() => {
+        expect(onAutoStartAnalysis).toHaveBeenCalledTimes(1);
+      });
     });
 
     it('should call onUploadError callback on failure', async () => {

@@ -1,9 +1,7 @@
 'use client';
 
 import { Box, Button, Typography, Stack } from '@mui/material';
-import ThumbUpIcon from '@mui/icons-material/ThumbUp';
-import ThumbDownIcon from '@mui/icons-material/ThumbDown';
-import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import { ThumbsUp, ThumbsDown, CircleCheck } from 'lucide-react';
 import { useState } from 'react';
 
 interface FeedbackButtonsProps {
@@ -44,7 +42,7 @@ export function FeedbackButtons({ onFeedback }: FeedbackButtonsProps) {
           color: 'success.contrastText',
         }}
       >
-        <CheckCircleIcon />
+        <CircleCheck size={18} aria-hidden="true" />
         <Typography variant="body2" fontWeight="medium">
           感谢您的反馈！
         </Typography>
@@ -61,7 +59,7 @@ export function FeedbackButtons({ onFeedback }: FeedbackButtonsProps) {
         <Button
           data-testid="feedback-accurate"
           variant="outlined"
-          startIcon={<ThumbUpIcon />}
+          startIcon={<ThumbsUp size={18} />}
           onClick={() => handleSubmit('accurate')}
           disabled={loading}
           fullWidth
@@ -71,7 +69,7 @@ export function FeedbackButtons({ onFeedback }: FeedbackButtonsProps) {
         <Button
           data-testid="feedback-inaccurate"
           variant="outlined"
-          startIcon={<ThumbDownIcon />}
+          startIcon={<ThumbsDown size={18} />}
           onClick={() => handleSubmit('inaccurate')}
           disabled={loading}
           fullWidth

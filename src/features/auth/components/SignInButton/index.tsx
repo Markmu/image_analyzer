@@ -2,7 +2,7 @@
 
 import { signIn } from 'next-auth/react';
 import { Button } from '@mui/material';
-import { Google as GoogleIcon } from '@mui/icons-material';
+import { Chrome } from 'lucide-react';
 
 /**
  * SignInButton 组件 - Google OAuth 登录按钮（简化版）
@@ -20,7 +20,7 @@ export function SignInButton() {
       onClick={handleSignIn}
       data-testid="google-login-button"
       variant="contained"
-      startIcon={<GoogleIcon />}
+      startIcon={<Chrome size={18} />}
       sx={{
         minHeight: 44,
         px: 3,

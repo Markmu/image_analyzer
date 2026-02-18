@@ -37,7 +37,7 @@ export function DimensionCard({ dimensionType, dimension }: DimensionCardProps) 
             mb: 2,
           }}
         >
-          <Icon sx={{ color: 'primary.main' }} />
+          <Icon size={24} color="#22C55E" aria-hidden="true" />
           <Typography variant="h6" fontWeight="bold">
             {dimension.name}
           </Typography>

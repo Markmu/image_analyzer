@@ -24,12 +24,12 @@ import {
   ListItemText,
 } from '@mui/material';
 import {
-  Help as HelpIcon,
-  CheckCircle as CheckCircleIcon,
-  Warning as WarningIcon,
-  Error as ErrorIcon,
-  Info as InfoIcon,
-} from '@mui/icons-material';
+  CircleHelp,
+  CircleCheck,
+  TriangleAlert,
+  CircleX,
+  Info,
+} from 'lucide-react';
 
 interface ConfidenceExplanationProps {
   /** 显示方式 */
@@ -46,28 +46,28 @@ const CONFIDENCE_LEVELS = [
     range: '80-100%',
     level: '高置信度',
     description: '分析结果非常可靠，可以放心使用',
-    icon: <CheckCircleIcon color="success" />,
+    icon: <CircleCheck size={20} color="#22c55e" aria-hidden="true" />,
     color: 'success.main' as const,
   },
   {
     range: '60-79%',
     level: '中等置信度',
     description: '分析结果基本可靠，但建议复核',
-    icon: <WarningIcon color="warning" />,
+    icon: <TriangleAlert size={20} color="#f59e0b" aria-hidden="true" />,
     color: 'warning.main' as const,
   },
   {
     range: '40-59%',
     level: '低置信度',
     description: '分析结果可能不准确，建议重新分析',
-    icon: <ErrorIcon color="error" />,
+    icon: <CircleX size={20} color="#ef4444" aria-hidden="true" />,
     color: 'error.main' as const,
   },
   {
     range: '0-39%',
     level: '极低置信度',
     description: '分析结果不可靠，必须重新分析',
-    icon: <ErrorIcon color="error" />,
+    icon: <CircleX size={20} color="#ef4444" aria-hidden="true" />,
     color: 'error.main' as const,
   },
 ];
@@ -86,7 +86,7 @@ function ConfidenceDialog({
     <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
       <DialogTitle>
         <Box display="flex" alignItems="center" gap={1}>
-          <InfoIcon color="primary" />
+          <Info size={20} color="#22c55e" aria-hidden="true" />
           <Typography variant="h6">置信度说明</Typography>
         </Box>
       </DialogTitle>
@@ -169,7 +169,7 @@ export default function ConfidenceExplanation({
           onClick={() => setDialogOpen(true)}
           aria-label="置信度说明"
         >
-          <HelpIcon fontSize="small" />
+          <CircleHelp size={16} aria-hidden="true" />
         </IconButton>
         <ConfidenceDialog open={dialogOpen} onClose={() => setDialogOpen(false)} />
       </>
@@ -204,7 +204,7 @@ export default function ConfidenceExplanation({
         <>{children}</>
       ) : (
         <IconButton size="small" aria-label="置信度说明">
-          <HelpIcon fontSize="small" />
+          <CircleHelp size={16} aria-hidden="true" />
         </IconButton>
       )}
     </Tooltip>

@@ -66,7 +66,13 @@ export function TermsDialog({ open, onAgree, onCancel }: TermsDialogProps) {
   }, [open]);
 
   return (
-    <Dialog open={open} maxWidth="md" fullWidth disableEscapeKeyDown>
+    <Dialog
+      open={open}
+      maxWidth="md"
+      fullWidth
+      disableEscapeKeyDown
+      PaperProps={{ className: 'ia-glass-card' }}
+    >
       <DialogTitle>
         <Typography variant="h5" component="div" sx={{ fontWeight: 'bold' }}>
           服务条款与 AI 使用声明

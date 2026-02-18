@@ -1,8 +1,8 @@
 'use client';
 
 import React from 'react';
-import { Alert, AlertTitle, Box, Collapse, Button, List, ListItem, ListItemText, Typography } from '@mui/material';
-import { CheckCircle, Warning, Error as ErrorIcon } from '@mui/icons-material';
+import { Alert, AlertTitle, Box, Button, List, ListItem, ListItemText, Typography } from '@mui/material';
+import { CircleCheck, TriangleAlert, CircleX } from 'lucide-react';
 import type { ValidationResult, ValidationError, ValidationWarning } from '@/lib/utils/image-validation';
 
 export interface ValidationStatusProps {
@@ -41,7 +41,7 @@ export function ValidationStatus({ result, onContinueAnyway, onChangeImage, isMo
   // Success - all validations passed
   return (
     <Alert
-      icon={<CheckCircle sx={{ color: '#22C55E' }} />}
+      icon={<CircleCheck size={20} color="#22C55E" aria-hidden="true" />}
       severity="success"
       sx={{
         mt: 3,
@@ -72,7 +72,7 @@ function ValidationError({ errors, isMobile = false }: ValidationErrorProps) {
 
   return (
     <Alert
-      icon={<ErrorIcon sx={{ color: '#EF4444' }} />}
+      icon={<CircleX size={20} color="#EF4444" aria-hidden="true" />}
       severity="error"
       sx={{
         mt: 3,
@@ -149,7 +149,7 @@ interface ValidationWarningProps {
 function ValidationWarning({ warnings, onContinueAnyway, onChangeImage, isMobile = false }: ValidationWarningProps) {
   return (
     <Alert
-      icon={<Warning sx={{ color: '#FBBF24' }} />}
+      icon={<TriangleAlert size={20} color="#FBBF24" aria-hidden="true" />}
       severity="warning"
       sx={{
         mt: 3,

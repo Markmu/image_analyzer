@@ -33,6 +33,26 @@
 
 ---
 
+## 🧩 UX 升级落地约定（新增）
+
+### Lucide 图标使用约定
+- 统一从 `lucide-react` 导入
+- 常用尺寸：16 / 20 / 24 / 32
+- 图标按钮必须配置 `aria-label`
+
+### Glassmorphism 工具类
+- 使用全局类：`ia-glass-card`
+- 激活态使用：`ia-glass-card ia-glass-card--active`
+- 标准参数：`rgba(15, 23, 42, 0.6)` + `blur(12px)` + `-webkit-backdrop-filter`
+
+### 参考实现
+- `src/app/globals.css`
+- `src/features/analysis/components/ImageUploader/ImageUploader.tsx`
+- `src/features/analysis/components/AnalysisResult/AnalysisCard.tsx`
+- `src/features/analysis/components/ProgressDisplay/index.tsx`
+
+---
+
 #### 2. 图标系统迁移到 Lucide
 - **文档：** [ux-design/14-icon-system.md](../ux-design/14-icon-system.md)
 - **优先级：** 🔴 最高

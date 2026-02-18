@@ -20,12 +20,16 @@ export default function AuthErrorPage() {
           认证流程未完成。你可以重新发起登录，或返回首页继续浏览。
         </Typography>
         <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
-          <Button component={Link} href="/auth/signin" variant="contained" sx={{ minHeight: 44 }}>
-            重新登录
-          </Button>
-          <Button component={Link} href="/" variant="outlined" sx={{ minHeight: 44 }}>
-            返回首页
-          </Button>
+          <Link href="/auth/signin">
+            <Button variant="contained" sx={{ minHeight: 44 }}>
+              重新登录
+            </Button>
+          </Link>
+          <Link href="/">
+            <Button variant="outlined" sx={{ minHeight: 44 }}>
+              返回首页
+            </Button>
+          </Link>
         </Box>
       </Paper>
     </Container>

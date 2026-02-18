@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useEffect, Fragment } from 'react';
+import { useState, useCallback, useEffect, useRef, Fragment } from 'react';
 import Image from 'next/image';
 import {
   Box,
@@ -15,7 +15,7 @@ import {
   Select,
   Chip,
 } from '@mui/material';
-import { Psychology as PsychologyIcon } from '@mui/icons-material';
+import { Brain, CircleX } from 'lucide-react';
 import { ImageUploader } from '@/features/analysis/components/ImageUploader';
 import { ProgressDisplay } from '@/features/analysis/components/ProgressDisplay';
 import { AnalysisCard } from '@/features/analysis/components/AnalysisResult/AnalysisCard';
@@ -62,6 +62,8 @@ export default function AnalysisPage() {
   const [models, setModels] = useState<AnalysisModelOption[]>([]);
   const [selectedModelId, setSelectedModelId] = useState<string>('');
   const [modelsLoading, setModelsLoading] = useState(false);
+  const stopPollingRef = useRef(false);
+  const autoStartTimerRef = useRef<number | null>(null);
 
   const {
     setAnalysisStage,
@@ -123,6 +125,14 @@ export default function AnalysisPage() {
     loadModels();
   }, [isAuthenticated]);
 
+  useEffect(() => {
+    return () => {
+      if (autoStartTimerRef.current) {
+        window.clearTimeout(autoStartTimerRef.current);
+      }
+    };
+  }, []);
+
   // 处理同意条款
   const handleAgreeTerms = async () => {
     const res = await fetch('/api/user/agree-terms', {
@@ -177,6 +187,9 @@ export default function AnalysisPage() {
     const interval = 2000; // 2 秒间隔
 
     for (let attempt = 0; attempt < maxAttempts; attempt++) {
+      if (stopPollingRef.current) {
+        return;
+      }
       try {
         const response = await fetch(`/api/analysis/${analysisId}/status`);
         const data = await response.json();
@@ -189,6 +202,7 @@ export default function AnalysisPage() {
 
         // 更新进度
         setAnalysisProgress(progress || 0);
+        setAnalysisStage(status === 'generating' ? 'generating' : 'analyzing');
 
         if (status === 'completed') {
           setState((prev) => ({
@@ -207,6 +221,9 @@ export default function AnalysisPage() {
         // 等待下一次轮询
         await new Promise((resolve) => setTimeout(resolve, interval));
       } catch (error) {
+        if (stopPollingRef.current) {
+          return;
+        }
         const errorMessage = error instanceof Error ? error.message : '分析失败';
         setState((prev) => ({
           ...prev,
@@ -228,9 +245,11 @@ export default function AnalysisPage() {
   }, [setAnalysisProgress, setAnalysisStage]);
 
   // 开始分析
-  const handleStartAnalysis = useCallback(async () => {
-    if (!state.imageData) return;
+  const handleStartAnalysis = useCallback(async (imageDataOverride?: ImageData) => {
+    const activeImage = imageDataOverride || state.imageData;
+    if (!activeImage || state.status === 'analyzing') return;
 
+    stopPollingRef.current = false;
     setState((prev) => ({
       ...prev,
       status: 'analyzing',
@@ -248,7 +267,7 @@ export default function AnalysisPage() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          imageId: state.imageData.imageId,
+          imageId: activeImage.imageId,
           modelId: selectedModelId || undefined,
         }),
       });
@@ -276,7 +295,32 @@ export default function AnalysisPage() {
       }));
       setAnalysisStage('error');
     }
-  }, [pollAnalysisStatus, selectedModelId, setAnalysisProgress, setAnalysisStage, state.imageData]);
+  }, [pollAnalysisStatus, selectedModelId, setAnalysisProgress, setAnalysisStage, state.imageData, state.status]);
+
+  const handleAutoStartAnalysis = useCallback((imageData: ImageData) => {
+    if (autoStartTimerRef.current) {
+      window.clearTimeout(autoStartTimerRef.current);
+    }
+    autoStartTimerRef.current = window.setTimeout(() => {
+      handleStartAnalysis(imageData);
+      autoStartTimerRef.current = null;
+    }, 500);
+  }, [handleStartAnalysis]);
+
+  const handleCancelAnalysis = useCallback(() => {
+    if (autoStartTimerRef.current) {
+      window.clearTimeout(autoStartTimerRef.current);
+      autoStartTimerRef.current = null;
+    }
+    stopPollingRef.current = true;
+    setState((prev) => ({
+      ...prev,
+      status: 'ready',
+      error: null,
+    }));
+    setAnalysisStage('idle');
+    setAnalysisProgress(0);
+  }, [setAnalysisProgress, setAnalysisStage]);
 
   // 提交反馈
   const handleFeedback = useCallback(
@@ -306,6 +350,11 @@ export default function AnalysisPage() {
 
   // 重新分析
   const handleReset = useCallback(() => {
+    if (autoStartTimerRef.current) {
+      window.clearTimeout(autoStartTimerRef.current);
+      autoStartTimerRef.current = null;
+    }
+    stopPollingRef.current = true;
     setState({
       status: 'idle',
       imageData: null,
@@ -340,7 +389,7 @@ export default function AnalysisPage() {
       {/* 页面标题 */}
       <Box sx={{ mb: 4, textAlign: 'center' }}>
         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1, mb: 2 }}>
-          <PsychologyIcon sx={{ fontSize: 40, color: 'primary.main' }} />
+          <Brain size={40} color="#22C55E" aria-hidden="true" />
           <Typography variant="h3" component="h1" fontWeight="bold">
             AI 风格分析
           </Typography>
@@ -366,6 +415,7 @@ export default function AnalysisPage() {
           <ImageUploader
             onUploadSuccess={handleUploadSuccess}
             onUploadError={handleUploadError}
+            onAutoStartAnalysis={handleAutoStartAnalysis}
           />
         </Box>
       )}
@@ -377,12 +427,10 @@ export default function AnalysisPage() {
             分析配置
           </Typography>
           <Box
+            className="ia-glass-card"
             sx={{
               p: 3,
-              border: '1px solid',
-              borderColor: 'divider',
-              borderRadius: 2,
-              bgcolor: 'background.paper',
+              bgcolor: 'rgba(15, 23, 42, 0.6)',
             }}
           >
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
@@ -435,8 +483,8 @@ export default function AnalysisPage() {
             <Button
               variant="contained"
               size="large"
-              onClick={handleStartAnalysis}
-              startIcon={<PsychologyIcon />}
+              onClick={() => handleStartAnalysis()}
+              startIcon={<Brain size={20} />}
               data-testid="analyze-button"
               sx={{
                 bgcolor: 'primary.main',
@@ -458,12 +506,10 @@ export default function AnalysisPage() {
             分析进行中
           </Typography>
           <Box
+            className="ia-glass-card"
             sx={{
               p: 3,
-              border: '1px solid',
-              borderColor: 'divider',
-              borderRadius: 2,
-              bgcolor: 'background.paper',
+              bgcolor: 'rgba(15, 23, 42, 0.6)',
             }}
             data-testid="progress-display"
             aria-busy="true"
@@ -480,6 +526,17 @@ export default function AnalysisPage() {
               >
                 正在进行风格分析，请稍候...
               </Typography>
+            </Box>
+            <Box sx={{ mt: 2, display: 'flex', justifyContent: 'center' }}>
+              <Button
+                variant="outlined"
+                color="error"
+                onClick={handleCancelAnalysis}
+                startIcon={<CircleX size={18} />}
+                data-testid="cancel-analysis-button"
+              >
+                取消
+              </Button>
             </Box>
           </Box>
         </Box>
@@ -506,7 +563,7 @@ export default function AnalysisPage() {
               <Button
                 variant="outlined"
                 onClick={handleReset}
-                startIcon={<PsychologyIcon />}
+                startIcon={<Brain size={18} />}
                 sx={{
                   borderColor: 'warning.main',
                   color: 'warning.main',
@@ -527,13 +584,11 @@ export default function AnalysisPage() {
 
           {/* 用户反馈 */}
           <Box
+            className="ia-glass-card"
             sx={{
               mt: 3,
               p: 3,
-              border: '1px solid',
-              borderColor: 'divider',
-              borderRadius: 2,
-              bgcolor: 'background.paper',
+              bgcolor: 'rgba(15, 23, 42, 0.6)',
             }}
           >
             <Typography variant="h6" gutterBottom>

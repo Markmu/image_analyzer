@@ -14,10 +14,10 @@ import {
   Theme,
 } from '@mui/material';
 import {
-  CheckCircle,
-  Schedule,
-  CloudUpload,
-} from '@mui/icons-material';
+  CircleCheck,
+  Clock3,
+  Upload,
+} from 'lucide-react';
 
 export interface BatchImage {
   id: string;
@@ -132,11 +132,11 @@ const ThumbnailCard: React.FC<ThumbnailCardProps> = ({ image, status, index }) =
   const getStatusIcon = () => {
     switch (status) {
       case 'completed':
-        return <CheckCircle sx={{ color: '#22C55E', fontSize: 20 }} />;
+        return <CircleCheck size={20} color="#22C55E" aria-hidden="true" />;
       case 'analyzing':
-        return <CloudUpload sx={{ color: '#3B82F6', fontSize: 20 }} />;
+        return <Upload size={20} color="#3B82F6" aria-hidden="true" />;
       default:
-        return <Schedule sx={{ color: 'rgba(255, 255, 255, 0.3)', fontSize: 20 }} />;
+        return <Clock3 size={20} color="rgba(255, 255, 255, 0.3)" aria-hidden="true" />;
     }
   };
 
