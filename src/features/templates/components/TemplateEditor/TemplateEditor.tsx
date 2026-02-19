@@ -1,12 +1,22 @@
 'use client';
 
 import { useState, useCallback, useEffect } from 'react';
-import { Box, Paper, TextField, Typography, Tabs, Tab, Button } from '@mui/material';
+import { Box, Paper, TextField, Typography, Tabs, Tab, Button, Dialog } from '@mui/material';
 import { Save } from 'lucide-react';
 import type { Template } from '../../types';
+import type { PromptOptimizationOptions, PromptOptimizationResult } from '../../types/optimization';
 import { TemplatePreview } from '../TemplatePreview';
 import { CopyButton } from '../CopyButton';
 import { ExportButton } from '../ExportButton';
+import { OptimizeButton } from '../OptimizeButton';
+import { OptimizationOptionsPanel } from '../OptimizeButton/OptimizationOptionsPanel';
+import { OptimizationPreviewDialog } from '../OptimizationPreviewDialog';
+import { optimizePrompt, buildFullPrompt } from '../../lib/optimize-prompt';
+import {
+  loadOptimizationPreferences,
+  DEFAULT_OPTIMIZATION_PREFERENCES,
+} from '../../lib/optimization-constants';
+import { useToast } from '../../hooks/useToast';
 
 interface TemplateEditorProps {
   /** Template to edit */
@@ -21,6 +31,10 @@ interface TemplateEditorProps {
   readOnly?: boolean;
   /** Test ID */
   'data-testid'?: string;
+  /** Show optimize button (AC1) */
+  showOptimizeButton?: boolean;
+  /** On optimize callback */
+  onOptimize?: (result: PromptOptimizationResult) => void;
 }
 
 /**
@@ -32,6 +46,8 @@ interface TemplateEditorProps {
  * - Real-time preview
  * - Copy to clipboard
  * - Save to template library (requires Story 5.4)
+ * - AI optimization (Story 5.4) (AC1)
+ * - Toast notifications (AC3, AC5, AC8)
  * - Glassmorphism styling
  *
  * NOTE: Save button is hidden by default (showSaveButton=false) because
@@ -45,9 +61,25 @@ export function TemplateEditor({
   showSaveButton = false,
   readOnly = false,
   'data-testid': testId,
+  showOptimizeButton = true,
+  onOptimize,
 }: TemplateEditorProps) {
   const [tabValue, setTabValue] = useState(0);
   const [editedTemplate, setEditedTemplate] = useState<Template>(template);
+
+  // Optimization state (AC1, AC7)
+  const [optimizeDialogOpen, setOptimizeDialogOpen] = useState(false);
+  const [previewDialogOpen, setPreviewDialogOpen] = useState(false);
+  const [optimizationResult, setOptimizationResult] = useState<PromptOptimizationResult | null>(null);
+  const [isOptimizing, setIsOptimizing] = useState(false);
+
+  // Toast notifications (AC8)
+  const { showSuccess, showError, showInfo } = useToast();
+
+  // Load user preferences (AC7)
+  const [optimizationOptions, setOptimizationOptions] = useState<PromptOptimizationOptions>(
+    () => loadOptimizationPreferences()
+  );
 
   // Update edited template when prop changes
   useEffect(() => {
@@ -94,6 +126,58 @@ export function TemplateEditor({
     setTabValue(newValue);
   }, []);
 
+  // Optimization handlers (AC1, AC2)
+  const handleOptimizeClick = useCallback(() => {
+    if (!readOnly) {
+      setOptimizeDialogOpen(true);
+    }
+  }, [readOnly]);
+
+  const handleOptimizeConfirm = useCallback(async () => {
+    setOptimizeDialogOpen(false);
+    setIsOptimizing(true);
+
+    // Show start notification (AC8)
+    showInfo('开始优化提示词...');
+
+    try {
+      const result = await optimizePrompt(editedTemplate.jsonFormat, optimizationOptions);
+      setOptimizationResult(result);
+      setPreviewDialogOpen(true);
+
+      // Show success notification (AC8)
+      showSuccess(
+        `提示词优化完成! 消耗 ${result.creditsConsumed} credits`
+      );
+    } catch (error) {
+      console.error('[TemplateEditor] Optimization failed:', error);
+
+      // Show error notification (AC8)
+      showError(
+        `提示词优化失败: ${error instanceof Error ? error.message : '未知错误'}`
+      );
+    } finally {
+      setIsOptimizing(false);
+    }
+  }, [editedTemplate.jsonFormat, optimizationOptions, showSuccess, showError, showInfo]);
+
+  const handleAcceptOptimization = useCallback(() => {
+    if (optimizationResult) {
+      // TODO: Parse and apply optimized prompt to template fields
+      onOptimize?.(optimizationResult);
+    }
+  }, [optimizationResult, onOptimize]);
+
+  const handleRejectOptimization = useCallback(() => {
+    setPreviewDialogOpen(false);
+    setOptimizationResult(null);
+  }, []);
+
+  // Check if template has content for optimization
+  const hasContent = Object.values(editedTemplate.jsonFormat).some(
+    (value) => value && value.trim().length > 0
+  );
+
   return (
     <Paper
       elevation={0}
@@ -120,7 +204,7 @@ export function TemplateEditor({
           模版编辑器
         </Typography>
 
-        <Box sx={{ display: 'flex', gap: 1 }}>
+        <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
           <CopyButton
             text={editedTemplate.variableFormat}
             tooltipText="复制变量模版"
@@ -136,6 +220,15 @@ export function TemplateEditor({
             tooltipText="导出为 JSON 文件"
             data-testid="export-template"
           />
+          {/* AI Optimize Button (AC1) */}
+          {showOptimizeButton && (
+            <OptimizeButton
+              loading={isOptimizing}
+              disabled={!hasContent || readOnly}
+              onClick={handleOptimizeClick}
+              data-testid="optimize-template"
+            />
+          )}
           {showSaveButton && (
             <Button
               variant="contained"
@@ -257,6 +350,55 @@ export function TemplateEditor({
       {tabValue === 2 && (
         <TemplatePreview template={editedTemplate} />
       )}
+
+      {/* Optimization Options Dialog (AC1, AC2) */}
+      <Dialog
+        open={optimizeDialogOpen}
+        onClose={() => setOptimizeDialogOpen(false)}
+        maxWidth="sm"
+        fullWidth
+        PaperProps={{
+          className: 'ia-glass-card ia-glass-card--static',
+          sx: {
+            backgroundColor: 'var(--glass-bg-dark)',
+            backgroundImage: 'none',
+            borderRadius: 2,
+          },
+        }}
+      >
+        <Box sx={{ p: 3 }}>
+          <OptimizationOptionsPanel
+            mode={optimizationOptions.mode}
+            target={optimizationOptions.target}
+            intensity={optimizationOptions.intensity}
+            language={optimizationOptions.language}
+            onModeChange={(mode) =>
+              setOptimizationOptions((prev) => ({ ...prev, mode }))
+            }
+            onTargetChange={(target) =>
+              setOptimizationOptions((prev) => ({ ...prev, target }))
+            }
+            onIntensityChange={(intensity) =>
+              setOptimizationOptions((prev) => ({ ...prev, intensity }))
+            }
+            onLanguageChange={(language) =>
+              setOptimizationOptions((prev) => ({ ...prev, language }))
+            }
+            onConfirm={handleOptimizeConfirm}
+            loading={isOptimizing}
+          />
+        </Box>
+      </Dialog>
+
+      {/* Optimization Preview Dialog (AC4) */}
+      <OptimizationPreviewDialog
+        open={previewDialogOpen}
+        result={optimizationResult}
+        onAccept={handleAcceptOptimization}
+        onReject={handleRejectOptimization}
+        onClose={() => setPreviewDialogOpen(false)}
+        loading={isOptimizing}
+      />
     </Paper>
   );
 }
