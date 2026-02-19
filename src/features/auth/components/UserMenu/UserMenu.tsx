@@ -16,7 +16,6 @@ import {
 import { useUserInfo } from '../../hooks/useUserInfo';
 import { useAuth } from '../../hooks/useAuth';
 import { CreditDisplay } from '@/features/credits/components/CreditDisplay';
-import { SignOutButton } from '../SignOutButton';
 import { DeleteAccountDialog } from '../DeleteAccountDialog';
 
 export function UserMenu() {
@@ -27,7 +26,7 @@ export function UserMenu() {
   const [deleteSuccessOpen, setDeleteSuccessOpen] = useState(false);
   const open = Boolean(anchorEl);
   const { user, isLoading } = useUserInfo();
-  const { signOut } = useAuth();
+  const { signOut, isSigningOut } = useAuth();
   const isMobile = useMediaQuery('(max-width:767px)');
   const menuId = isMobile ? 'user-menu-mobile' : 'user-menu-desktop';
 
@@ -44,6 +43,11 @@ export function UserMenu() {
 
   const handleClose = () => {
     setAnchorEl(null);
+  };
+
+  const handleSignOut = async () => {
+    handleClose();
+    await signOut();
   };
 
   const handleOpenDeleteDialog = () => {
@@ -129,8 +133,8 @@ export function UserMenu() {
 
       <Divider />
 
-      <MenuItem onClick={handleClose}>
-        <SignOutButton />
+      <MenuItem onClick={handleSignOut} disabled={isSigningOut} data-testid="user-menu-sign-out">
+        <Typography color="text.primary">{isSigningOut ? '登出中...' : '登出'}</Typography>
       </MenuItem>
     </Menu>
   ) : (
@@ -185,8 +189,8 @@ export function UserMenu() {
 
       <Divider />
 
-      <MenuItem onClick={handleClose} data-testid="user-menu-sign-out">
-        <SignOutButton />
+      <MenuItem onClick={handleSignOut} disabled={isSigningOut} data-testid="user-menu-sign-out">
+        <Typography color="text.primary">{isSigningOut ? '登出中...' : '登出'}</Typography>
       </MenuItem>
     </Menu>
   );
