@@ -78,10 +78,10 @@ development_status:
   epic-4-retrospective: optional
 
   # Epic 5: 模版生成与管理
-  epic-5: backlog
+  epic-5: in-progress
   5-1-template-generation: backlog
   5-2-json-export: backlog
-  5-3-template-editor: backlog
+  5-3-template-editor: ready-for-dev
   5-4-prompt-optimization: backlog
   epic-5-retrospective: optional
 
