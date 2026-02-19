@@ -176,20 +176,20 @@ export function ImageUploader({ onUploadSuccess, onUploadError, onAutoStartAnaly
 
       <Box
         {...getRootProps()}
-        className={isDragActive ? 'ia-glass-card ia-glass-card--active' : 'ia-glass-card'}
+        className={`ia-glass-card ia-glass-card--clickable ${isDragActive ? 'ia-glass-card--active' : ''}`}
         sx={{
           border: '2px dashed',
-          borderColor: isDragActive ? '#22C55E' : '#cbd5e1',
+          borderColor: isDragActive ? '#3B82F6' : '#cbd5e1',
           borderRadius: '12px',
           padding: '48px 24px',
           textAlign: 'center',
           cursor: uploadStatus === 'uploading' ? 'not-allowed' : 'pointer',
-          transition: 'all 0.2s ease',
-          backgroundColor: isDragActive ? 'rgba(34, 197, 94, 0.08)' : 'rgba(15, 23, 42, 0.6)',
+          transition: 'var(--glass-transition)',
+          backgroundColor: isDragActive ? 'var(--glass-bg-green-light)' : 'var(--glass-bg-dark)',
           '&:hover': {
-            borderColor: uploadStatus === 'uploading' ? '#cbd5e1' : '#22C55E',
+            borderColor: uploadStatus === 'uploading' ? '#cbd5e1' : '#3B82F6',
             backgroundColor:
-              uploadStatus === 'uploading' ? 'rgba(15, 23, 42, 0.6)' : 'rgba(34, 197, 94, 0.08)',
+              uploadStatus === 'uploading' ? 'var(--glass-bg-dark)' : 'var(--glass-bg-green-light)',
           },
         }}
         data-testid="drop-zone"
@@ -197,14 +197,14 @@ export function ImageUploader({ onUploadSuccess, onUploadError, onAutoStartAnaly
         <input {...getInputProps()} data-testid="image-upload-input" />
         <Upload
           size={48}
-          color={isDragActive ? '#22C55E' : '#94a3b8'}
+          color={isDragActive ? '#3B82F6' : '#94a3b8'}
           aria-hidden="true"
           style={{ marginBottom: 16 }}
         />
-        <Typography variant="h6" sx={{ mb: 1, color: '#f8fafc' }}>
+        <Typography variant="h6" sx={{ mb: 1, color: 'var(--glass-text-white-heavy)' }}>
           {isDragActive ? '将图片拖放到这里' : '拖拽图片到此处'}
         </Typography>
-        <Typography variant="body2" sx={{ color: '#cbd5e1' }}>
+        <Typography variant="body2" sx={{ color: 'var(--glass-text-gray-medium)' }}>
           或点击选择（最大 10MB）
         </Typography>
       </Box>
@@ -219,7 +219,7 @@ export function ImageUploader({ onUploadSuccess, onUploadError, onAutoStartAnaly
               borderRadius: 4,
               backgroundColor: '#e2e8f0',
               '& .MuiLinearProgress-bar': {
-                backgroundColor: '#22C55E',
+                backgroundColor: '#3B82F6',
               },
             }}
             data-testid="upload-progress"

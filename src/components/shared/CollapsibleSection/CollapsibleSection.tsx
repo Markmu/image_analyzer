@@ -57,7 +57,7 @@ export default function CollapsibleSection({
   };
 
   return (
-    <Box className="ia-glass-card" sx={{ p: 2 }}>
+    <Box className="ia-glass-card ia-glass-card--static" sx={{ p: 2 }}>
       <Box
         sx={{
           display: 'flex',
@@ -66,7 +66,7 @@ export default function CollapsibleSection({
           gap: 1,
         }}
       >
-        <Typography variant="h6" sx={{ fontWeight: 700, color: '#e2e8f0' }}>
+        <Typography variant="h6" sx={{ fontWeight: 700, color: 'var(--glass-text-white-medium)' }}>
           {title}
         </Typography>
         <IconButton
@@ -74,7 +74,7 @@ export default function CollapsibleSection({
           onClick={handleToggle}
           aria-label={expanded ? `收起${title}` : `展开${title}`}
           sx={{
-            color: '#cbd5e1',
+            color: 'var(--glass-text-gray-medium)',
             transform: expanded ? 'rotate(180deg)' : 'rotate(0deg)',
             transition: 'transform 300ms ease',
           }}

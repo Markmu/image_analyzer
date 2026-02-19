@@ -30,7 +30,7 @@ export const MobileProgressBar: React.FC<MobileProgressBarProps> = ({
       position="sticky"
       sx={{
         top: 0,
-        backgroundColor: 'rgba(255, 255, 255, 0.96)',
+        backgroundColor: 'var(--glass-text-white-heavy)',
         backdropFilter: 'blur(8px)',
         borderBottom: '1px solid #e2e8f0',
         zIndex: 100,
@@ -45,7 +45,7 @@ export const MobileProgressBar: React.FC<MobileProgressBarProps> = ({
             sx={{
               fontSize: '1.5rem',
               fontWeight: 'bold',
-              color: '#22C55E',
+              color: 'var(--glass-text-primary)',
               lineHeight: 1,
             }}
           >
@@ -55,7 +55,7 @@ export const MobileProgressBar: React.FC<MobileProgressBarProps> = ({
             <Typography
               variant="caption"
               sx={{
-                color: '#64748b',
+                color: 'var(--glass-text-gray-heavy)',
                 fontSize: '0.75rem',
                 display: 'block',
               }}
@@ -71,7 +71,7 @@ export const MobileProgressBar: React.FC<MobileProgressBarProps> = ({
           value={progress}
           size={32}
           sx={{
-            color: '#22C55E',
+            color: 'var(--glass-text-primary)',
             '& .MuiCircularProgress-circle': {
               strokeLinecap: 'round',
             },
@@ -94,7 +94,7 @@ export const MobileProgressBar: React.FC<MobileProgressBarProps> = ({
           sx={{
             height: '100%',
             width: `${progress}%`,
-            backgroundColor: '#22C55E',
+            backgroundColor: '#3B82F6',
             transition: 'width 0.3s ease',
           }}
         />
@@ -132,7 +132,7 @@ export const QueuePositionDisplay: React.FC<QueuePositionDisplayProps> = ({
       <Typography
         variant="body2"
         sx={{
-          color: '#FBBF24',
+          color: 'var(--warning)',
           mb: 0.5,
           fontWeight: 'bold',
         }}

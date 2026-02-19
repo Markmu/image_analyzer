@@ -358,7 +358,7 @@ export function getFeatureHighlightStyle(
     // 绿色边框 - 共同特征
     return {
       borderColor: 'rgb(34, 197, 94)', // green-500
-      backgroundColor: 'rgba(34, 197, 94, 0.1)',
+      backgroundColor: 'rgba(59, 130, 246, 0.1)',
     };
   }
 

@@ -62,13 +62,13 @@ export const BatchProgressDisplay: React.FC<BatchProgressDisplayProps> = ({
             mb: 1,
           }}
         >
-          <Typography variant="body2" sx={{ color: 'rgba(255, 255, 255, 0.7)' }}>
+          <Typography variant="body2" sx={{ color: 'var(--glass-text-white-medium)' }}>
             已分析 {completed}/{total} 张图片
           </Typography>
           {estimatedTime && (
             <Typography
               variant="caption"
-              sx={{ color: 'rgba(255, 255, 255, 0.5)' }}
+              sx={{ color: 'var(--glass-text-white-light)' }}
             >
               {estimatedTime}
             </Typography>
@@ -80,9 +80,9 @@ export const BatchProgressDisplay: React.FC<BatchProgressDisplayProps> = ({
           sx={{
             height: 8,
             borderRadius: 4,
-            backgroundColor: 'rgba(255, 255, 255, 0.1)',
+            backgroundColor: 'var(--glass-border-white-light)',
             '& .MuiLinearProgress-bar': {
-              backgroundColor: '#22C55E',
+              backgroundColor: '#3B82F6',
               transition: 'width 0.3s ease',
             },
           }}
@@ -121,7 +121,7 @@ const ThumbnailCard: React.FC<ThumbnailCardProps> = ({ image, status, index }) =
   const getStatusColor = () => {
     switch (status) {
       case 'completed':
-        return '#22C55E';
+        return '#3B82F6';
       case 'analyzing':
         return '#3B82F6';
       default:
@@ -132,11 +132,11 @@ const ThumbnailCard: React.FC<ThumbnailCardProps> = ({ image, status, index }) =
   const getStatusIcon = () => {
     switch (status) {
       case 'completed':
-        return <CircleCheck size={20} color="#22C55E" aria-hidden="true" />;
+        return <CircleCheck size={20} color="#3B82F6" aria-hidden="true" />;
       case 'analyzing':
         return <Upload size={20} color="#3B82F6" aria-hidden="true" />;
       default:
-        return <Clock3 size={20} color="rgba(255, 255, 255, 0.3)" aria-hidden="true" />;
+        return <Clock3 size={20} color="var(--glass-border-white-heavy)" aria-hidden="true" />;
     }
   };
 

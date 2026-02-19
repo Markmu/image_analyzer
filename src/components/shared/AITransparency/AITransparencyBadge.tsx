@@ -66,7 +66,7 @@ export function AITransparencyBadge({
               padding: 0.5,
               color: 'inherit',
               '&:hover': {
-                backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                backgroundColor: 'var(--glass-border-white-light)',
               },
             }}
           >

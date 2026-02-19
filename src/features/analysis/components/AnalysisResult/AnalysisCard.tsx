@@ -22,9 +22,9 @@ export function AnalysisCard({ analysisData }: AnalysisCardProps) {
 
   // 确定置信度等级
   const getConfidenceLevel = () => {
-    if (overallConfidence >= 0.8) return { label: '高置信度', color: '#4caf50' };
-    if (overallConfidence >= 0.6) return { label: '中等置信度', color: '#ff9800' };
-    return { label: '低置信度', color: '#f44336' };
+    if (overallConfidence >= 0.8) return { label: '高置信度', color: 'var(--success)' };
+    if (overallConfidence >= 0.6) return { label: '中等置信度', color: 'var(--warning)' };
+    return { label: '低置信度', color: 'var(--error)' };
   };
 
   // 转换 key 为 testid 格式（驼峰转短横线）
@@ -52,10 +52,10 @@ export function AnalysisCard({ analysisData }: AnalysisCardProps) {
   return (
     <Paper
       elevation={2}
-      className="ia-glass-card"
+      className="ia-glass-card ia-glass-card--static"
       sx={{
         p: 3,
-        bgcolor: 'rgba(15, 23, 42, 0.55)',
+        bgcolor: 'var(--glass-bg-dark)',
       }}
     >
       {/* Header */}
@@ -92,7 +92,7 @@ export function AnalysisCard({ analysisData }: AnalysisCardProps) {
           borderColor: confidenceLevel.color,
         }}
       >
-        <Typography variant="body2" sx={{ color: '#475569' }} gutterBottom>
+        <Typography variant="body2" sx={{ color: 'var(--glass-text-gray-heavy)' }} gutterBottom>
           整体置信度
         </Typography>
         <Typography variant="h4" fontWeight="bold" sx={{ color: confidenceLevel.color }}>
@@ -110,9 +110,9 @@ export function AnalysisCard({ analysisData }: AnalysisCardProps) {
           startIcon={copied ? <Check size={18} /> : <Copy size={18} />}
           data-testid="copy-analysis-summary"
           sx={{
-            bgcolor: '#22C55E',
-            color: '#052e16',
-            '&:hover': { bgcolor: '#16A34A' },
+            bgcolor: 'var(--glass-text-primary)',
+            color: 'var(--glass-text-white-heavy)',
+            '&:hover': { bgcolor: 'var(--primary-active)' },
           }}
         >
           {copied ? '已复制' : '一键复制'}

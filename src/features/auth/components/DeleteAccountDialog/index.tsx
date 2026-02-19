@@ -62,7 +62,7 @@ export function DeleteAccountDialog({
       aria-labelledby="delete-account-dialog-title"
       fullWidth
       maxWidth="sm"
-      PaperProps={{ className: 'ia-glass-card' }}
+      PaperProps={{ className: 'ia-glass-card ia-glass-card--heavy ia-glass-card--lg' }}
       data-testid="delete-account-dialog"
     >
       <DialogTitle id="delete-account-dialog-title" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>

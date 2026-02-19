@@ -27,8 +27,8 @@ export default function MiddleColumn({
 }: MiddleColumnProps) {
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }} data-testid="workspace-middle-column">
-      <Box className="ia-glass-card" sx={{ p: 2 }}>
-        <Typography variant="h6" sx={{ color: '#f8fafc', fontWeight: 700 }}>
+      <Box className="ia-glass-card ia-glass-card--static" sx={{ p: 2 }}>
+        <Typography variant="h6" sx={{ color: 'var(--glass-text-white-heavy)', fontWeight: 700 }}>
           分析作业区
         </Typography>
       </Box>
@@ -43,7 +43,7 @@ export default function MiddleColumn({
       )}
 
       {status === 'analyzing' && (
-        <Box className="ia-glass-card" sx={{ p: 3 }} data-testid="progress-display" aria-busy="true" aria-live="polite">
+        <Box className="ia-glass-card ia-glass-card--static" sx={{ p: 3 }} data-testid="progress-display" aria-busy="true" aria-live="polite">
           <ProgressDisplay type="analysis" showStageIndicator={false} />
           <Box sx={{ mt: 2, display: 'flex', justifyContent: 'center' }}>
             <Button
@@ -70,8 +70,8 @@ export default function MiddleColumn({
             </Button>
           </Box>
           <AnalysisCard analysisData={analysisData} />
-          <Box className="ia-glass-card" sx={{ p: 2 }}>
-            <Typography variant="body1" sx={{ color: '#f8fafc', mb: 1, fontWeight: 700 }}>
+          <Box className="ia-glass-card ia-glass-card--static" sx={{ p: 2 }}>
+            <Typography variant="body1" sx={{ color: 'var(--glass-text-white-heavy)', mb: 1, fontWeight: 700 }}>
               结果反馈
             </Typography>
             <FeedbackButtons onFeedback={onFeedback} />

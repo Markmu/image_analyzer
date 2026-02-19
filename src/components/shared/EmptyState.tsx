@@ -14,7 +14,7 @@ interface EmptyStateProps {
 export default function EmptyState({ title, description, icon, hint, testId }: EmptyStateProps) {
   return (
     <Box
-      className="ia-glass-card"
+      className="ia-glass-card ia-glass-card--static"
       data-testid={testId}
       sx={{
         p: 3,
@@ -27,15 +27,15 @@ export default function EmptyState({ title, description, icon, hint, testId }: E
         gap: 1,
       }}
     >
-      {icon && <Box sx={{ color: '#94a3b8' }}>{icon}</Box>}
-      <Typography variant="h6" sx={{ color: '#f8fafc', fontWeight: 700 }}>
+      {icon && <Box sx={{ color: 'var(--glass-text-gray-heavy)' }}>{icon}</Box>}
+      <Typography variant="h6" sx={{ color: 'var(--glass-text-white-heavy)', fontWeight: 700 }}>
         {title}
       </Typography>
-      <Typography variant="body2" sx={{ color: '#cbd5e1', maxWidth: 320 }}>
+      <Typography variant="body2" sx={{ color: 'var(--glass-text-gray-medium)', maxWidth: 320 }}>
         {description}
       </Typography>
       {hint && (
-        <Typography variant="caption" sx={{ color: '#94a3b8', mt: 1 }}>
+        <Typography variant="caption" sx={{ color: 'var(--glass-text-gray-heavy)', mt: 1 }}>
           {hint}
         </Typography>
       )}

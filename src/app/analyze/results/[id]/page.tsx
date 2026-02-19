@@ -57,7 +57,7 @@ export default function AnalyzeResultPage() {
       >
         <DialogTitle id="template-modal-title">保存模板</DialogTitle>
         <DialogContent data-testid="template-modal">
-          <Box sx={{ color: '#475569', pt: 1 }}>
+          <Box sx={{ color: 'var(--glass-text-gray-heavy)', pt: 1 }}>
             模板保存能力正在完善中。当前版本可先通过分析页复制结果使用。
           </Box>
         </DialogContent>

@@ -41,13 +41,13 @@ export function ValidationStatus({ result, onContinueAnyway, onChangeImage, isMo
   // Success - all validations passed
   return (
     <Alert
-      icon={<CircleCheck size={20} color="#22C55E" aria-hidden="true" />}
+      icon={<CircleCheck size={20} color="#3B82F6" aria-hidden="true" />}
       severity="success"
       sx={{
         mt: 3,
-        backgroundColor: 'rgba(34, 197, 94, 0.1)',
-        color: '#166534',
-        border: '1px solid #22C55E',
+        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+        color: 'var(--glass-text-primary)',
+        border: '1px solid #3B82F6',
         borderRadius: '8px',
       }}
       data-testid="validation-status"
@@ -77,7 +77,7 @@ function ValidationError({ errors, isMobile = false }: ValidationErrorProps) {
       sx={{
         mt: 3,
         backgroundColor: 'rgba(239, 68, 68, 0.1)',
-        color: '#991b1b',
+        color: 'var(--error)',
         border: '1px solid #EF4444',
         borderRadius: '8px',
       }}
@@ -154,7 +154,7 @@ function ValidationWarning({ warnings, onContinueAnyway, onChangeImage, isMobile
       sx={{
         mt: 3,
         backgroundColor: 'rgba(251, 191, 36, 0.1)',
-        color: '#92400e',
+        color: 'var(--warning)',
         border: '1px solid #FBBF24',
         borderRadius: '8px',
       }}

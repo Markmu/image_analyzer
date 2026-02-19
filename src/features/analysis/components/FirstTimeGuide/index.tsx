@@ -56,12 +56,12 @@ export function FirstTimeGuide({ onDismiss }: FirstTimeGuideProps) {
         p: 3,
         mb: 3,
         backgroundColor: '#f0fdf4',
-        border: '1px solid #22C55E',
+        border: '1px solid #3B82F6',
         borderRadius: '12px',
       }}
       data-testid="first-time-guide"
     >
-      <Typography variant="h6" gutterBottom sx={{ color: '#22C55E', display: 'flex', alignItems: 'center', gap: 1 }}>
+      <Typography variant="h6" gutterBottom sx={{ color: 'var(--glass-text-primary)', display: 'flex', alignItems: 'center', gap: 1 }}>
         <CircleCheck size={20} aria-hidden="true" />
         最佳实践提示
       </Typography>
@@ -70,10 +70,10 @@ export function FirstTimeGuide({ onDismiss }: FirstTimeGuideProps) {
       </Typography>
 
       <Box sx={{ mb: 2 }}>
-        <Typography variant="subtitle2" sx={{ color: '#22C55E', mb: 1 }}>
+        <Typography variant="subtitle2" sx={{ color: 'var(--glass-text-primary)', mb: 1 }}>
           ✓ 推荐场景:
         </Typography>
-        <ul style={{ margin: 0, paddingLeft: '20px', color: '#334155' }}>
+        <ul style={{ margin: 0, paddingLeft: '20px', color: 'var(--glass-text-gray-heavy)' }}>
           <li>单个主体(人物、物体或产品)</li>
           <li>静态场景(非动作照片)</li>
           <li>清晰的风格特征(明显的光影、色彩、构图)</li>
@@ -81,10 +81,10 @@ export function FirstTimeGuide({ onDismiss }: FirstTimeGuideProps) {
       </Box>
 
       <Box sx={{ mb: 2 }}>
-        <Typography variant="subtitle2" sx={{ color: '#FBBF24', mb: 1 }}>
+        <Typography variant="subtitle2" sx={{ color: 'var(--warning)', mb: 1 }}>
           ✗ 避免使用:
         </Typography>
-        <ul style={{ margin: 0, paddingLeft: '20px', color: '#334155' }}>
+        <ul style={{ margin: 0, paddingLeft: '20px', color: 'var(--glass-text-gray-heavy)' }}>
           <li>多个主体(&gt;5个)</li>
           <li>动态场景(运动照片)</li>
           <li>模糊或低分辨率图片</li>
@@ -96,7 +96,7 @@ export function FirstTimeGuide({ onDismiss }: FirstTimeGuideProps) {
           <Card
             sx={{
               backgroundColor: '#f0fdf4',
-              border: '1px solid #22C55E',
+              border: '1px solid #3B82F6',
             }}
             data-testid="good-example"
           >
@@ -107,14 +107,14 @@ export function FirstTimeGuide({ onDismiss }: FirstTimeGuideProps) {
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                backgroundColor: 'rgba(34, 197, 94, 0.2)',
-                color: '#22C55E',
+                backgroundColor: 'rgba(59, 130, 246, 0.2)',
+                color: 'var(--glass-text-primary)',
               }}
             >
               <Typography variant="caption">好的示例</Typography>
             </CardMedia>
             <CardContent>
-              <Typography variant="caption" sx={{ color: '#475569' }}>
+              <Typography variant="caption" sx={{ color: 'var(--glass-text-gray-heavy)' }}>
                 单主体、风格明显
               </Typography>
             </CardContent>
@@ -136,13 +136,13 @@ export function FirstTimeGuide({ onDismiss }: FirstTimeGuideProps) {
                 alignItems: 'center',
                 justifyContent: 'center',
                 backgroundColor: 'rgba(239, 68, 68, 0.2)',
-                color: '#EF4444',
+                color: 'var(--error)',
               }}
             >
               <Typography variant="caption">不好的示例</Typography>
             </CardMedia>
             <CardContent>
-              <Typography variant="caption" sx={{ color: '#475569' }}>
+              <Typography variant="caption" sx={{ color: 'var(--glass-text-gray-heavy)' }}>
                 多主体、动态场景
               </Typography>
             </CardContent>
@@ -155,7 +155,7 @@ export function FirstTimeGuide({ onDismiss }: FirstTimeGuideProps) {
           variant="contained"
           onClick={handleDismiss}
           sx={{
-            backgroundColor: '#22C55E',
+            backgroundColor: '#3B82F6',
             color: '#000',
             '&:hover': {
               backgroundColor: '#16A34A',

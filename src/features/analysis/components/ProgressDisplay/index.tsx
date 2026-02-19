@@ -121,18 +121,18 @@ export const ProgressDisplay: React.FC<ProgressDisplayProps> = ({
             mb: 2,
             p: 2,
             borderRadius: 2,
-            border: '1px solid rgba(34, 197, 94, 0.25)',
-            backgroundColor: 'rgba(34, 197, 94, 0.08)',
+            border: '1px solid var(--glass-border-active)',
+            backgroundColor: 'var(--glass-bg-green-light)',
           }}
           data-testid="analysis-stage-description"
         >
-          <Box component="p" sx={{ m: 0, fontSize: '0.875rem', color: '#334155', fontWeight: 600 }}>
+          <Box component="p" sx={{ m: 0, fontSize: '0.875rem', color: 'var(--glass-text-gray-heavy)', fontWeight: 600 }}>
             当前阶段：{stageDescription}
           </Box>
-          <Box component="p" sx={{ m: 0, mt: 0.5, fontSize: '0.8125rem', color: '#475569' }}>
+          <Box component="p" sx={{ m: 0, mt: 0.5, fontSize: '0.8125rem', color: 'var(--glass-text-gray-heavy)' }}>
             预计剩余时间：{estimatedTime}
           </Box>
-          <Box component="p" sx={{ m: 0, mt: 0.5, fontSize: '0.8125rem', color: '#166534' }}>
+          <Box component="p" sx={{ m: 0, mt: 0.5, fontSize: '0.8125rem', color: 'var(--glass-text-primary)' }}>
             质量承诺：优先保证分析准确性，结果将在完成后自动展示。
           </Box>
         </Box>
@@ -168,7 +168,7 @@ export const ProgressDisplay: React.FC<ProgressDisplayProps> = ({
           <Box
             component="p"
             sx={{
-              color: '#334155',
+              color: 'var(--glass-text-gray-heavy)',
               fontSize: '0.875rem',
               m: 0,
             }}

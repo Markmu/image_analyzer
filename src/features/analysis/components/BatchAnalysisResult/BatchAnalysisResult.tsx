@@ -238,7 +238,7 @@ export function BatchAnalysisResult({
                           className="feature-tag common"
                           style={{
                             borderColor: 'rgb(34, 197, 94)',
-                            backgroundColor: 'rgba(34, 197, 94, 0.1)',
+                            backgroundColor: 'rgba(59, 130, 246, 0.1)',
                           }}
                         >
                           {feature.value}

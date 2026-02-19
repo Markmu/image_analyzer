@@ -1,8 +1,144 @@
 @import 'tailwindcss';
 
 :root {
-  --background: #f8fafc;
-  --foreground: #0f172a;
+  /* ========================================
+     1. 基础主题色
+     ======================================== */
+  --background: #0B0B10;
+  --foreground: #F8FAFC;
+
+  /* 主色调（科技蓝） */
+  --primary: #3B82F6;
+  --primary-hover: #60A5FA;
+  --primary-active: #2563EB;
+
+  /* 次要色（银灰色） */
+  --secondary: #94A3B8;
+  --secondary-hover: #CBD5E1;
+
+  /* 强调色（天蓝色） */
+  --accent: #06B6D4;
+  --accent-hover: #22D3EE;
+
+  /* ========================================
+     2. Glassmorphism 核心参数
+     ======================================== */
+
+  /* 深色玻璃背景 */
+  --glass-bg-dark: rgba(30, 41, 59, 0.6);
+  --glass-bg-dark-hover: rgba(30, 41, 59, 0.7);
+  --glass-bg-dark-active: rgba(30, 41, 59, 0.8);
+
+  /* 浅色玻璃背景（特殊场景） */
+  --glass-bg-light: rgba(148, 163, 184, 0.08);
+
+  /* 蓝色激活背景 */
+  --glass-bg-active: rgba(59, 130, 246, 0.15);
+  --glass-bg-active-hover: rgba(59, 130, 246, 0.2);
+
+  /* 青色高亮背景 */
+  --glass-bg-highlight: rgba(6, 182, 212, 0.12);
+
+  /* 背景深度系列（变体） */
+  --glass-bg-dark-light: rgba(30, 41, 59, 0.5);
+  --glass-bg-dark-medium: rgba(30, 41, 59, 0.65);
+  --glass-bg-dark-heavy: rgba(30, 41, 59, 0.8);
+
+  /* 蓝色系列背景（用于渐变/高亮） */
+  --glass-bg-blue-light: rgba(59, 130, 246, 0.08);
+  --glass-bg-blue-medium: rgba(59, 130, 246, 0.12);
+  --glass-bg-blue-heavy: rgba(59, 130, 246, 0.2);
+
+  /* 模糊度 */
+  --glass-blur: 12px;
+  --glass-blur-heavy: 20px;
+  --glass-blur-mobile: 8px;
+
+  /* ========================================
+     3. 边框系统
+     ======================================== */
+
+  /* 基础边框 */
+  --glass-border: rgba(148, 163, 184, 0.15);
+  --glass-border-hover: rgba(148, 163, 184, 0.25);
+  --glass-border-active: rgba(59, 130, 246, 0.4);
+
+  /* 白色边框系列（半透明） */
+  --glass-border-white-light: rgba(248, 250, 252, 0.08);
+  --glass-border-white-medium: rgba(248, 250, 252, 0.15);
+  --glass-border-white-heavy: rgba(248, 250, 252, 0.25);
+
+  /* ========================================
+     4. 文字颜色系统
+     ======================================== */
+
+  /* 白色文字系列 */
+  --glass-text-white-heavy: rgba(248, 250, 252, 0.95);
+  --glass-text-white-medium: rgba(248, 250, 252, 0.75);
+  --glass-text-white-light: rgba(248, 250, 252, 0.55);
+
+  /* 银灰色文字系列 */
+  --glass-text-gray-heavy: rgba(148, 163, 184, 0.95);
+  --glass-text-gray-medium: rgba(148, 163, 184, 0.75);
+  --glass-text-gray-light: rgba(148, 163, 184, 0.55);
+
+  /* 蓝色文字 */
+  --glass-text-primary: #3B82F6;
+  --glass-text-primary-hover: #60A5FA;
+
+  /* 青色文字 */
+  --glass-text-accent: #06B6D4;
+
+  /* ========================================
+     5. 阴影系统
+     ======================================== */
+
+  --glass-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+  --glass-shadow-hover: 0 6px 28px rgba(0, 0, 0, 0.35);
+  --glass-shadow-active: 0 4px 20px rgba(0, 0, 0, 0.25), 0 0 20px rgba(59, 130, 246, 0.3);
+
+  /* 蓝色光晕 */
+  --glass-shadow-blue: 0 0 24px rgba(59, 130, 246, 0.25);
+  --glass-shadow-blue-heavy: 0 0 32px rgba(59, 130, 246, 0.35);
+
+  /* 青色光晕 */
+  --glass-shadow-cyan: 0 0 24px rgba(6, 182, 212, 0.25);
+
+  /* ========================================
+     6. 圆角系统
+     ======================================== */
+
+  --glass-radius: 12px;
+  --glass-radius-lg: 16px;
+  --glass-radius-xl: 20px;
+
+  /* ========================================
+     7. 过渡系统
+     ======================================== */
+
+  --glass-transition: all 0.2s ease;
+  --glass-transition-slow: all 0.3s ease;
+  --glass-transition-fast: all 0.15s ease;
+
+  /* ========================================
+     8. 状态颜色
+     ======================================== */
+
+  /* 成功（深蓝） */
+  --success: #2563EB;
+  --success-bg: rgba(37, 99, 235, 0.15);
+
+  /* 警告（琥珀） */
+  --warning: #F59E0B;
+  --warning-bg: rgba(245, 158, 11, 0.15);
+
+  /* 错误（玫瑰红） */
+  --error: #F43F5E;
+  --error-bg: rgba(244, 63, 94, 0.15);
+
+  /* 信息（青色） */
+  --info: #06B6D4;
+  --info-bg: rgba(6, 182, 212, 0.15);
 }
 
 @theme inline {
@@ -18,33 +154,60 @@ body {
   font-family: var(--font-geist-sans), 'Segoe UI', sans-serif;
 }
 
+/* 基础 Glassmorphism 卡片 */
 .ia-glass-card {
-  background: rgba(15, 23, 42, 0.6);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 12px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
-  transition: all 0.2s ease;
+  background: var(--glass-bg-dark);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  border: 1px solid var(--glass-border);
+  border-radius: var(--glass-radius);
+  box-shadow: var(--glass-shadow);
+  transition: var(--glass-transition);
 }
 
 .ia-glass-card:hover {
-  background: rgba(15, 23, 42, 0.7);
-  border-color: rgba(255, 255, 255, 0.15);
+  background: var(--glass-bg-dark-hover);
+  border-color: var(--glass-border-hover);
   transform: translateY(-2px);
-  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.2);
+  box-shadow: var(--glass-shadow-hover);
 }
 
+/* 激活状态（蓝色高亮） */
 .ia-glass-card--active {
-  background: rgba(34, 197, 94, 0.15);
-  border-color: rgba(34, 197, 94, 0.3);
-  box-shadow:
-    0 4px 20px rgba(0, 0, 0, 0.15),
-    0 0 20px rgba(34, 197, 94, 0.2);
+  background: var(--glass-bg-active);
+  border-color: var(--glass-border-active);
+  box-shadow: var(--glass-shadow-active);
+}
+
+/* 可点击卡片 */
+.ia-glass-card--clickable {
+  cursor: pointer;
+}
+
+/* 重度模糊（用于模态框、弹窗） */
+.ia-glass-card--heavy {
+  backdrop-filter: blur(var(--glass-blur-heavy));
+  -webkit-backdrop-filter: blur(var(--glass-blur-heavy));
+}
+
+/* 大圆角（用于主要卡片） */
+.ia-glass-card--lg {
+  border-radius: var(--glass-radius-lg);
+}
+
+/* 禁用悬停效果（用于静态内容） */
+.ia-glass-card--static:hover {
+  transform: none;
+  box-shadow: var(--glass-shadow);
+}
+
+/* 浅色背景（用于某些特殊情况） */
+.ia-glass-card--light {
+  background: var(--glass-bg-light);
 }
 
 *:focus-visible {
-  outline: 2px solid #22c55e;
+  outline: 2px solid #3B82F6;
   outline-offset: 2px;
 }
 
@@ -52,7 +215,7 @@ body {
   position: absolute;
   top: -40px;
   left: 0;
-  background: #22c55e;
+  background: #3B82F6;
   color: #ffffff;
   padding: 8px 16px;
   z-index: 1000;
@@ -71,5 +234,17 @@ body {
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
+  }
+}
+
+/* 移动端优化：降低 blur 值，提升性能 */
+@media (max-width: 768px) {
+  :root {
+    --glass-blur: 8px; /* 从 12px 降低到 8px */
+  }
+
+  /* 移动端禁用 hover 效果（触摸设备） */
+  .ia-glass-card:hover {
+    transform: none;
   }
 }

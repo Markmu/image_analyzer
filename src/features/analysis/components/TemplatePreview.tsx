@@ -11,7 +11,7 @@ export default function TemplatePreview({ content }: TemplatePreviewProps) {
 
   return (
     <Box>
-      <Typography variant="caption" sx={{ color: '#94a3b8', display: 'block', mb: 1 }}>
+      <Typography variant="caption" sx={{ color: 'var(--glass-text-gray-heavy)', display: 'block', mb: 1 }}>
         可编辑模版预览
       </Typography>
       <Box
@@ -21,8 +21,8 @@ export default function TemplatePreview({ content }: TemplatePreviewProps) {
           p: 2,
           borderRadius: 2,
           border: '1px solid rgba(148, 163, 184, 0.35)',
-          background: 'rgba(15, 23, 42, 0.72)',
-          color: '#e2e8f0',
+          background: 'var(--glass-bg-dark-heavy)',
+          color: 'var(--glass-text-white-medium)',
           whiteSpace: 'pre-wrap',
           wordBreak: 'break-word',
           fontFamily: 'var(--font-geist-mono), ui-monospace, monospace',
@@ -38,7 +38,7 @@ export default function TemplatePreview({ content }: TemplatePreviewProps) {
             <span
               key={index}
               style={{
-                color: '#22c55e',
+                color: 'var(--glass-text-primary)',
                 fontWeight: 700,
               }}
             >

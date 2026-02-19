@@ -37,7 +37,7 @@ export function DimensionCard({ dimensionType, dimension }: DimensionCardProps) 
             mb: 2,
           }}
         >
-          <Icon size={24} color="#22C55E" aria-hidden="true" />
+          <Icon size={24} color="#3B82F6" aria-hidden="true" />
           <Typography variant="h6" fontWeight="bold">
             {dimension.name}
           </Typography>
@@ -45,7 +45,7 @@ export function DimensionCard({ dimensionType, dimension }: DimensionCardProps) 
 
         {/* 维度置信度 */}
         <Box sx={{ mb: 2 }}>
-          <Typography variant="caption" sx={{ color: '#475569' }}>
+          <Typography variant="caption" sx={{ color: 'var(--glass-text-gray-heavy)' }}>
             置信度
           </Typography>
           <Typography variant="body2" fontWeight="medium">

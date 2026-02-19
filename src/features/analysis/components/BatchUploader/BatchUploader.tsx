@@ -396,25 +396,25 @@ export function BatchUploader({
       {/* Drop zone */}
       <Box
         {...getRootProps()}
-        className={isDragActive ? 'ia-glass-card ia-glass-card--active' : 'ia-glass-card'}
+        className={`ia-glass-card ia-glass-card--clickable ${isDragActive ? 'ia-glass-card--active' : ''}`}
         sx={{
           border: '2px dashed',
-          borderColor: isDragActive ? '#22C55E' : 'rgba(255, 255, 255, 0.2)',
+          borderColor: isDragActive ? '#3B82F6' : 'var(--glass-border-white-medium)',
           borderRadius: '12px',
           padding: '48px 24px',
           textAlign: 'center',
           cursor: isUploading || files.length >= MAX_FILES ? 'not-allowed' : 'pointer',
-          transition: 'all 0.2s ease',
-          backgroundColor: isDragActive ? 'rgba(34, 197, 94, 0.1)' : 'rgba(15, 23, 42, 0.5)',
+          transition: 'var(--glass-transition)',
+          backgroundColor: isDragActive ? 'var(--glass-bg-green-medium)' : 'var(--glass-bg-dark-light)',
           '&:hover': {
             borderColor:
               isUploading || files.length >= MAX_FILES
-                ? 'rgba(255, 255, 255, 0.2)'
-                : '#22C55E',
+                ? 'var(--glass-border-white-medium)'
+                : '#3B82F6',
             backgroundColor:
               isUploading || files.length >= MAX_FILES
                 ? 'transparent'
-                : 'rgba(34, 197, 94, 0.1)',
+                : 'var(--glass-bg-green-medium)',
           },
         }}
         data-testid="batch-drop-zone"
@@ -422,14 +422,14 @@ export function BatchUploader({
         <input {...getInputProps()} data-testid="batch-file-input" />
         <Upload
           size={48}
-          color={isDragActive ? '#22C55E' : 'rgba(255, 255, 255, 0.7)'}
+          color={isDragActive ? '#3B82F6' : 'var(--glass-text-white-medium)'}
           aria-hidden="true"
           style={{ marginBottom: 16 }}
         />
         <Typography variant="h6" sx={{ mb: 1, color: 'white' }}>
           {isDragActive ? 'Drop images here' : 'Drag & drop multiple images'}
         </Typography>
-        <Typography variant="body2" sx={{ color: 'rgba(255, 255, 255, 0.6)' }}>
+        <Typography variant="body2" sx={{ color: 'var(--glass-text-white-light)' }}>
           or click to select (Max {MAX_FILES} images, 10MB each)
         </Typography>
       </Box>
@@ -438,7 +438,7 @@ export function BatchUploader({
       {warning && (
         <Alert
           severity="warning"
-          sx={{ mt: 2, backgroundColor: 'rgba(251, 191, 36, 0.1)', color: '#FBBF24' }}
+          sx={{ mt: 2, backgroundColor: 'rgba(251, 191, 36, 0.1)', color: 'var(--warning)' }}
           data-testid="file-count-warning"
         >
           <Typography variant="body2">
@@ -452,7 +452,7 @@ export function BatchUploader({
         <Box sx={{ mt: 3 }}>
           {/* Overall progress */}
           <Box sx={{ mb: 2 }}>
-            <Typography variant="body2" sx={{ color: 'rgba(255, 255, 255, 0.7)' }}>
+            <Typography variant="body2" sx={{ color: 'var(--glass-text-white-medium)' }}>
               已上传 {completedCount}/{files.length} 张图片
             </Typography>
             <LinearProgress
@@ -461,16 +461,16 @@ export function BatchUploader({
               sx={{
                 height: 8,
                 borderRadius: 4,
-                backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                backgroundColor: 'var(--glass-border-white-light)',
                 mt: 1,
                 '& .MuiLinearProgress-bar': {
-                  backgroundColor: '#22C55E',
+                  backgroundColor: '#3B82F6',
                 },
               }}
               data-testid="batch-progress-bar"
             />
             {estimatedTime !== null && (
-              <Typography variant="caption" sx={{ color: 'rgba(255, 255, 255, 0.5)' }}>
+              <Typography variant="caption" sx={{ color: 'var(--glass-text-white-light)' }}>
                 预计剩余时间: {estimatedTime} 秒
               </Typography>
             )}
@@ -484,7 +484,7 @@ export function BatchUploader({
                 gap: 2,
                 overflowX: 'auto',
                 padding: 2,
-                borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
+                borderBottom: '1px solid var(--glass-border-white-light)',
                 maxHeight: 200,
               }}
               data-testid="thumbnail-list"
@@ -550,7 +550,7 @@ export function BatchUploader({
                 variant="contained"
                 disabled={files.filter((f) => f.status === 'pending').length === 0}
                 sx={{
-                  backgroundColor: '#22C55E',
+                  backgroundColor: '#3B82F6',
                   '&:hover': { backgroundColor: '#16A34A' },
                   minWidth: 120,
                   minHeight: 44,
@@ -576,20 +576,20 @@ function ThumbnailCard({ file, onCancel, compact = false }: ThumbnailCardProps) 
   const getStatusColor = () => {
     switch (file.status) {
       case 'completed':
-        return '#22C55E';
+        return '#3B82F6';
       case 'failed':
         return '#EF4444';
       case 'cancelled':
         return '#F59E0B';
       default:
-        return 'rgba(255, 255, 255, 0.3)';
+        return 'var(--glass-border-white-heavy)';
     }
   };
 
   const getStatusIcon = () => {
     switch (file.status) {
       case 'completed':
-        return <CircleCheck size={16} color="#22C55E" aria-hidden="true" />;
+        return <CircleCheck size={16} color="#3B82F6" aria-hidden="true" />;
       case 'failed':
         return <CircleX size={16} color="#EF4444" aria-hidden="true" />;
       case 'cancelled':
@@ -660,9 +660,9 @@ function ThumbnailCard({ file, onCancel, compact = false }: ThumbnailCardProps) 
             value={file.progress}
             sx={{
               height: 4,
-              backgroundColor: 'rgba(255, 255, 255, 0.1)',
+              backgroundColor: 'var(--glass-border-white-light)',
               '& .MuiLinearProgress-bar': {
-                backgroundColor: '#22C55E',
+                backgroundColor: '#3B82F6',
               },
             }}
           />

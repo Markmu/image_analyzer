@@ -210,7 +210,7 @@ export function UserMenu() {
           height: 48,
           cursor: 'pointer',
           '&:focus-visible': {
-            outline: '2px solid #22C55E',
+            outline: '2px solid #3B82F6',
             outlineOffset: 2,
           },
           '&:hover': {
@@ -242,7 +242,7 @@ export function UserMenu() {
           severity="success"
           sx={{
             width: '100%',
-            bgcolor: '#64748b',
+            bgcolor: 'var(--glass-text-gray-heavy)',
             color: '#fff',
             '& .MuiAlert-icon': { color: '#fff' },
           }}

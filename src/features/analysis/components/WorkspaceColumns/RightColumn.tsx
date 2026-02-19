@@ -49,7 +49,7 @@ export default function RightColumn({
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }} data-testid="workspace-right-column">
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-        <Box className="ia-glass-card" sx={{ p: 2.5 }}>
+        <Box className="ia-glass-card ia-glass-card--static" sx={{ p: 2.5 }}>
           <Box className="ia-glass-card ia-glass-card--active" sx={{ p: 1.5, borderRadius: 2, mb: 2 }}>
             <Button
               fullWidth
@@ -57,7 +57,7 @@ export default function RightColumn({
               onClick={() => void onCopyTemplate()}
               startIcon={copied ? <Check size={18} /> : <Clipboard size={18} />}
               data-testid="copy-template-button"
-              sx={{ bgcolor: '#22C55E', color: '#052e16', '&:hover': { bgcolor: '#16A34A' } }}
+              sx={{ bgcolor: 'var(--glass-text-primary)', color: 'var(--glass-text-white-heavy)', '&:hover': { bgcolor: 'var(--primary-active)' } }}
             >
               {copied ? '已复制！' : '一键复制'}
             </Button>
@@ -67,7 +67,7 @@ export default function RightColumn({
 
         <CollapsibleSection title="变量替换" defaultExpanded storageKey="template-variables">
           {isMobileLayout ? (
-            <Typography variant="body2" sx={{ color: '#94a3b8' }}>
+            <Typography variant="body2" sx={{ color: 'var(--glass-text-gray-heavy)' }}>
               移动端已隐藏高级变量替换，桌面端可编辑变量并实时预览。
             </Typography>
           ) : (
@@ -80,10 +80,10 @@ export default function RightColumn({
         </CollapsibleSection>
 
         <CollapsibleSection title="质量信息" defaultExpanded={false} storageKey="quality-meta">
-          <Typography variant="body2" sx={{ color: '#cbd5e1' }}>
+          <Typography variant="body2" sx={{ color: 'var(--glass-text-gray-medium)' }}>
             当前整体置信度：{(analysisData.overallConfidence * 100).toFixed(0)}%
           </Typography>
-          <Typography variant="caption" sx={{ color: '#94a3b8', display: 'block', mt: 1 }}>
+          <Typography variant="caption" sx={{ color: 'var(--glass-text-gray-heavy)', display: 'block', mt: 1 }}>
             结果将根据你的反馈持续优化。
           </Typography>
         </CollapsibleSection>

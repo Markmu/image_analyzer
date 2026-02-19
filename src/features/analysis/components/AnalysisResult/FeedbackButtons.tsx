@@ -52,7 +52,7 @@ export function FeedbackButtons({ onFeedback }: FeedbackButtonsProps) {
 
   return (
     <Box sx={{ mt: 3 }}>
-      <Typography variant="subtitle2" gutterBottom sx={{ color: '#475569' }}>
+      <Typography variant="subtitle2" gutterBottom sx={{ color: 'var(--glass-text-gray-heavy)' }}>
         这个分析结果准确吗？
       </Typography>
       <Stack direction="row" spacing={2}>

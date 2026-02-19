@@ -71,7 +71,7 @@ export function TermsDialog({ open, onAgree, onCancel }: TermsDialogProps) {
       maxWidth="md"
       fullWidth
       disableEscapeKeyDown
-      PaperProps={{ className: 'ia-glass-card' }}
+      PaperProps={{ className: 'ia-glass-card ia-glass-card--heavy ia-glass-card--lg' }}
     >
       <DialogTitle>
         <Typography variant="h5" component="div" sx={{ fontWeight: 'bold' }}>

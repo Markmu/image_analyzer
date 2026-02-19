@@ -24,10 +24,10 @@ export default function ImagePreview({ imageData }: ImagePreviewProps) {
           sizes="(max-width: 960px) 100vw, 25vw"
         />
       </Box>
-      <Typography variant="body1" sx={{ color: '#f8fafc', fontWeight: 600 }}>
+      <Typography variant="body1" sx={{ color: 'var(--glass-text-white-heavy)', fontWeight: 600 }}>
         {fileName}
       </Typography>
-      <Typography variant="body2" sx={{ color: '#94a3b8' }}>
+      <Typography variant="body2" sx={{ color: 'var(--glass-text-gray-heavy)' }}>
         {sizeInMb} MB · {imageData.width}x{imageData.height} · {imageData.fileFormat}
       </Typography>
     </Box>

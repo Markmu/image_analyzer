@@ -19,7 +19,7 @@ export default function VariableReplacer({ template, values, onValueChange }: Va
 
   if (variables.length === 0) {
     return (
-      <Typography variant="body2" sx={{ color: '#94a3b8' }}>
+      <Typography variant="body2" sx={{ color: 'var(--glass-text-gray-heavy)' }}>
         当前模版不包含可替换变量。
       </Typography>
     );
@@ -36,17 +36,17 @@ export default function VariableReplacer({ template, values, onValueChange }: Va
           onChange={(event) => onValueChange(variable, event.target.value)}
           slotProps={{
             inputLabel: {
-              sx: { color: '#94a3b8' },
+              sx: { color: 'var(--glass-text-gray-heavy)' },
             },
             input: {
-              sx: { color: '#e2e8f0' },
+              sx: { color: 'var(--glass-text-white-medium)' },
             },
           }}
           sx={{
             '& .MuiOutlinedInput-root': {
-              backgroundColor: 'rgba(15, 23, 42, 0.65)',
+              backgroundColor: 'var(--glass-bg-dark-medium)',
               '& fieldset': { borderColor: 'rgba(148, 163, 184, 0.35)' },
-              '&:hover fieldset': { borderColor: 'rgba(34, 197, 94, 0.45)' },
+              '&:hover fieldset': { borderColor: 'var(--glass-border-active)' },
               '&.Mui-focused fieldset': { borderColor: '#22c55e' },
             },
           }}

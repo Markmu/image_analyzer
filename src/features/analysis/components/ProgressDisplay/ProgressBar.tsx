@@ -41,13 +41,13 @@ export const ProgressBar: React.FC<ProgressBarProps> = ({
       case 'primary':
         return '#3B82F6';
       case 'success':
-        return '#22C55E';
+        return '#3B82F6';
       case 'warning':
         return '#F59E0B';
       case 'error':
         return '#EF4444';
       default:
-        return '#22C55E';
+        return '#3B82F6';
     }
   };
 
@@ -88,7 +88,7 @@ export const ProgressBar: React.FC<ProgressBarProps> = ({
       {estimatedTime && (
         <Typography
           variant="caption"
-          sx={{ mt: 1, color: '#64748b', display: 'block' }}
+          sx={{ mt: 1, color: 'var(--glass-text-gray-heavy)', display: 'block' }}
         >
           {estimatedTime}
         </Typography>

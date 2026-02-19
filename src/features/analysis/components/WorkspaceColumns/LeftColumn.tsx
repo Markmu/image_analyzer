@@ -43,7 +43,7 @@ export default function LeftColumn({
 }: LeftColumnProps) {
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-      <Box className="ia-glass-card" sx={{ p: 2 }}>
+      <Box className="ia-glass-card ia-glass-card--static" sx={{ p: 2 }}>
         <ImageUploader
           onUploadSuccess={onUploadSuccess}
           onUploadError={onUploadError}
@@ -62,8 +62,8 @@ export default function LeftColumn({
         />
       )}
 
-      <Box className="ia-glass-card" sx={{ p: 2 }}>
-        <Typography variant="subtitle1" sx={{ color: '#f8fafc', mb: 1, fontWeight: 700 }}>
+      <Box className="ia-glass-card ia-glass-card--static" sx={{ p: 2 }}>
+        <Typography variant="subtitle1" sx={{ color: 'var(--glass-text-white-heavy)', mb: 1, fontWeight: 700 }}>
           分析模型
         </Typography>
         <FormControl fullWidth size="small" disabled={modelsLoading || models.length === 0}>
@@ -89,7 +89,7 @@ export default function LeftColumn({
           </Select>
         </FormControl>
         {selectedModelDescription && (
-          <Typography variant="caption" sx={{ color: '#94a3b8', mt: 1, display: 'block' }}>
+          <Typography variant="caption" sx={{ color: 'var(--glass-text-gray-heavy)', mt: 1, display: 'block' }}>
             {selectedModelDescription}
           </Typography>
         )}

@@ -7,7 +7,7 @@
  *
  * Displays welcome message for new users after receiving free credits.
  * Features:
- * - Green background (Green 500: #22C55E)
+ * - Green background (Green 500: #3B82F6)
  * - White text
  * - Checkmark icon
  * - Auto-hide after 5 seconds
@@ -62,14 +62,14 @@ export function WelcomeSnackbar({
           success: <span data-testid="checkmark-icon" aria-hidden="true">✓</span>,
         }}
         sx={{
-          backgroundColor: '#22C55E', // Green 500
-          color: '#FFFFFF', // White text
+          backgroundColor: '#3B82F6', // Green 500
+          color: 'var(--glass-text-white-heavy)', // White text
           fontWeight: 500,
           '& .MuiAlert-icon': {
-            color: '#FFFFFF',
+            color: 'var(--glass-text-white-heavy)',
           },
           '& .MuiAlert-action': {
-            color: '#FFFFFF',
+            color: 'var(--glass-text-white-heavy)',
           },
           // Smooth fade-in animation
           animation: 'fadeIn 0.3s ease-in-out',

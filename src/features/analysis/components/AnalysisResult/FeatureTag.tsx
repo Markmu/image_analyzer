@@ -30,7 +30,7 @@ export function FeatureTag({ feature }: FeatureTagProps) {
       }}
     >
       <Box sx={{ flex: 1 }}>
-        <Typography variant="caption" sx={{ color: '#475569' }} display="block">
+        <Typography variant="caption" sx={{ color: 'var(--glass-text-gray-heavy)' }} display="block">
           {feature.name}
         </Typography>
         <Typography variant="body2" fontWeight="medium">
