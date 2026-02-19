@@ -55,9 +55,9 @@ export function FirstTimeGuide({ onDismiss }: FirstTimeGuideProps) {
       sx={{
         p: 3,
         mb: 3,
-        backgroundColor: '#f0fdf4',
-        border: '1px solid #3B82F6',
-        borderRadius: '12px',
+        backgroundColor: 'var(--glass-bg-dark)',
+        border: '1px solid var(--glass-border)',
+        borderRadius: 'var(--glass-radius)',
       }}
       data-testid="first-time-guide"
     >
@@ -95,8 +95,8 @@ export function FirstTimeGuide({ onDismiss }: FirstTimeGuideProps) {
         <Grid size={{ xs: 12, sm: 6 }}>
           <Card
             sx={{
-              backgroundColor: '#f0fdf4',
-              border: '1px solid #3B82F6',
+              backgroundColor: 'var(--glass-bg-dark-light)',
+              border: '1px solid var(--glass-border-blue-medium)',
             }}
             data-testid="good-example"
           >
@@ -123,8 +123,8 @@ export function FirstTimeGuide({ onDismiss }: FirstTimeGuideProps) {
         <Grid size={{ xs: 12, sm: 6 }}>
           <Card
             sx={{
-              backgroundColor: '#fef2f2',
-              border: '1px solid #EF4444',
+              backgroundColor: 'var(--glass-bg-dark-light)',
+              border: '1px solid var(--error)',
             }}
             data-testid="bad-example"
           >

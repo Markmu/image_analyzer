@@ -49,33 +49,53 @@ export function ModerationError({
       elevation={0}
       sx={{
         padding: 3,
-        backgroundColor: 'error.light',
-        border: '1px solid',
-        borderColor: 'error.main',
-        borderRadius: 2,
+        backgroundColor: 'var(--error-bg)',
+        border: '1px solid var(--error)',
+        borderRadius: 'var(--glass-radius)',
       }}
     >
       <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2 }}>
-        <CircleAlert size={40} color="#ef4444" aria-hidden="true" />
+        <CircleAlert size={40} color="var(--error)" aria-hidden="true" />
 
         <Box sx={{ flex: 1 }}>
-          <Typography variant="h6" color="error.main" gutterBottom sx={{ fontWeight: 'bold' }}>
+          <Typography variant="h6" sx={{ color: 'var(--error)', fontWeight: 700, mb: 1 }}>
             {title}
           </Typography>
 
-          <Typography variant="body2" color="text.primary" paragraph>
+          <Typography variant="body2" sx={{ color: 'var(--glass-text-white-heavy)', mb: 2 }}>
             {suggestion}
           </Typography>
 
           <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
             {onRetry && (
-              <Button variant="contained" color="primary" onClick={onRetry} size="small">
+              <Button
+                variant="contained"
+                onClick={onRetry}
+                size="small"
+                sx={{
+                  backgroundColor: 'var(--glass-text-primary)',
+                  color: 'var(--glass-text-white-heavy)',
+                  '&:hover': {
+                    backgroundColor: 'var(--primary-active)',
+                  },
+                }}
+              >
                 重新上传
               </Button>
             )}
 
             <Link href={policyLink} passHref legacyBehavior>
-              <Button component="a" variant="text" color="primary" size="small">
+              <Button
+                component="a"
+                variant="text"
+                size="small"
+                sx={{
+                  color: 'var(--glass-text-primary)',
+                  '&:hover': {
+                    backgroundColor: 'var(--glass-bg-active)',
+                  },
+                }}
+              >
                 查看内容政策
               </Button>
             </Link>

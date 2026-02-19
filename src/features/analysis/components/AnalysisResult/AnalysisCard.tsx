@@ -55,6 +55,8 @@ export function AnalysisCard({ analysisData }: AnalysisCardProps) {
       className="ia-glass-card ia-glass-card--static ia-glass-card--lg"
       sx={{
         p: 3,
+        backgroundColor: 'var(--glass-bg-dark)',
+        backgroundImage: 'none',
       }}
     >
       {/* Header */}
