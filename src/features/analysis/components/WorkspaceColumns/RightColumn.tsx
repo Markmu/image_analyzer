@@ -79,7 +79,7 @@ export default function RightColumn({
           )}
         </CollapsibleSection>
 
-        <CollapsibleSection title="质量信息" defaultExpanded={false} storageKey="quality-meta">
+        <CollapsibleSection title="质量信息" defaultExpanded={true} storageKey="quality-meta">
           <Typography variant="body2" sx={{ color: 'var(--glass-text-gray-medium)' }}>
             当前整体置信度：{(analysisData.overallConfidence * 100).toFixed(0)}%
           </Typography>

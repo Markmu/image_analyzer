@@ -17,7 +17,7 @@ interface AnalysisCardProps {
  */
 export function AnalysisCard({ analysisData }: AnalysisCardProps) {
   const { overallConfidence, dimensions } = analysisData;
-  const [expanded, setExpanded] = useState(false);
+  const [expanded, setExpanded] = useState(true);
   const [copied, setCopied] = useState(false);
 
   // 确定置信度等级
