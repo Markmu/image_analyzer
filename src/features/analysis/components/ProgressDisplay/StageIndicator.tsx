@@ -94,15 +94,15 @@ export const StageIndicator: React.FC<StageIndicatorProps> = ({ currentStage, sx
                 justifyContent: 'center',
                 backgroundColor:
                   currentStageIndex === index
-                    ? 'var(--glass-bg-green-heavy)'
+                    ? 'var(--glass-bg-blue-medium)'
                     : currentStageIndex > index
-                    ? 'var(--glass-bg-green-medium)'
+                    ? 'var(--glass-bg-active)'
                     : 'var(--glass-bg-dark)',
                 border: '2px solid',
                 borderColor:
                   currentStageIndex >= index
-                    ? '#3B82F6'
-                    : '#cbd5e1',
+                    ? 'var(--glass-text-primary)'
+                    : 'var(--glass-border)',
                 transition: 'all 0.3s ease',
                 position: 'relative',
               }}
@@ -123,7 +123,7 @@ export const StageIndicator: React.FC<StageIndicatorProps> = ({ currentStage, sx
                     right: -4,
                     bottom: -4,
                     borderRadius: '50%',
-                    border: '2px solid #3B82F6',
+                    border: '2px solid var(--glass-text-primary)',
                     opacity: 0,
                     animation: 'pulse 2s ease-in-out infinite',
                     '@keyframes pulse': {
@@ -160,7 +160,7 @@ export const StageIndicator: React.FC<StageIndicatorProps> = ({ currentStage, sx
                 width: { xs: '30px', sm: '50px', md: '70px' },
                 height: '2px',
                 backgroundColor:
-                  currentStageIndex > index ? '#3B82F6' : '#cbd5e1',
+                  currentStageIndex > index ? 'var(--glass-text-primary)' : 'var(--glass-border)',
                 mx: 1,
                 transition: 'background-color 0.3s ease',
                 position: 'relative',
@@ -175,7 +175,7 @@ export const StageIndicator: React.FC<StageIndicatorProps> = ({ currentStage, sx
                     left: 0,
                     height: '100%',
                     width: '30%',
-                    backgroundColor: '#3B82F6',
+                    backgroundColor: 'var(--glass-text-primary)',
                     animation: 'progress 1.5s ease-in-out infinite',
                     '@keyframes progress': {
                       '0%': {

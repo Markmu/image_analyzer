@@ -62,12 +62,12 @@ export const ProgressBar: React.FC<ProgressBarProps> = ({
         }}
       >
         {label && (
-          <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+          <Typography variant="body2" sx={{ color: 'var(--glass-text-gray-medium)' }}>
             {label}
           </Typography>
         )}
         {showPercentage && (
-          <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+          <Typography variant="body2" sx={{ color: 'var(--glass-text-gray-medium)' }}>
             {Math.round(value)}%
           </Typography>
         )}
@@ -78,21 +78,13 @@ export const ProgressBar: React.FC<ProgressBarProps> = ({
         sx={{
           height: getHeight(),
           borderRadius: size === 'large' ? 6 : 4,
-          backgroundColor: '#e2e8f0',
+          backgroundColor: 'var(--glass-bg-dark-heavy)',
           '& .MuiLinearProgress-bar': {
             backgroundColor: getColor(),
             transition: 'width 0.3s ease',
           },
         }}
       />
-      {estimatedTime && (
-        <Typography
-          variant="caption"
-          sx={{ mt: 1, color: 'var(--glass-text-gray-heavy)', display: 'block' }}
-        >
-          {estimatedTime}
-        </Typography>
-      )}
     </Box>
   );
 };

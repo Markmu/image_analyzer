@@ -87,14 +87,14 @@ export const MobileProgressBar: React.FC<MobileProgressBarProps> = ({
           left: 0,
           right: 0,
           height: 3,
-          backgroundColor: '#e2e8f0',
+          backgroundColor: 'var(--glass-bg-dark-heavy)',
         }}
       >
         <Box
           sx={{
             height: '100%',
             width: `${progress}%`,
-            backgroundColor: '#3B82F6',
+            backgroundColor: 'var(--glass-text-primary)',
             transition: 'width 0.3s ease',
           }}
         />
@@ -121,9 +121,9 @@ export const QueuePositionDisplay: React.FC<QueuePositionDisplayProps> = ({
   return (
     <Box
       sx={{
-        backgroundColor: 'rgba(251, 191, 36, 0.1)',
-        border: '1px solid rgba(251, 191, 36, 0.3)',
-        borderRadius: 2,
+        backgroundColor: 'var(--warning-bg)',
+        border: '1px solid var(--warning)',
+        borderRadius: 'var(--glass-radius)',
         padding: 2,
         mb: 2,
         ...sx,
@@ -134,7 +134,7 @@ export const QueuePositionDisplay: React.FC<QueuePositionDisplayProps> = ({
         sx={{
           color: 'var(--warning)',
           mb: 0.5,
-          fontWeight: 'bold',
+          fontWeight: 700,
         }}
       >
         当前排队第 {position} 位
@@ -143,7 +143,7 @@ export const QueuePositionDisplay: React.FC<QueuePositionDisplayProps> = ({
         <Typography
           variant="caption"
           sx={{
-            color: 'rgba(251, 191, 36, 0.8)',
+            color: 'var(--glass-text-gray-medium)',
           }}
         >
           预计等待 {estimatedTime}

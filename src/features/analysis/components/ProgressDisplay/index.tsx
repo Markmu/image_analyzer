@@ -124,9 +124,6 @@ export const ProgressDisplay: React.FC<ProgressDisplayProps> = ({
           <Box component="p" sx={{ m: 0, fontSize: '0.875rem', color: 'var(--glass-text-gray-heavy)', fontWeight: 600 }}>
             当前阶段：{stageDescription}
           </Box>
-          <Box component="p" sx={{ m: 0, mt: 0.5, fontSize: '0.8125rem', color: 'var(--glass-text-gray-medium)' }}>
-            预计剩余时间：{estimatedTime}
-          </Box>
         </Box>
       )}
 
