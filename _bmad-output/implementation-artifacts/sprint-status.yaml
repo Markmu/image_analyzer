@@ -120,3 +120,4 @@ development_status:
   # UX 升级任务（跨 Epic）
   # 这些是跨多个 Epic 的技术债务和升级任务
   ux-upgrade-1: done
+  ux-workspace-1: ready-for-dev
