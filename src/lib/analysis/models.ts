@@ -19,8 +19,10 @@ export interface VisionModel {
   description: string;
   /** Model features/tags */
   features: string[];
-  /** Replicate model identifier */
-  replicateModelId: string;
+  /** Replicate model identifier (null for non-Replicate models) */
+  replicateModelId: string | null;
+  /** Provider type ('replicate' | 'aliyun') */
+  provider: 'replicate' | 'aliyun';
   /** Whether this is the default model */
   isDefault: boolean;
   /** Whether this model is enabled */
@@ -98,6 +100,7 @@ export const DEFAULT_VISION_MODELS: VisionModel[] = [
     description: '性价比高，适合日常使用，支持中文',
     features: ['快速', '经济', '中文优化'],
     replicateModelId: process.env.REPLICATE_VISION_MODEL_ID || 'lucataco/qwen3-vl-8b-instruct:39e893666996acf464cff75688ad49ac95ef54e9f1c688fbc677330acc478e11',
+    provider: 'replicate',
     isDefault: true,
     enabled: true,
     requiresTier: 'free',
@@ -110,6 +113,7 @@ export const DEFAULT_VISION_MODELS: VisionModel[] = [
     description: '中文理解能力强，适合中文图片分析',
     features: ['中文优化', '准确'],
     replicateModelId: 'moonshotai/kimi-k2.5',
+    provider: 'replicate',
     isDefault: false,
     enabled: true,
     requiresTier: 'lite',
@@ -122,11 +126,25 @@ export const DEFAULT_VISION_MODELS: VisionModel[] = [
     description: '最高准确率，适合复杂分析场景',
     features: ['最高准确率', '详细分析'],
     replicateModelId: 'google/gemini-3-flash',
+    provider: 'replicate',
     isDefault: false,
     enabled: false,
     requiresTier: 'standard',
     costPerCall: 3,
     avgDuration: 25,
+  },
+  {
+    id: 'qwen3.5-plus',
+    name: 'Qwen3.5 Plus',
+    description: '阿里百炼旗舰模型，高性价比，中文优化',
+    features: ['高性价比', '中文优化', '快速响应'],
+    replicateModelId: null, // 阿里模型不使用此字段
+    provider: 'aliyun',
+    isDefault: false,
+    enabled: true,
+    requiresTier: 'free',
+    costPerCall: 1,
+    avgDuration: 10,
   },
 ];
 
@@ -134,9 +152,9 @@ export const DEFAULT_VISION_MODELS: VisionModel[] = [
  * Subscription tier to model access mapping
  */
 export const TIER_ACCESS: Record<'free' | 'lite' | 'standard', string[]> = {
-  free: ['qwen3-vl'],
-  lite: ['qwen3-vl', 'kimi-k2.5'],
-  standard: ['qwen3-vl', 'kimi-k2.5', 'gemini-flash'],
+  free: ['qwen3-vl', 'qwen3.5-plus'],
+  lite: ['qwen3-vl', 'qwen3.5-plus', 'kimi-k2.5'],
+  standard: ['qwen3-vl', 'qwen3.5-plus', 'kimi-k2.5', 'gemini-flash'],
 };
 
 // ============================================================================
@@ -193,6 +211,15 @@ class ModelRegistry {
    * Add or update a model
    */
   registerModel(model: VisionModel): void {
+    // Validate provider field
+    if (!model.provider) {
+      throw new Error(`Model ${model.id} is missing required 'provider' field. Valid values: 'replicate', 'aliyun'`);
+    }
+
+    if (!['replicate', 'aliyun'].includes(model.provider)) {
+      throw new Error(`Model ${model.id} has invalid provider '${model.provider}'. Valid values: 'replicate', 'aliyun'`);
+    }
+
     this.models.set(model.id, model);
     if (model.isDefault) {
       this.defaultModelId = model.id;
@@ -307,6 +334,58 @@ Return the result in JSON format:
     features: ['standard', 'fast'],
   },
 
+  'qwen3.5-plus': {
+    base: `请分析这张图片的视觉风格，提取以下四个维度：
+
+1. 光影：主光源方向、光影对比度、阴影特征
+2. 构图：视角、画面平衡、景深
+3. 色彩：主色调、色彩对比度、色温
+4. 艺术风格：风格流派、艺术时期、情感基调
+
+请为每个维度提供 3-5 个具体特征标签及置信度分数 (0-1)。
+
+请用 JSON 格式返回结果：
+{
+  "dimensions": {
+    "lighting": {
+      "name": "光影",
+      "features": [
+        {"name": "主光源方向", "value": "侧光", "confidence": 0.85},
+        {"name": "光影对比度", "value": "高对比度", "confidence": 0.9},
+        {"name": "阴影特征", "value": "柔和阴影", "confidence": 0.8}
+      ],
+      "confidence": 0.85
+    },
+    "composition": {
+      "name": "构图",
+      "features": [
+        {"name": "视角", "value": "平视", "confidence": 0.92},
+        {"name": "画面平衡", "value": "对称构图", "confidence": 0.88}
+      ],
+      "confidence": 0.90
+    },
+    "color": {
+      "name": "色彩",
+      "features": [
+        {"name": "主色调", "value": "暖色调", "confidence": 0.95},
+        {"name": "色彩对比度", "value": "中等对比", "confidence": 0.82}
+      ],
+      "confidence": 0.88
+    },
+    "artisticStyle": {
+      "name": "艺术风格",
+      "features": [
+        {"name": "风格流派", "value": "印象派", "confidence": 0.78},
+        {"name": "艺术时期", "value": "现代", "confidence": 0.85}
+      ],
+      "confidence": 0.81
+    }
+  },
+  "overallConfidence": 0.86
+}`,
+    features: ['chinese', 'fast', 'cost-effective'],
+  },
+
   'kimi-k2.5': {
     base: `分析这张图片的视觉风格，提取以下四个维度：
 
@@ -395,9 +474,13 @@ export async function handleModelError(
 // ============================================================================
 
 /**
- * Get user's subscription tier (placeholder - uses user table)
- * Note: Epic 8 (Subscription & Payment) will replace this
+ * Get the default model for style analysis
+ * Uses the model's default setting or falls back to qwen3-vl
  */
+export function getDefaultModel(): string {
+  const defaultModel = modelRegistry.getDefaultModel();
+  return defaultModel?.id || 'qwen3-vl';
+}
 export async function getUserSubscriptionTier(userId: string): Promise<'free' | 'lite' | 'standard'> {
   const { getDb } = await import('@/lib/db');
   const { user } = await import('@/lib/db/schema');

@@ -373,6 +373,11 @@ export async function analyzeImageWithModel(imageUrl: string, modelId: string): 
 
   for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
     try {
+      // Check if model has replicateModelId (may be null for non-Replicate models)
+      if (!model.replicateModelId) {
+        throw new Error(`Model ${modelId} does not support Replicate API`);
+      }
+
       const output = await runModelWithVersionFallback(model.replicateModelId, {
         image: imageUrl,
         prompt: prompt,

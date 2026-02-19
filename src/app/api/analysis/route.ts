@@ -2,10 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getDb } from '@/lib/db';
 import { user, images, analysisResults, batchAnalysisResults, confidenceLogs } from '@/lib/db/schema';
 import { eq, and } from 'drizzle-orm';
-import { analyzeImageWithModel, getDefaultModel } from '@/lib/replicate/vision';
-import { validateImageComplexity } from '@/lib/replicate/vision';
 import { auth } from '@/lib/auth';
-import { canUserUseModel, recordModelUsage } from '@/lib/analysis/models';
+import { canUserUseModel, recordModelUsage, getDefaultModel } from '@/lib/analysis/models';
 import { analyzeImageAsync } from '@/lib/replicate/async';
 import { getPublicDownloadUrl } from '@/lib/r2/download';
 import {
@@ -25,6 +23,7 @@ import {
   type ConfidenceScores,
   type ConfidenceWarning as ConfidenceWarningType,
 } from '@/lib/analysis/confidence';
+import { providerRouter } from '@/lib/analysis/providers';
 
 /**
  * POST /api/analysis
@@ -330,13 +329,13 @@ async function executeAnalysisAsync(
 
     // 内容复杂度检查：仅在明确高复杂度且高置信时拦截。
     // 检查服务异常时降级放行，避免外部模型波动导致整条分析失败。
-    const complexityCheck = await validateImageComplexity(imageUrl);
+    const complexityCheck = await providerRouter.validateComplexityWithProvider(imageUrl, modelId);
     if (complexityCheck.complexity === 'high' && complexityCheck.confidence > 0.8) {
       throw new Error('图片内容安全检查未通过，无法分析');
     }
 
-    // 执行风格分析（使用指定模型）
-    const analysisData = await analyzeImageWithModel(imageUrl, modelId);
+    // 执行风格分析（使用 Provider 路由器自动选择对应的 Provider）
+    const analysisData = await providerRouter.analyzeImageWithProvider(imageUrl, modelId);
 
     // 提取置信度分数
     const confidenceScores = extractConfidenceFromAnalysisData(analysisData);
