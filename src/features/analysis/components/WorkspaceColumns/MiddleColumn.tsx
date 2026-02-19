@@ -42,10 +42,17 @@ export default function MiddleColumn({
           <Box sx={{ mt: 2, display: 'flex', justifyContent: 'center' }}>
             <Button
               variant="outlined"
-              color="error"
               onClick={onCancelAnalysis}
               startIcon={<CircleX size={18} />}
               data-testid="cancel-analysis-button"
+              sx={{
+                borderColor: 'var(--error)',
+                color: 'var(--error)',
+                '&:hover': {
+                  borderColor: 'var(--error)',
+                  backgroundColor: 'var(--error-bg)',
+                },
+              }}
             >
               取消分析
             </Button>
@@ -56,10 +63,21 @@ export default function MiddleColumn({
       {status === 'completed' && analysisData && (
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }} data-testid="analysis-result">
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 2, flexWrap: 'wrap' }}>
-            <Typography variant="h6" sx={{ fontWeight: 700 }}>
+            <Typography variant="h6" sx={{ fontWeight: 700, color: 'var(--glass-text-white-heavy)' }}>
               分析完成
             </Typography>
-            <Button variant="outlined" onClick={onResetWorkspace}>
+            <Button
+              variant="outlined"
+              onClick={onResetWorkspace}
+              sx={{
+                borderColor: 'var(--glass-border)',
+                color: 'var(--glass-text-white-heavy)',
+                '&:hover': {
+                  borderColor: 'var(--glass-border-active)',
+                  backgroundColor: 'var(--glass-bg-active)',
+                },
+              }}
+            >
               更换图片
             </Button>
           </Box>

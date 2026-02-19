@@ -100,10 +100,16 @@ export function AnalysisCard({ analysisData }: AnalysisCardProps) {
         sx={{
           mb: 3,
           p: 2.5,
-          borderRadius: '12px',
-          background: `var(--glass-bg-${confidenceLevel.color === 'var(--success)' ? 'blue' : confidenceLevel.color === 'var(--warning)' ? 'highlight' : 'error'})`,
+          borderRadius: 'var(--glass-radius)',
+          background: confidenceLevel.color === 'var(--success)'
+            ? 'var(--glass-bg-blue-medium)'
+            : confidenceLevel.color === 'var(--warning)'
+              ? 'var(--glass-bg-highlight)'
+              : 'var(--error-bg)',
           border: '1px solid ' + confidenceLevel.color + '40',
-          boxShadow: `0 0 20px ${confidenceLevel.color}20`,
+          boxShadow: confidenceLevel.color === 'var(--success)'
+            ? 'var(--glass-shadow-blue)'
+            : 'var(--glass-shadow)',
         }}
       >
         <Typography

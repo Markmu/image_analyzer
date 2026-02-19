@@ -37,9 +37,10 @@ export function FeedbackButtons({ onFeedback }: FeedbackButtonsProps) {
           alignItems: 'center',
           gap: 1,
           p: 2,
-          borderRadius: 1,
-          bgcolor: 'success.main',
-          color: 'success.contrastText',
+          borderRadius: 'var(--glass-radius)',
+          bgcolor: 'var(--success-bg)',
+          color: 'var(--success)',
+          border: '1px solid var(--success)',
         }}
       >
         <CircleCheck size={18} aria-hidden="true" />
@@ -63,6 +64,14 @@ export function FeedbackButtons({ onFeedback }: FeedbackButtonsProps) {
           onClick={() => handleSubmit('accurate')}
           disabled={loading}
           fullWidth
+          sx={{
+            borderColor: 'var(--glass-border)',
+            color: 'var(--glass-text-white-heavy)',
+            '&:hover': {
+              borderColor: 'var(--glass-border-active)',
+              backgroundColor: 'var(--glass-bg-active)',
+            },
+          }}
         >
           准确
         </Button>
@@ -73,6 +82,14 @@ export function FeedbackButtons({ onFeedback }: FeedbackButtonsProps) {
           onClick={() => handleSubmit('inaccurate')}
           disabled={loading}
           fullWidth
+          sx={{
+            borderColor: 'var(--glass-border)',
+            color: 'var(--glass-text-white-heavy)',
+            '&:hover': {
+              borderColor: 'var(--glass-border-active)',
+              backgroundColor: 'var(--glass-bg-active)',
+            },
+          }}
         >
           不准确
         </Button>

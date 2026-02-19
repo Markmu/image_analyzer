@@ -7,7 +7,6 @@ import React from 'react';
 import { Box, useTheme, useMediaQuery, type SxProps, type Theme } from '@mui/material';
 import { ProgressBar } from './ProgressBar';
 import { StageIndicator } from './StageIndicator';
-import { TermScroller } from './TermScroller';
 import { BatchProgressDisplay } from './BatchProgressDisplay';
 import { MobileProgressBar } from './MobileProgressBar';
 import { QueuePositionDisplay } from './MobileProgressBar';
@@ -18,7 +17,6 @@ import {
   useBatchProgress,
   useAnalysisEstimatedTime,
 } from '@/stores/useProgressStore';
-import { getTermSequence } from '../../constants/analysis-terms';
 import type { BatchImage } from './BatchProgressDisplay';
 
 export interface ProgressDisplayProps {
@@ -94,9 +92,6 @@ export const ProgressDisplay: React.FC<ProgressDisplayProps> = ({
   }
 
   // 分析进度显示（默认）
-  const isAnalyzing = stage === 'analyzing' || stage === 'generating';
-  const terms = isAnalyzing ? getTermSequence(stage) : [];
-
   return (
     <Box sx={{ ...sx, width: '100%' }}>
       {/* 阶段指示器 */}
@@ -120,20 +115,17 @@ export const ProgressDisplay: React.FC<ProgressDisplayProps> = ({
           sx={{
             mb: 2,
             p: 2,
-            borderRadius: 2,
-            border: '1px solid var(--glass-border-active)',
-            backgroundColor: 'var(--glass-bg-green-light)',
+            borderRadius: 'var(--glass-radius)',
+            border: '1px solid var(--glass-border)',
+            backgroundColor: 'var(--glass-bg-dark-light)',
           }}
           data-testid="analysis-stage-description"
         >
           <Box component="p" sx={{ m: 0, fontSize: '0.875rem', color: 'var(--glass-text-gray-heavy)', fontWeight: 600 }}>
             当前阶段：{stageDescription}
           </Box>
-          <Box component="p" sx={{ m: 0, mt: 0.5, fontSize: '0.8125rem', color: 'var(--glass-text-gray-heavy)' }}>
+          <Box component="p" sx={{ m: 0, mt: 0.5, fontSize: '0.8125rem', color: 'var(--glass-text-gray-medium)' }}>
             预计剩余时间：{estimatedTime}
-          </Box>
-          <Box component="p" sx={{ m: 0, mt: 0.5, fontSize: '0.8125rem', color: 'var(--glass-text-primary)' }}>
-            质量承诺：优先保证分析准确性，结果将在完成后自动展示。
           </Box>
         </Box>
       )}
@@ -145,37 +137,6 @@ export const ProgressDisplay: React.FC<ProgressDisplayProps> = ({
           estimatedTime={estimatedTime}
           sx={{ mb: 2 }}
         />
-      )}
-
-      {/* 专业术语滚动器 */}
-      {showTermScroller && isAnalyzing && terms.length > 0 && (
-        <Box sx={{ mb: 2 }}>
-          <TermScroller terms={terms} />
-        </Box>
-      )}
-
-      {/* 长时间处理提示 */}
-      {stage === 'analyzing' && parseInt(estimatedTime.replace(/\D/g, '')) > 90 && (
-        <Box
-          sx={{
-            backgroundColor: 'rgba(59, 130, 246, 0.1)',
-            border: '1px solid rgba(59, 130, 246, 0.3)',
-            borderRadius: 2,
-            padding: 2,
-            mb: 2,
-          }}
-        >
-          <Box
-            component="p"
-            sx={{
-              color: 'var(--glass-text-gray-heavy)',
-              fontSize: '0.875rem',
-              m: 0,
-            }}
-          >
-            正在确保分析准确性，可能需要较长时间...
-          </Box>
-        </Box>
       )}
     </Box>
   );
