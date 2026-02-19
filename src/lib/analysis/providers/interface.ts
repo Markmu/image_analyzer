@@ -44,7 +44,14 @@ export interface AnalyzeImageStyleParams {
    * { imageUrl: 'data:image/jpeg;base64,/9j/4AAQSkZJRg...' }
    * ```
    */
-  imageUrl: string;
+  imageUrl?: string;
+  /**
+   * 图片文件对象（优先使用 Base64 编码）
+   *
+   * 如果提供此参数,将使用 Base64 编码而不是 URL,
+   * 这样可以避免网络访问问题
+   */
+  imageFile?: File | Buffer;
   /** 分析提示词（可选，默认使用模型默认 prompt） */
   prompt?: string;
   /** 最大生成 token 数（可选） */
@@ -62,7 +69,14 @@ export interface ValidateImageComplexityParams {
    * - HTTP/HTTPS URL: `https://example.com/image.jpg`
    * - Base64 Data URI: `data:image/jpeg;base64,/9j/4AAQSkZJRg...`
    */
-  imageUrl: string;
+  imageUrl?: string;
+  /**
+   * 图片文件对象（优先使用 Base64 编码）
+   *
+   * 如果提供此参数,将使用 Base64 编码而不是 URL,
+   * 这样可以避免网络访问问题
+   */
+  imageFile?: File | Buffer;
   /** 验证提示词（可选，默认使用模型默认 prompt） */
   prompt?: string;
 }

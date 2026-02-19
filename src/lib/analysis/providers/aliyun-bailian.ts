@@ -21,6 +21,37 @@ import type { AnalysisData } from '@/types/analysis';
 import { extractJsonFromResponse, parseAnalysisResponse, normalizeProviderResponse } from '@/lib/analysis/parser';
 
 /**
+ * 将文件转换为 Base64 编码
+ * @param file - File 对象或 Buffer
+ * @returns Base64 编码的字符串(不含 data URL 前缀)
+ */
+async function fileToBase64(file: File | Buffer): Promise<string> {
+  let buffer: Buffer;
+
+  if (file instanceof File) {
+    const arrayBuffer = await file.arrayBuffer();
+    buffer = Buffer.from(arrayBuffer);
+  } else {
+    buffer = file;
+  }
+
+  return buffer.toString('base64');
+}
+
+/**
+ * 获取图片的 MIME 类型
+ * @param file - File 对象或 Buffer
+ * @returns MIME 类型字符串
+ */
+function getImageMimeType(file: File | Buffer): string {
+  if (file instanceof File) {
+    return file.type || 'image/jpeg';
+  }
+  // 对于 Buffer,默认使用 JPEG
+  return 'image/jpeg';
+}
+
+/**
  * Aliyun Bailian Provider
  *
  * 实现 VisionAnalysisProvider 接口，封装阿里百炼特定逻辑
@@ -68,7 +99,7 @@ export class AliyunBailianProvider implements VisionAnalysisProvider {
    * Analyze image style using Aliyun Bailian vision model
    */
   async analyzeImageStyle(params: AnalyzeImageStyleParams): Promise<AnalysisData> {
-    const { imageUrl, prompt, maxTokens = 1000 } = params;
+    const { imageUrl, imageFile, prompt, maxTokens = 1000 } = params;
 
     const defaultPrompt = `Analyze the visual style of this image and extract the following four dimensions:
 
@@ -121,7 +152,28 @@ Return the result in JSON format:
 
     const finalPrompt = prompt || defaultPrompt;
 
-    // Call Aliyun API with image URL
+    // 准备图片内容:优先使用 Base64,其次使用 URL
+    let imageContent: { type: string; image_url: { url: string } };
+
+    if (imageFile) {
+      // 使用 Base64 编码的图片(更可靠)
+      const base64 = await fileToBase64(imageFile);
+      const mimeType = getImageMimeType(imageFile);
+      imageContent = {
+        type: 'image_url',
+        image_url: { url: `data:${mimeType};base64,${base64}` },
+      };
+    } else if (imageUrl) {
+      // 使用 URL(需要公网可访问)
+      imageContent = {
+        type: 'image_url',
+        image_url: { url: imageUrl },
+      };
+    } else {
+      throw new Error('Either imageUrl or imageFile must be provided');
+    }
+
+    // Call Aliyun API with image
     const response = await this.client.chat.completions.create({
       model: this.defaultModel,
       messages: [
@@ -129,7 +181,7 @@ Return the result in JSON format:
           role: 'user',
           content: [
             { type: 'text', text: finalPrompt },
-            { type: 'image_url', image_url: { url: imageUrl } },
+            imageContent,
           ],
         },
       ],
@@ -150,7 +202,7 @@ Return the result in JSON format:
    * Validate image complexity using Aliyun Bailian vision model
    */
   async validateImageComplexity(params: ValidateImageComplexityParams): Promise<ComplexityAnalysisResult> {
-    const { imageUrl, prompt } = params;
+    const { imageUrl, imageFile, prompt } = params;
 
     const defaultPrompt = `Analyze this image for style analysis suitability and respond ONLY with valid JSON in this exact format:
 {
@@ -164,11 +216,30 @@ Guidelines:
 - subjectCount: Count distinct main objects/people (background objects don't count)
 - complexity: "low" for single subject, clean background; "medium" for 2-5 subjects; "high" for 5+ subjects or chaotic scenes
 - confidence: How confident are you in this analysis? (0.0-1.0)
-- reason: Brief explanation in Chinese
-
-  Image URL: ${imageUrl}`;
+- reason: Brief explanation in Chinese`;
 
     const finalPrompt = prompt || defaultPrompt;
+
+    // 准备图片内容:优先使用 Base64,其次使用 URL
+    let imageContent: { type: string; image_url: { url: string } };
+
+    if (imageFile) {
+      // 使用 Base64 编码的图片(更可靠)
+      const base64 = await fileToBase64(imageFile);
+      const mimeType = getImageMimeType(imageFile);
+      imageContent = {
+        type: 'image_url',
+        image_url: { url: `data:${mimeType};base64,${base64}` },
+      };
+    } else if (imageUrl) {
+      // 使用 URL(需要公网可访问)
+      imageContent = {
+        type: 'image_url',
+        image_url: { url: imageUrl },
+      };
+    } else {
+      throw new Error('Either imageUrl or imageFile must be provided');
+    }
 
     try {
       const response = await this.client.chat.completions.create({
@@ -178,7 +249,7 @@ Guidelines:
             role: 'user',
             content: [
               { type: 'text', text: finalPrompt },
-              { type: 'image_url', image_url: { url: imageUrl } },
+              imageContent,
             ],
           },
         ],

@@ -3,9 +3,9 @@ import { getDb } from '@/lib/db';
 import { user, images, analysisResults, batchAnalysisResults, confidenceLogs } from '@/lib/db/schema';
 import { eq, and } from 'drizzle-orm';
 import { auth } from '@/lib/auth';
-import { canUserUseModel, recordModelUsage, getDefaultModel } from '@/lib/analysis/models';
+import { canUserUseModel, recordModelUsage, getDefaultModel, modelRegistry } from '@/lib/analysis/models';
 import { analyzeImageAsync } from '@/lib/replicate/async';
-import { getPublicDownloadUrl } from '@/lib/r2/download';
+import { getPublicDownloadUrl, downloadAsBuffer } from '@/lib/r2/download';
 import {
   getUserSubscriptionTier,
   getMaxConcurrent,
@@ -327,15 +327,45 @@ async function executeAnalysisAsync(
       .set({ status: 'processing' })
       .where(eq(batchAnalysisResults.id, batchId));
 
+    // 从 R2 下载图片用于阿里云 Provider
+    let imageBuffer: Buffer | undefined;
+    const model = modelRegistry.getModelById(modelId);
+    const providerType = (model as any)?.provider;
+
+    if (providerType === 'aliyun') {
+      try {
+        // 提取 R2 key
+        const r2Key = imageUrl.startsWith('http://') || imageUrl.startsWith('https://')
+          ? imageUrl.split('/').slice(-3).join('/') // 从 URL 中提取 key
+          : imageUrl;
+
+        imageBuffer = await downloadAsBuffer(r2Key);
+        console.log(`[executeAnalysisAsync] Downloaded image from R2 for ${providerType} provider: ${r2Key}`);
+      } catch (error) {
+        console.warn(`[executeAnalysisAsync] Failed to download image from R2, falling back to URL:`, error);
+        // 如果下载失败,继续使用 URL
+      }
+    }
+
     // 内容复杂度检查：仅在明确高复杂度且高置信时拦截。
     // 检查服务异常时降级放行，避免外部模型波动导致整条分析失败。
-    const complexityCheck = await providerRouter.validateComplexityWithProvider(imageUrl, modelId);
+    const complexityCheck = await providerRouter.validateComplexityWithProvider(
+      imageUrl,
+      modelId,
+      undefined,
+      imageBuffer
+    );
     if (complexityCheck.complexity === 'high' && complexityCheck.confidence > 0.8) {
       throw new Error('图片内容安全检查未通过，无法分析');
     }
 
     // 执行风格分析（使用 Provider 路由器自动选择对应的 Provider）
-    const analysisData = await providerRouter.analyzeImageWithProvider(imageUrl, modelId);
+    const analysisData = await providerRouter.analyzeImageWithProvider(
+      imageUrl,
+      modelId,
+      undefined,
+      imageBuffer
+    );
 
     // 提取置信度分数
     const confidenceScores = extractConfidenceFromAnalysisData(analysisData);

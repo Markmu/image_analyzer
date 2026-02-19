@@ -86,6 +86,7 @@ export class ProviderRouter {
    * @param imageUrl - Image URL
    * @param modelId - Model identifier
    * @param prompt - Optional custom prompt
+   * @param imageFile - Optional image file object (Buffer or File)
    * @returns Analysis data
    * @throws ModelNotFoundError if model does not exist
    * @throws UnknownProviderError if provider is not implemented
@@ -102,7 +103,8 @@ export class ProviderRouter {
   async analyzeImageWithProvider(
     imageUrl: string,
     modelId: string,
-    prompt?: string
+    prompt?: string,
+    imageFile?: File | Buffer
   ): Promise<AnalysisData> {
     const provider = this.getProvider(modelId);
 
@@ -111,6 +113,7 @@ export class ProviderRouter {
 
     return provider.analyzeImageStyle({
       imageUrl,
+      imageFile,
       prompt: finalPrompt,
     });
   }
@@ -123,6 +126,7 @@ export class ProviderRouter {
    * @param imageUrl - Image URL
    * @param modelId - Model identifier
    * @param prompt - Optional custom prompt
+   * @param imageFile - Optional image file object (Buffer or File)
    * @returns Complexity analysis result
    * @throws ModelNotFoundError if model does not exist
    * @throws UnknownProviderError if provider is not implemented
@@ -139,12 +143,14 @@ export class ProviderRouter {
   async validateComplexityWithProvider(
     imageUrl: string,
     modelId: string,
-    prompt?: string
+    prompt?: string,
+    imageFile?: File | Buffer
   ): Promise<ComplexityAnalysisResult> {
     const provider = this.getProvider(modelId);
 
     return provider.validateImageComplexity({
       imageUrl,
+      imageFile,
       prompt,
     });
   }
