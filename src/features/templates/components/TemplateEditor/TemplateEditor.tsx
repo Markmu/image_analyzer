@@ -6,6 +6,7 @@ import { Save } from 'lucide-react';
 import type { Template } from '../../types';
 import { TemplatePreview } from '../TemplatePreview';
 import { CopyButton } from '../CopyButton';
+import { ExportButton } from '../ExportButton';
 
 interface TemplateEditorProps {
   /** Template to edit */
@@ -129,6 +130,11 @@ export function TemplateEditor({
             text={JSON.stringify(editedTemplate.jsonFormat, null, 2)}
             tooltipText="复制 JSON 格式"
             data-testid="copy-json-template"
+          />
+          <ExportButton
+            template={editedTemplate}
+            tooltipText="导出为 JSON 文件"
+            data-testid="export-template"
           />
           {showSaveButton && (
             <Button
