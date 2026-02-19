@@ -67,13 +67,63 @@ export default function LeftColumn({
           分析模型
         </Typography>
         <FormControl fullWidth size="small" disabled={modelsLoading || models.length === 0}>
-          <InputLabel id="analysis-model-select-label">分析模型</InputLabel>
+          <InputLabel
+            id="analysis-model-select-label"
+            sx={{
+              color: 'var(--glass-text-gray-medium)',
+              '&.Mui-focused': {
+                color: 'var(--glass-text-primary)',
+              },
+            }}
+          >
+            分析模型
+          </InputLabel>
           <Select
             labelId="analysis-model-select-label"
             label="分析模型"
             value={selectedModelId}
             onChange={(event) => onModelChange(event.target.value)}
             data-testid="analysis-model-select"
+            sx={{
+              backgroundColor: 'var(--glass-bg-dark-light)',
+              color: 'var(--glass-text-white-heavy)',
+              '& .MuiOutlinedInput-notchedOutline': {
+                borderColor: 'var(--glass-border)',
+              },
+              '&:hover .MuiOutlinedInput-notchedOutline': {
+                borderColor: 'var(--glass-border-hover)',
+              },
+              '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                borderColor: 'var(--glass-border-active)',
+              },
+              '& .MuiSvgIcon-root': {
+                color: 'var(--glass-text-gray-medium)',
+              },
+            }}
+            MenuProps={{
+              PaperProps: {
+                sx: {
+                  backgroundColor: 'var(--glass-bg-dark-heavy)',
+                  border: '1px solid var(--glass-border)',
+                  boxShadow: 'var(--glass-shadow-hover)',
+                  '& .MuiMenuItem-root': {
+                    color: 'var(--glass-text-white-heavy)',
+                    '&:hover': {
+                      backgroundColor: 'var(--glass-bg-active-hover)',
+                    },
+                    '&.Mui-selected': {
+                      backgroundColor: 'var(--glass-bg-active)',
+                      '&:hover': {
+                        backgroundColor: 'var(--glass-bg-active-hover)',
+                      },
+                    },
+                    '&.Mui-disabled': {
+                      color: 'var(--glass-text-gray-light)',
+                    },
+                  },
+                },
+              },
+            }}
           >
             {models.map((model) => (
               <MenuItem key={model.id} value={model.id} disabled={model.isLocked}>
@@ -81,8 +131,28 @@ export default function LeftColumn({
                   <Typography variant="body2" sx={{ flexGrow: 1 }}>
                     {model.name}
                   </Typography>
-                  {model.isDefault && <Chip size="small" label="默认" />}
-                  {model.isLocked && <Chip size="small" color="warning" label={`需 ${model.requiresTier}`} />}
+                  {model.isDefault && (
+                    <Chip
+                      size="small"
+                      label="默认"
+                      sx={{
+                        backgroundColor: 'var(--glass-bg-blue-medium)',
+                        color: 'var(--glass-text-primary)',
+                        border: '1px solid var(--glass-border-blue-medium)',
+                      }}
+                    />
+                  )}
+                  {model.isLocked && (
+                    <Chip
+                      size="small"
+                      label={`需 ${model.requiresTier}`}
+                      sx={{
+                        backgroundColor: 'var(--warning-bg)',
+                        color: 'var(--warning)',
+                        border: '1px solid var(--warning)',
+                      }}
+                    />
+                  )}
                 </Box>
               </MenuItem>
             ))}

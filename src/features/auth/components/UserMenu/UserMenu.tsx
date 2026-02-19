@@ -103,10 +103,17 @@ export function UserMenu() {
           sx: {
             minWidth: 200,
             mt: 1,
-            backgroundColor: '#ffffff',
-            border: '1px solid #e2e8f0',
-            borderRadius: '8px',
-            boxShadow: '0 8px 24px rgba(15, 23, 42, 0.08)',
+            backgroundColor: 'var(--glass-bg-dark-heavy)',
+            border: '1px solid var(--glass-border)',
+            borderRadius: 'var(--glass-radius)',
+            boxShadow: 'var(--glass-shadow-hover)',
+            backdropFilter: 'blur(var(--glass-blur-heavy))',
+            '& .MuiMenuItem-root': {
+              color: 'var(--glass-text-white-heavy)',
+              '&:hover': {
+                backgroundColor: 'var(--glass-bg-active-hover)',
+              },
+            },
           },
         },
       }}
@@ -116,25 +123,25 @@ export function UserMenu() {
           {user.name?.charAt(0).toUpperCase()}
         </Avatar>
         <Box>
-          <Typography variant="subtitle1" fontWeight={600} data-testid="user-menu-name">
+          <Typography variant="subtitle1" fontWeight={600} data-testid="user-menu-name" sx={{ color: 'var(--glass-text-white-heavy)' }}>
             {user.name}
           </Typography>
-          <Typography variant="body2" color="text.secondary" data-testid="user-menu-email">
+          <Typography variant="body2" data-testid="user-menu-email" sx={{ color: 'var(--glass-text-gray-medium)' }}>
             {user.email}
           </Typography>
         </Box>
       </MenuItem>
 
-      <Divider />
+      <Divider sx={{ borderColor: 'var(--glass-border)' }} />
 
       <MenuItem onClick={handleOpenDeleteDialog} data-testid="user-menu-delete-account">
-        <Typography color="error">删除账户</Typography>
+        <Typography sx={{ color: 'var(--error)' }}>删除账户</Typography>
       </MenuItem>
 
-      <Divider />
+      <Divider sx={{ borderColor: 'var(--glass-border)' }} />
 
       <MenuItem onClick={handleSignOut} disabled={isSigningOut} data-testid="user-menu-sign-out">
-        <Typography color="text.primary">{isSigningOut ? '登出中...' : '登出'}</Typography>
+        <Typography sx={{ color: 'var(--glass-text-white-heavy)' }}>{isSigningOut ? '登出中...' : '登出'}</Typography>
       </MenuItem>
     </Menu>
   ) : (
@@ -149,10 +156,17 @@ export function UserMenu() {
           sx: {
             minWidth: 280,
             mt: 1,
-            backgroundColor: '#ffffff',
-            border: '1px solid #e2e8f0',
-            borderRadius: '8px',
-            boxShadow: '0 8px 24px rgba(15, 23, 42, 0.08)',
+            backgroundColor: 'var(--glass-bg-dark-heavy)',
+            border: '1px solid var(--glass-border)',
+            borderRadius: 'var(--glass-radius)',
+            boxShadow: 'var(--glass-shadow-hover)',
+            backdropFilter: 'blur(var(--glass-blur-heavy))',
+            '& .MuiMenuItem-root': {
+              color: 'var(--glass-text-white-heavy)',
+              '&:hover': {
+                backgroundColor: 'var(--glass-bg-active-hover)',
+              },
+            },
           },
         },
       }}
@@ -161,15 +175,15 @@ export function UserMenu() {
         <Avatar src={user.image ?? undefined} alt={user.name} data-testid="user-menu-large-avatar" sx={{ width: 64, height: 64, mb: 1 }}>
           {user.name?.charAt(0).toUpperCase()}
         </Avatar>
-        <Typography variant="subtitle1" fontWeight={600} data-testid="user-menu-name">
+        <Typography variant="subtitle1" fontWeight={600} data-testid="user-menu-name" sx={{ color: 'var(--glass-text-white-heavy)' }}>
           {user.name}
         </Typography>
-        <Typography variant="body2" color="text.secondary" data-testid="user-menu-email">
+        <Typography variant="body2" data-testid="user-menu-email" sx={{ color: 'var(--glass-text-gray-medium)' }}>
           {user.email}
         </Typography>
       </Box>
 
-      <Divider />
+      <Divider sx={{ borderColor: 'var(--glass-border)' }} />
 
       <MenuItem disabled>
         <Box data-testid="user-menu-credit-balance">
@@ -178,19 +192,28 @@ export function UserMenu() {
       </MenuItem>
 
       <MenuItem disabled>
-        <Chip label={`${user.subscriptionTier} 等级`} size="small" color="default" data-testid="user-menu-subscription-tier" />
+        <Chip
+          label={`${user.subscriptionTier} 等级`}
+          size="small"
+          data-testid="user-menu-subscription-tier"
+          sx={{
+            backgroundColor: 'var(--glass-bg-blue-medium)',
+            color: 'var(--glass-text-primary)',
+            border: '1px solid var(--glass-border-blue-medium)',
+          }}
+        />
       </MenuItem>
 
-      <Divider />
+      <Divider sx={{ borderColor: 'var(--glass-border)' }} />
 
       <MenuItem onClick={handleOpenDeleteDialog} data-testid="user-menu-delete-account">
-        <Typography color="error">删除账户</Typography>
+        <Typography sx={{ color: 'var(--error)' }}>删除账户</Typography>
       </MenuItem>
 
-      <Divider />
+      <Divider sx={{ borderColor: 'var(--glass-border)' }} />
 
       <MenuItem onClick={handleSignOut} disabled={isSigningOut} data-testid="user-menu-sign-out">
-        <Typography color="text.primary">{isSigningOut ? '登出中...' : '登出'}</Typography>
+        <Typography sx={{ color: 'var(--glass-text-white-heavy)' }}>{isSigningOut ? '登出中...' : '登出'}</Typography>
       </MenuItem>
     </Menu>
   );
