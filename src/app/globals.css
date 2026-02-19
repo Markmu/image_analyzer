@@ -4,21 +4,21 @@
   /* ========================================
      1. 基础主题色
      ======================================== */
-  --background: #0B0B10;
-  --foreground: #F8FAFC;
+  --background: #00023e; /* 深蓝色背景，与渐变协调 */
+  --foreground: #f8fafc;
 
   /* 主色调（科技蓝） */
-  --primary: #3B82F6;
-  --primary-hover: #60A5FA;
-  --primary-active: #2563EB;
+  --primary: #3b82f6;
+  --primary-hover: #60a5fa;
+  --primary-active: #2563eb;
 
   /* 次要色（银灰色） */
-  --secondary: #94A3B8;
-  --secondary-hover: #CBD5E1;
+  --secondary: #94a3b8;
+  --secondary-hover: #cbd5e1;
 
   /* 强调色（天蓝色） */
-  --accent: #06B6D4;
-  --accent-hover: #22D3EE;
+  --accent: #06b6d4;
+  --accent-hover: #22d3ee;
 
   /* ========================================
      2. Glassmorphism 核心参数
@@ -83,11 +83,11 @@
   --glass-text-gray-light: rgba(148, 163, 184, 0.55);
 
   /* 蓝色文字 */
-  --glass-text-primary: #3B82F6;
-  --glass-text-primary-hover: #60A5FA;
+  --glass-text-primary: #3b82f6;
+  --glass-text-primary-hover: #60a5fa;
 
   /* 青色文字 */
-  --glass-text-accent: #06B6D4;
+  --glass-text-accent: #06b6d4;
 
   /* ========================================
      5. 阴影系统
@@ -125,19 +125,19 @@
      ======================================== */
 
   /* 成功（深蓝） */
-  --success: #2563EB;
+  --success: #2563eb;
   --success-bg: rgba(37, 99, 235, 0.15);
 
   /* 警告（琥珀） */
-  --warning: #F59E0B;
+  --warning: #f59e0b;
   --warning-bg: rgba(245, 158, 11, 0.15);
 
   /* 错误（玫瑰红） */
-  --error: #F43F5E;
+  --error: #f43f5e;
   --error-bg: rgba(244, 63, 94, 0.15);
 
   /* 信息（青色） */
-  --info: #06B6D4;
+  --info: #06b6d4;
   --info-bg: rgba(6, 182, 212, 0.15);
 }
 
@@ -149,9 +149,10 @@
 }
 
 body {
-  background: var(--background);
+  background: transparent;
   color: var(--foreground);
   font-family: var(--font-geist-sans), 'Segoe UI', sans-serif;
+  min-height: 100vh;
 }
 
 /* 基础 Glassmorphism 卡片 */
@@ -207,7 +208,7 @@ body {
 }
 
 *:focus-visible {
-  outline: 2px solid #3B82F6;
+  outline: 2px solid #3b82f6;
   outline-offset: 2px;
 }
 
@@ -215,7 +216,7 @@ body {
   position: absolute;
   top: -40px;
   left: 0;
-  background: #3B82F6;
+  background: #3b82f6;
   color: #ffffff;
   padding: 8px 16px;
   z-index: 1000;

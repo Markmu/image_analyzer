@@ -51,11 +51,10 @@ export function AnalysisCard({ analysisData }: AnalysisCardProps) {
 
   return (
     <Paper
-      elevation={2}
-      className="ia-glass-card ia-glass-card--static"
+      elevation={0}
+      className="ia-glass-card ia-glass-card--static ia-glass-card--lg"
       sx={{
         p: 3,
-        bgcolor: 'var(--glass-bg-dark)',
       }}
     >
       {/* Header */}
@@ -67,11 +66,26 @@ export function AnalysisCard({ analysisData }: AnalysisCardProps) {
           mb: 3,
           flexWrap: 'wrap',
           gap: 2,
+          pb: 2.5,
+          borderBottom: '1px solid var(--glass-border-white-light)',
         }}
       >
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <Brain size={24} color="#22c55e" aria-hidden="true" />
-          <Typography variant="h5" fontWeight="bold">
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              width: 42,
+              height: 42,
+              borderRadius: '10px',
+              background: 'var(--glass-bg-blue-medium)',
+              border: '1px solid var(--glass-border-white-medium)',
+            }}
+          >
+            <Brain size={22} color="#3B82F6" aria-hidden="true" />
+          </Box>
+          <Typography variant="h5" sx={{ fontWeight: 700, color: 'var(--glass-text-white-heavy)' }}>
             风格分析结果
           </Typography>
         </Box>
@@ -85,22 +99,44 @@ export function AnalysisCard({ analysisData }: AnalysisCardProps) {
       <Box
         sx={{
           mb: 3,
-          p: 2,
-          borderRadius: 1,
-          bgcolor: confidenceLevel.color + '20',
-          borderLeft: 4,
-          borderColor: confidenceLevel.color,
+          p: 2.5,
+          borderRadius: '12px',
+          background: `var(--glass-bg-${confidenceLevel.color === 'var(--success)' ? 'blue' : confidenceLevel.color === 'var(--warning)' ? 'highlight' : 'error'})`,
+          border: '1px solid ' + confidenceLevel.color + '40',
+          boxShadow: `0 0 20px ${confidenceLevel.color}20`,
         }}
       >
-        <Typography variant="body2" sx={{ color: 'var(--glass-text-gray-heavy)' }} gutterBottom>
+        <Typography
+          variant="body2"
+          sx={{
+            color: 'var(--glass-text-gray-medium)',
+            mb: 1,
+          }}
+        >
           整体置信度
         </Typography>
-        <Typography variant="h4" fontWeight="bold" sx={{ color: confidenceLevel.color }}>
-          {(overallConfidence * 100).toFixed(0)}%
-        </Typography>
-        <Typography variant="body2" sx={{ color: confidenceLevel.color, mt: 0.5 }}>
-          {confidenceLevel.label}
-        </Typography>
+        <Box sx={{ display: 'flex', alignItems: 'baseline', gap: 1.5 }}>
+          <Typography
+            variant="h3"
+            sx={{
+              fontWeight: 800,
+              color: confidenceLevel.color,
+              fontSize: '2.5rem',
+              lineHeight: 1,
+            }}
+          >
+            {(overallConfidence * 100).toFixed(0)}%
+          </Typography>
+          <Typography
+            variant="body1"
+            sx={{
+              color: confidenceLevel.color,
+              fontWeight: 600,
+            }}
+          >
+            {confidenceLevel.label}
+          </Typography>
+        </Box>
       </Box>
 
       <Box sx={{ mb: 3, display: 'flex', gap: 1, flexWrap: 'wrap' }}>

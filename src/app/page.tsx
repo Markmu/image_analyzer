@@ -3,7 +3,7 @@ import { Brain, Sparkles, Zap } from 'lucide-react';
 
 export default function Home() {
   return (
-    <div className="min-h-screen" style={{ background: 'var(--background)', color: 'var(--foreground)' }}>
+    <div className="min-h-screen" style={{ color: 'var(--foreground)' }}>
       <main className="mx-auto flex w-full max-w-5xl flex-col gap-12 px-6 py-14">
         {/* 主 Hero 卡片 */}
         <section className="ia-glass-card ia-glass-card--static p-8 sm:p-12">

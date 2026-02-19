@@ -18,48 +18,79 @@ export function DimensionCard({ dimensionType, dimension }: DimensionCardProps) 
   const Icon = dimensionIcons[dimensionType as keyof typeof dimensionIcons] || dimensionIcons.lighting;
 
   return (
-    <Card
-      elevation={1}
+    <Box
+      className="ia-glass-card ia-glass-card--static"
       sx={{
         height: '100%',
-        bgcolor: 'background.default',
-        border: '1px solid',
-        borderColor: 'divider',
+        p: 2,
+        display: 'flex',
+        flexDirection: 'column',
       }}
     >
-      <CardContent>
-        {/* 维度标题 */}
+      {/* 维度标题 */}
+      <Box
+        sx={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 1.5,
+          mb: 2.5,
+        }}
+      >
         <Box
           sx={{
             display: 'flex',
             alignItems: 'center',
-            gap: 1,
-            mb: 2,
+            justifyContent: 'center',
+            width: 40,
+            height: 40,
+            borderRadius: '10px',
+            background: 'var(--glass-bg-blue-medium)',
+            border: '1px solid var(--glass-border-white-medium)',
           }}
         >
-          <Icon size={24} color="#3B82F6" aria-hidden="true" />
-          <Typography variant="h6" fontWeight="bold">
-            {dimension.name}
-          </Typography>
+          <Icon size={20} color="#3B82F6" aria-hidden="true" />
         </Box>
+        <Typography variant="h6" sx={{ fontWeight: 700, color: 'var(--glass-text-white-heavy)' }}>
+          {dimension.name}
+        </Typography>
+      </Box>
 
-        {/* 维度置信度 */}
-        <Box sx={{ mb: 2 }}>
-          <Typography variant="caption" sx={{ color: 'var(--glass-text-gray-heavy)' }}>
-            置信度
-          </Typography>
-          <Typography variant="body2" fontWeight="medium">
-            {(dimension.confidence * 100).toFixed(0)}%
-          </Typography>
-        </Box>
+      {/* 维度置信度 */}
+      <Box
+        sx={{
+          mb: 2.5,
+          pb: 2,
+          borderBottom: '1px solid var(--glass-border-white-light)',
+        }}
+      >
+        <Typography
+          variant="caption"
+          sx={{
+            color: 'var(--glass-text-gray-medium)',
+            display: 'block',
+            mb: 0.5,
+          }}
+        >
+          置信度
+        </Typography>
+        <Typography
+          variant="body2"
+          sx={{
+            fontWeight: 600,
+            color: 'var(--glass-text-primary)',
+            fontSize: '1.1rem',
+          }}
+        >
+          {(dimension.confidence * 100).toFixed(0)}%
+        </Typography>
+      </Box>
 
-        {/* 特征标签列表 */}
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-          {dimension.features.map((feature, index) => (
-            <FeatureTag key={index} feature={feature} />
-          ))}
-        </Box>
-      </CardContent>
-    </Card>
+      {/* 特征标签列表 */}
+      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+        {dimension.features.map((feature, index) => (
+          <FeatureTag key={index} feature={feature} />
+        ))}
+      </Box>
+    </Box>
   );
 }

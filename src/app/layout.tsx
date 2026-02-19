@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { Geist, Geist_Mono } from 'next/font/google';
 import { SessionProvider } from '@/providers/SessionProvider';
 import { Header } from '@/components/shared/Header';
+import DynamicBackground from '@/components/shared/DynamicBackground';
 import './globals.css';
 
 const geistSans = Geist({
@@ -28,6 +29,7 @@ export default function RootLayout({
     <html lang="zh-CN">
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         <SessionProvider>
+          <DynamicBackground />
           <Header />
           <main id="main-content" className="min-h-screen" tabIndex={-1}>
             {children}
