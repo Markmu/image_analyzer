@@ -95,8 +95,8 @@ development_status:
   epic-6-retrospective: optional
 
   # Epic 7: 模版库与历史记录
-  epic-7: backlog
-  7-1-history-management: backlog
+  epic-7: in-progress
+  7-1-history-management: ready-for-dev
   7-2-template-library: backlog
   7-3-template-analytics: backlog
   epic-7-retrospective: optional
