@@ -72,7 +72,7 @@ export function Header() {
             fontWeight: 500,
           }}
         >
-          查看历史记录
+          历史分析
         </Link>
       </nav>
 
