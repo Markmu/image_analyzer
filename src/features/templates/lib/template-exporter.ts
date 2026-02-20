@@ -306,48 +306,61 @@ export async function exportTemplate(
 /**
  * Check content safety before export
  *
- * IMPORTANT: This is a placeholder implementation that should integrate with
- * Story 4.1 (Content Moderation) content safety logic.
- *
- * Current Implementation:
- * - Returns safe for all content (placeholder)
- * - Does not perform actual content moderation
- *
- * Future Implementation (Story 4.1 Integration):
- * - Integrate with actual content moderation service
- * - Check for inappropriate content patterns
- * - Return detailed safety reports
- * - Support configurable safety thresholds
+ * Integrates with Story 4.1 (Content Moderation) text moderation logic.
+ * Checks template content for inappropriate material before allowing export.
  *
  * @param template - Template to check
  * @returns Content safety check result
  */
 export async function checkContentSafety(template: Template): Promise<ContentSafetyCheckResult> {
-  // TODO: Integrate with Story 4.1 content moderation logic
-  //
-  // Integration points:
-  // 1. Import content moderation utilities from Story 4.1
-  // 2. Check template.variableFormat and template.jsonFormat for unsafe content
-  // 3. Return detailed safety results with specific unsafe content types
-  // 4. Support configurable safety levels (strict, moderate, permissive)
-  //
-  // Example integration:
-  // import { checkContentModeration } from '@/features/moderation';
-  // const moderationResult = await checkContentModeration({
-  //   text: `${template.variableFormat} ${JSON.stringify(template.jsonFormat)}`,
-  //   categories: ['violence', 'adult', 'hate', 'self-harm'],
-  // });
-  // return {
-  //   isSafe: !moderationResult.flagged,
-  //   unsafeContent: moderationResult.categories,
-  //   warning: moderationResult.flagged ? 'Template contains unsafe content' : undefined,
-  // };
+  try {
+    // Import Story 4.1 text moderation utilities
+    const { moderateText } = await import('@/lib/moderation/text-moderation');
 
-  // Placeholder: Always return safe
-  // This will be replaced with actual Story 4.1 integration
-  return {
-    isSafe: true,
-    unsafeContent: undefined,
-    warning: undefined,
-  };
+    // Combine all template text fields for comprehensive checking
+    const combinedText = [
+      template.variableFormat,
+      ...Object.values(template.jsonFormat),
+    ].join(' ');
+
+    console.log('[TemplateExporter] Checking content safety for template:', template.id);
+
+    // Run text moderation
+    const moderationResult = await moderateText(combinedText);
+
+    if (!moderationResult.isApproved) {
+      console.warn('[TemplateExporter] Content safety check failed:', moderationResult.reason);
+
+      // Extract flagged categories
+      const unsafeCategories: string[] = [];
+      for (const [category, score] of Object.entries(moderationResult.categories)) {
+        if (score > 0.7) {
+          unsafeCategories.push(category);
+        }
+      }
+
+      return {
+        isSafe: false,
+        unsafeContent: unsafeCategories,
+        warning: moderationResult.reason || '模版包含不当内容，无法导出',
+      };
+    }
+
+    console.log('[TemplateExporter] Content safety check passed');
+    return {
+      isSafe: true,
+      unsafeContent: undefined,
+      warning: undefined,
+    };
+  } catch (error) {
+    // If moderation service fails, log error but allow export (fail-open)
+    // This prevents service issues from blocking legitimate exports
+    console.error('[TemplateExporter] Content safety check error:', error);
+
+    return {
+      isSafe: true,
+      unsafeContent: undefined,
+      warning: undefined,
+    };
+  }
 }

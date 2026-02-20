@@ -110,7 +110,8 @@ export function ExportButton({
           sx={{
             minWidth: 'auto',
             '& .MuiButton-startIcon': {
-              color: isSuccess ? 'var(--success)' : 'rgb(34, 197, 94)',
+              // Use consistent green-500 color (rgb(34, 197, 94)) per AC4
+              color: 'rgb(34, 197, 94)',
             },
             ...(className
               ? {}

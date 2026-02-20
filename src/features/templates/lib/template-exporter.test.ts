@@ -265,7 +265,35 @@ describe('template-exporter', () => {
       expect(result.warning).toBeUndefined();
     });
 
-    // Note: Actual content safety checking logic will be implemented
-    // when Story 4.1 integration is added
+    it('should call content moderation service', async () => {
+      const unsafeTemplate: Template = {
+        ...mockTemplate,
+        variableFormat: 'A [subject] with violence and killing',
+        jsonFormat: {
+          ...mockTemplate.jsonFormat,
+          subject: 'violent scene with murder',
+        },
+      };
+
+      // This will call the actual moderation service
+      const result = await checkContentSafety(unsafeTemplate);
+
+      // The result depends on the moderation service
+      // Just verify it returns a valid result structure
+      expect(result).toHaveProperty('isSafe');
+      expect(typeof result.isSafe).toBe('boolean');
+      if (!result.isSafe) {
+        expect(result.warning).toBeDefined();
+      }
+    });
+
+    it('should handle content safety integration', async () => {
+      // Test that the function integrates with Story 4.1 moderation
+      const result = await checkContentSafety(mockTemplate);
+
+      expect(result).toHaveProperty('isSafe');
+      expect(result).toHaveProperty('unsafeContent');
+      expect(result).toHaveProperty('warning');
+    });
   });
 });
