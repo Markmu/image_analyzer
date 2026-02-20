@@ -123,7 +123,7 @@ export async function retryAnalysis(
   }
 
   // 4. 执行新的分析（使用相同模型）
-  const modelId = originalAnalysis.modelId || 'qwen3-vl';
+  const modelId = originalAnalysis.modelId || 'qwen3.5-plus';
   const analysisData = await analyzeImageWithModel(image.filePath, modelId);
 
   // 5. 提取置信度

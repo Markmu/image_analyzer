@@ -44,7 +44,7 @@ export class ProviderRouter {
    * @example
    * ```typescript
    * const router = new ProviderRouter();
-   * const provider = router.getProvider('qwen3-vl');
+   * const provider = router.getProvider('qwen3.5-plus');
    * // Returns ReplicateVisionProvider instance (cached)
    * ```
    */
@@ -96,7 +96,7 @@ export class ProviderRouter {
    * const router = new ProviderRouter();
    * const result = await router.analyzeImageWithProvider(
    *   'https://example.com/image.jpg',
-   *   'qwen3-vl'
+   *   'qwen3.5-plus'
    * );
    * ```
    */
@@ -136,7 +136,7 @@ export class ProviderRouter {
    * const router = new ProviderRouter();
    * const result = await router.validateComplexityWithProvider(
    *   'https://example.com/image.jpg',
-   *   'qwen3-vl'
+   *   'qwen3.5-plus'
    * );
    * ```
    */

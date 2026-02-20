@@ -95,17 +95,17 @@ export interface UserModelAccess {
  */
 export const DEFAULT_VISION_MODELS: VisionModel[] = [
   {
-    id: 'qwen3-vl',
-    name: 'Qwen3 VL 8B',
-    description: '性价比高，适合日常使用，支持中文',
-    features: ['快速', '经济', '中文优化'],
-    replicateModelId: process.env.REPLICATE_VISION_MODEL_ID || 'lucataco/qwen3-vl-8b-instruct:39e893666996acf464cff75688ad49ac95ef54e9f1c688fbc677330acc478e11',
-    provider: 'replicate',
+    id: 'qwen3.5-plus',
+    name: 'Qwen3.5 Plus',
+    description: '阿里百炼旗舰模型，高性价比，中文优化',
+    features: ['高性价比', '中文优化', '快速响应'],
+    replicateModelId: null, // 阿里模型不使用此字段
+    provider: 'aliyun',
     isDefault: true,
     enabled: true,
     requiresTier: 'free',
     costPerCall: 1,
-    avgDuration: 15,
+    avgDuration: 10,
   },
   {
     id: 'kimi-k2.5',
@@ -133,28 +133,15 @@ export const DEFAULT_VISION_MODELS: VisionModel[] = [
     costPerCall: 3,
     avgDuration: 25,
   },
-  {
-    id: 'qwen3.5-plus',
-    name: 'Qwen3.5 Plus',
-    description: '阿里百炼旗舰模型，高性价比，中文优化',
-    features: ['高性价比', '中文优化', '快速响应'],
-    replicateModelId: null, // 阿里模型不使用此字段
-    provider: 'aliyun',
-    isDefault: false,
-    enabled: true,
-    requiresTier: 'free',
-    costPerCall: 1,
-    avgDuration: 10,
-  },
 ];
 
 /**
  * Subscription tier to model access mapping
  */
 export const TIER_ACCESS: Record<'free' | 'lite' | 'standard', string[]> = {
-  free: ['qwen3-vl', 'qwen3.5-plus'],
-  lite: ['qwen3-vl', 'qwen3.5-plus', 'kimi-k2.5'],
-  standard: ['qwen3-vl', 'qwen3.5-plus', 'kimi-k2.5', 'gemini-flash'],
+  free: ['qwen3.5-plus'],
+  lite: ['qwen3.5-plus', 'kimi-k2.5'],
+  standard: ['qwen3.5-plus', 'kimi-k2.5', 'gemini-flash'],
 };
 
 // ============================================================================
@@ -167,7 +154,7 @@ export const TIER_ACCESS: Record<'free' | 'lite' | 'standard', string[]> = {
  */
 class ModelRegistry {
   private models: Map<string, VisionModel> = new Map();
-  private defaultModelId: string = 'qwen3-vl';
+  private defaultModelId: string = 'qwen3.5-plus';
 
   constructor() {
     // Initialize with default models
@@ -282,58 +269,6 @@ export const PROMPT_TEMPLATES: Record<string, {
   base: string;
   features: string[];
 }> = {
-  'qwen3-vl': {
-    base: `Analyze the visual style of this image and extract the following four dimensions:
-
-1. **Lighting & Shadow**: Identify the main light source direction, light-shadow contrast, shadow characteristics
-2. **Composition**: Identify the viewpoint, visual balance, depth of field
-3. **Color**: Identify the main color palette, color contrast, color temperature
-4. **Artistic Style**: Identify the style movement, art period, emotional tone
-
-For each dimension, provide 3-5 specific feature tags with confidence scores (0-1).
-
-Return the result in JSON format:
-{
-  "dimensions": {
-    "lighting": {
-      "name": "光影",
-      "features": [
-        {"name": "主光源方向", "value": "侧光", "confidence": 0.85},
-        {"name": "光影对比度", "value": "高对比度", "confidence": 0.9},
-        {"name": "阴影特征", "value": "柔和阴影", "confidence": 0.8}
-      ],
-      "confidence": 0.85
-    },
-    "composition": {
-      "name": "构图",
-      "features": [
-        {"name": "视角", "value": "平视", "confidence": 0.92},
-        {"name": "画面平衡", "value": "对称构图", "confidence": 0.88}
-      ],
-      "confidence": 0.90
-    },
-    "color": {
-      "name": "色彩",
-      "features": [
-        {"name": "主色调", "value": "暖色调", "confidence": 0.95},
-        {"name": "色彩对比度", "value": "中等对比", "confidence": 0.82}
-      ],
-      "confidence": 0.88
-    },
-    "artisticStyle": {
-      "name": "艺术风格",
-      "features": [
-        {"name": "风格流派", "value": "印象派", "confidence": 0.78},
-        {"name": "艺术时期", "value": "现代", "confidence": 0.85}
-      ],
-      "confidence": 0.81
-    }
-  },
-  "overallConfidence": 0.86
-}`,
-    features: ['standard', 'fast'],
-  },
-
   'qwen3.5-plus': {
     base: `请分析这张图片的视觉风格，提取以下四个维度：
 
@@ -421,8 +356,8 @@ Provide detailed analysis with high confidence scores for each feature. Return d
 export function getModelPrompt(modelId: string, basePrompt?: string): string {
   const template = PROMPT_TEMPLATES[modelId];
   if (!template) {
-    // Fallback to qwen3-vl template
-    return basePrompt || PROMPT_TEMPLATES['qwen3-vl'].base;
+    // Fallback to qwen3.5-plus template
+    return basePrompt || PROMPT_TEMPLATES['qwen3.5-plus'].base;
   }
   return basePrompt || template.base;
 }
@@ -475,11 +410,11 @@ export async function handleModelError(
 
 /**
  * Get the default model for style analysis
- * Uses the model's default setting or falls back to qwen3-vl
+ * Uses the model's default setting or falls back to qwen3.5-plus
  */
 export function getDefaultModel(): string {
   const defaultModel = modelRegistry.getDefaultModel();
-  return defaultModel?.id || 'qwen3-vl';
+  return defaultModel?.id || 'qwen3.5-plus';
 }
 export async function getUserSubscriptionTier(userId: string): Promise<'free' | 'lite' | 'standard'> {
   const { getDb } = await import('@/lib/db');

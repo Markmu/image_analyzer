@@ -117,7 +117,7 @@ Guidelines:
     maxTokens: number
   ): Promise<unknown> {
     // Get model ID from environment or use default
-    const model = process.env.REPLICATE_VISION_MODEL_ID || 'lucataco/qwen3-vl-8b-instruct:39e893666996acf464cff75688ad49ac95ef54e9f1c688fbc677330acc478e11';
+    const model = process.env.REPLICATE_VISION_MODEL_ID || 'moonshotai/kimi-k2.5';
 
     try {
       return await replicate.run(model as `${string}/${string}` | `${string}/${string}:${string}`, {

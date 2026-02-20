@@ -166,7 +166,7 @@ export async function validateImageComplexity(imageUrl: string): Promise<Complex
     process.env.REPLICATE_COMPLEXITY_MODEL_ID?.trim() ||
     defaultModel?.replicateModelId ||
     process.env.REPLICATE_VISION_MODEL_ID ||
-    'lucataco/qwen3-vl-8b-instruct';
+    'moonshotai/kimi-k2.5';
 
   const prompt = `Analyze this image for style analysis suitability and respond ONLY with valid JSON in this exact format:
 {
@@ -345,7 +345,7 @@ Return the result in JSON format:
  * Supports model selection and dynamic prompt adaptation
  *
  * @param imageUrl - URL of the image to analyze
- * @param modelId - Model identifier (e.g., 'qwen3-vl', 'kimi-k2.5', 'gemini-flash')
+ * @param modelId - Model identifier (e.g., 'qwen3.5-plus', 'kimi-k2.5', 'gemini-flash')
  * @returns Structured style analysis data
  *
  * @throws Error if analysis fails after max retries
@@ -427,11 +427,11 @@ export async function analyzeImageWithModel(imageUrl: string, modelId: string): 
 
 /**
  * Get the default model for style analysis
- * Uses the model's default setting or falls back to qwen3-vl
+ * Uses the model's default setting or falls back to qwen3.5-plus
  */
 export function getDefaultModel(): string {
   const defaultModel = modelRegistry.getDefaultModel();
-  return defaultModel?.id || 'qwen3-vl';
+  return defaultModel?.id || 'qwen3.5-plus';
 }
 
 /**

@@ -50,7 +50,7 @@ describe('Confidence Scoring', () => {
       },
     },
     overallConfidence: 0.88,
-    modelUsed: 'qwen3-vl',
+    modelUsed: 'qwen3.5-plus',
     analysisDuration: 15,
   };
 
@@ -202,9 +202,9 @@ describe('Confidence Scoring', () => {
       expect(thresholds.high).toBe(DEFAULT_CONFIDENCE_THRESHOLDS.high - 5);
     });
 
-    it('should apply loose modifier for qwen3-vl', () => {
-      const thresholds = getAdjustedThresholds('qwen3-vl');
-      expect(thresholds.high).toBe(DEFAULT_CONFIDENCE_THRESHOLDS.high + 5);
+    it('should apply default modifier for qwen3.5-plus', () => {
+      const thresholds = getAdjustedThresholds('qwen3.5-plus');
+      expect(thresholds.high).toBe(DEFAULT_CONFIDENCE_THRESHOLDS.high);
     });
 
     it('should use default modifier for unknown models', () => {

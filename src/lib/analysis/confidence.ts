@@ -97,7 +97,7 @@ export const DEFAULT_CONFIDENCE_THRESHOLDS: ConfidenceThresholds = {
 export const MODEL_THRESHOLD_MODIFIERS: ModelThresholdModifiers = {
   'gemini-flash': -5, // 更严格（高准确性模型）
   'kimi-k2.5': 0, // 标准
-  'qwen3-vl': 5, // 更宽松（快速模型）
+  'qwen3.5-plus': 0, // 标准
 };
 
 // ============================================================================
@@ -241,4 +241,3 @@ export function getConfidenceForTier(
   const { emotionalTone, artisticPeriod, ...base } = scores;
   return base;
 }
-

@@ -164,7 +164,7 @@ export async function POST(request: NextRequest) {
         const result = await analyzeImageAsync({
           userId,
           imageUrl,
-          modelId: usedModelId || 'qwen3-vl',
+          modelId: usedModelId || 'qwen3.5-plus',
           creditCost: 1,
         });
 
@@ -316,7 +316,7 @@ async function executeAnalysisAsync(
   imageId: string,
   imageUrl: string,
   userId: string,
-  modelId: string = 'qwen3-vl'
+  modelId: string = 'qwen3.5-plus'
 ): Promise<void> {
   const db = getDb();
 
