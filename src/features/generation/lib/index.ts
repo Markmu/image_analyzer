@@ -16,3 +16,7 @@ export * from './stage-mapper';
 export * from './time-estimator';
 export * from './retry-handler';
 export * from './notification-handler';
+
+// Story 6.3: Image history
+export * from './image-history-service';
+export * from './image-history-client';

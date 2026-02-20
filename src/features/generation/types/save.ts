@@ -15,6 +15,7 @@ export interface ImageSaveOptions {
   quality?: number; // 70-100, 仅 JPEG
   resolution: ImageResolutionOption;
   filename?: string;
+  metadata?: ImageMetadata; // 元数据
 }
 
 export interface ImageMetadata {
@@ -37,4 +38,8 @@ export interface SaveResult {
   success: boolean;
   filename?: string;
   error?: string;
+  // 批量操作相关字段
+  successCount?: number;
+  failedCount?: number;
+  failedImages?: string[];
 }

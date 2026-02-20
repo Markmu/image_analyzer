@@ -16,15 +16,14 @@ import {
   Box,
   Typography,
   Alert,
-  AlertTitle,
 } from '@mui/material';
-import { Clock, AlertCircle } from 'lucide-react';
+import { Clock, Info } from 'lucide-react';
 
 interface TimeoutDialogProps {
   /** Whether the dialog is open */
   open: boolean;
   /** Callback when dialog is closed */
-  onOpenChange: (open: boolean) => void;
+  onClose: () => void;
   /** Retry callback */
   onRetry?: () => void;
   /** Cancel callback */
@@ -37,7 +36,7 @@ interface TimeoutDialogProps {
 
 export const TimeoutDialog: React.FC<TimeoutDialogProps> = ({
   open,
-  onOpenChange,
+  onClose,
   onRetry,
   onCancel,
   elapsedSeconds = 0,
@@ -49,62 +48,63 @@ export const TimeoutDialog: React.FC<TimeoutDialogProps> = ({
     return mins > 0 ? `${mins}分${secs}秒` : `${secs}秒`;
   };
 
+  const handleRetry = () => {
+    onRetry?.();
+    onClose();
+  };
+
+  const handleCancel = () => {
+    onCancel?.();
+    onClose();
+  };
+
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className={cn('max-w-md', className)}>
-        <DialogHeader>
-          <div className="flex items-center gap-3">
-            <div className={cn('rounded-full bg-yellow-100 p-2', 'dark:bg-yellow-900/30')}>
-              <Clock className={cn('text-yellow-600', 'dark:text-yellow-400')} size={24} />
-            </div>
-            <DialogTitle>生成超时</DialogTitle>
-          </div>
-        </DialogHeader>
+    <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
+      <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            borderRadius: '50%',
+            bgcolor: 'warning.light',
+            p: 1,
+          }}
+        >
+          <Clock sx={{ color: 'warning.main', fontSize: 24 }} />
+        </Box>
+        生成超时
+      </DialogTitle>
 
-        <div className="space-y-4 py-4">
-          <DialogDescription className="space-y-2">
-            <p className="text-sm text-gray-700 dark:text-gray-300">
-              图片生成时间已超过 <span className="font-semibold">{formatTime(elapsedSeconds)}</span>,
-              这可能是由于:
-            </p>
+      <DialogContent>
+        <DialogContentText component="div" sx={{ mb: 2 }}>
+          <Typography variant="body2" sx={{ mb: 2 }}>
+            图片生成时间已超过 <strong>{formatTime(elapsedSeconds)}</strong>,
+            这可能是由于:
+          </Typography>
 
-            <ul className={cn('ml-4 list-disc space-y-1', 'text-sm text-gray-600 dark:text-gray-400')}>
-              <li>网络连接不稳定</li>
-              <li>服务器负载较高</li>
-              <li>请求过于复杂</li>
-            </ul>
+          <Box component="ul" sx={{ pl: 2, mb: 2, color: 'text.secondary' }}>
+            <li>网络连接不稳定</li>
+            <li>服务器负载较高</li>
+            <li>请求过于复杂</li>
+          </Box>
 
-            <div className={cn('mt-4 rounded-md bg-blue-50 p-3', 'dark:bg-blue-900/20')}>
-              <div className="flex items-start gap-2">
-                <AlertCircle className={cn('mt-0.5 flex-shrink-0', 'text-blue-600 dark:text-blue-400')} size={16} />
-                <p className="text-xs text-blue-800 dark:text-blue-200">
-                  建议: 尝试使用较低的分辨率或减少同时生成的图片数量
-                </p>
-              </div>
-            </div>
-          </DialogDescription>
-        </div>
-
-        <DialogFooter className="flex-col gap-2 sm:flex-row">
-          <Button
-            variant="outline"
-            onClick={() => {
-              onCancel?.();
-              onOpenChange(false);
-            }}
-          >
-            取消
-          </Button>
-          <Button
-            onClick={() => {
-              onRetry?.();
-              onOpenChange(false);
-            }}
-          >
-            重试
-          </Button>
-        </DialogFooter>
+          <Alert severity="info" icon={<Info />}>
+            <Typography variant="body2">
+              建议: 尝试使用较低的分辨率或减少同时生成的图片数量
+            </Typography>
+          </Alert>
+        </DialogContentText>
       </DialogContent>
+
+      <DialogActions sx={{ px: 3, pb: 2 }}>
+        <Button variant="outlined" onClick={handleCancel}>
+          取消
+        </Button>
+        <Button variant="contained" onClick={handleRetry} autoFocus>
+          重试
+        </Button>
+      </DialogActions>
     </Dialog>
   );
 };

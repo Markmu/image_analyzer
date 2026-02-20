@@ -18,7 +18,7 @@ import {
   IconButton,
 } from '@mui/material';
 import {
-  Close,
+  X,
   Download,
   Share2,
   RefreshCw,
@@ -138,7 +138,7 @@ export function GenerationPreviewDialog({
           size="small"
           sx={{ color: 'var(--glass-text-gray-medium)' }}
         >
-          <Close size={20} />
+          <X size={20} />
         </IconButton>
       </DialogTitle>
 

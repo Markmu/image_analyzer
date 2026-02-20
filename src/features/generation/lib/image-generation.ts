@@ -6,6 +6,7 @@
  */
 
 import { replicate } from '@/lib/replicate';
+import { moderatePrompt, moderateGeneratedImage } from '@/lib/moderation/generation-moderation';
 import type {
   ImageGenerationOptions,
   ImageGenerationResult,
@@ -23,6 +24,7 @@ import { nanoid } from 'nanoid';
  */
 export async function generateImage(
   options: ImageGenerationOptions,
+  userId: string,
   onProgress?: (progress: GenerationProgress) => void
 ): Promise<ImageGenerationResult> {
   const generationId = nanoid();
@@ -44,6 +46,12 @@ export async function generateImage(
       throw new Error('Prompt too long for generation');
     }
 
+    // AC5: Content safety check - check template before generation
+    const safetyCheckResult = await moderatePrompt(prompt, userId);
+    if (!safetyCheckResult.isApproved) {
+      throw new Error(`内容安全检查未通过: ${safetyCheckResult.reason}`);
+    }
+
     // Report generating stage
     onProgress?.({
       stage: 'generating',
@@ -54,20 +62,29 @@ export async function generateImage(
 
     // Call Replicate API
     const model = options.model as `${string}/${string}`;
-    const output = await replicate.run(model, {
-      input: {
-        prompt,
-        width: options.resolution.width,
-        height: options.resolution.height,
-        num_outputs: options.quantity,
-        // Additional parameters for better quality
-        enhance_prompt: true,
-        // @ts-ignore - Replicate model-specific parameters
-        scheduler: 'DPMSolverMultistep',
-        // @ts-ignore
-        num_inference_steps: 30,
-      },
-    });
+
+    // Define input parameters with proper typing
+    type ReplicateInput = {
+      prompt: string;
+      width: number;
+      height: number;
+      num_outputs: number;
+      enhance_prompt: boolean;
+      scheduler?: string;
+      num_inference_steps?: number;
+    };
+
+    const replicateInput: ReplicateInput = {
+      prompt,
+      width: options.resolution.width,
+      height: options.resolution.height,
+      num_outputs: options.quantity,
+      enhance_prompt: true,
+      scheduler: 'DPMSolverMultistep',
+      num_inference_steps: 30,
+    };
+
+    const output = await replicate.run(model, { input: replicateInput });
 
     // Report processing stage
     onProgress?.({
@@ -84,6 +101,23 @@ export async function generateImage(
     for (let i = 0; i < outputs.length; i++) {
       const imageUrl = typeof outputs[i] === 'string' ? outputs[i] : String(outputs[i]);
 
+      // AC5: Content safety check - check generated image after generation
+      let safetyCheckPassed = true;
+      let safetyScore = 1.0;
+      let safetyReason: string | undefined;
+
+      try {
+        const imageSafetyResult = await moderateGeneratedImage(imageUrl, Number(generationId), userId);
+        safetyCheckPassed = imageSafetyResult.isApproved;
+        safetyScore = imageSafetyResult.confidence;
+        safetyReason = imageSafetyResult.reason;
+      } catch (safetyError) {
+        // If safety check fails, mark as failed but don't block completely
+        console.error('[ImageGeneration] Image safety check failed:', safetyError);
+        safetyCheckPassed = false;
+        safetyReason = '图片安全检查失败';
+      }
+
       images.push({
         id: nanoid(),
         url: imageUrl,
@@ -95,21 +129,31 @@ export async function generateImage(
           size: 0, // Will be updated when image is loaded
         },
         safetyCheck: {
-          passed: true, // Will be updated after safety check
-          score: 1.0,
+          passed: safetyCheckPassed,
+          score: safetyScore,
+          reason: safetyReason,
         },
       });
     }
 
-    // Calculate credits consumed
+    // Filter out unsafe images and calculate final credit cost
+    const safeImages = images.filter(img => img.safetyCheck.passed);
+    const unsafeCount = images.length - safeImages.length;
+
+    // If all images are unsafe, throw error and don't charge
+    if (safeImages.length === 0) {
+      throw new Error('生成图片未通过安全检查，已为您退款');
+    }
+
+    // Calculate credits consumed (only for safe images)
     const creditsConsumed = calculateCreditCost(
       options.resolution,
-      options.quantity
+      safeImages.length
     );
 
     const result: ImageGenerationResult = {
       id: generationId,
-      images,
+      images: safeImages,
       provider: options.provider,
       model: options.model,
       resolution: options.resolution,

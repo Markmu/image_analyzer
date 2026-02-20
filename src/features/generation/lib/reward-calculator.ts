@@ -2,7 +2,7 @@
  * 奖励计算和发放系统
  */
 
-import { ShareReward, RewardResult, UserLevel, ShareRecord } from '../types/rewards';
+import { ShareReward, RewardResult, UserLevel, ShareRecord, RewardType } from '../types/rewards';
 import { REWARD_CONFIGS, BADGES } from './reward-configs';
 
 /**
@@ -35,7 +35,7 @@ export function calculateShareReward(
     : REWARD_CONFIGS.DAILY_SHARE_POINTS;
 
   const reward: ShareReward = {
-    type: 'points',
+    type: RewardType.POINTS,
     amount: points,
     source: platform,
     timestamp: new Date(),

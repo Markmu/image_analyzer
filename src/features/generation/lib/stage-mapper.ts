@@ -5,7 +5,7 @@
  * Maps Replicate API status to application generation stages
  */
 
-import { GenerationStage } from '../types/progress';
+import type { GenerationStage } from '../types/progress';
 import { STAGE_THRESHOLDS } from './progress-constants';
 
 /**
@@ -42,26 +42,26 @@ export function mapReplicateStatusToStage(
 
   switch (status) {
     case 'starting':
-      return GenerationStage.INITIALIZING;
+      return 'initializing';
 
     case 'processing':
       // Map progress to stages
-      if (progress < 0.1) return GenerationStage.INITIALIZING;
-      if (progress < 0.2) return GenerationStage.PARSING;
-      if (progress < 0.3) return GenerationStage.QUEUED;
-      if (progress < 0.9) return GenerationStage.GENERATING;
-      if (progress < 0.95) return GenerationStage.POST_PROCESSING;
-      return GenerationStage.SAVING;
+      if (progress < 0.1) return 'initializing';
+      if (progress < 0.2) return 'parsing';
+      if (progress < 0.3) return 'queued';
+      if (progress < 0.9) return 'generating';
+      if (progress < 0.95) return 'post_processing';
+      return 'saving';
 
     case 'succeeded':
-      return GenerationStage.COMPLETED;
+      return 'completed';
 
     case 'failed':
     case 'canceled':
-      return GenerationStage.FAILED;
+      return 'failed';
 
     default:
-      return GenerationStage.QUEUED;
+      return 'queued';
   }
 }
 
@@ -78,8 +78,9 @@ export function calculatePercentage(
   if (status === 'succeeded') return 100;
   if (status === 'failed' || status === 'canceled') return Math.round(progress * 100);
 
-  // Get stage thresholds
-  const thresholds = STAGE_THRESHOLDS[stage.toUpperCase() as keyof typeof STAGE_THRESHOLDS];
+  // Get stage thresholds - convert lowercase stage to uppercase for threshold lookup
+  const stageUpper = stage.toUpperCase() as keyof typeof STAGE_THRESHOLDS;
+  const thresholds = STAGE_THRESHOLDS[stageUpper];
   if (!thresholds) return 0;
 
   // Calculate percentage within stage range

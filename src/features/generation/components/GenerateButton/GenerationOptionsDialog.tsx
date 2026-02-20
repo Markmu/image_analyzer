@@ -21,13 +21,14 @@ import {
   DialogContent,
   DialogActions,
 } from '@mui/material';
-import { Close } from 'lucide-react';
+import { X } from 'lucide-react';
 import type { Template } from '@/features/templates/types/template';
-import type { ResolutionPreset } from '../../types';
-import type { GenerationProgress, BatchGenerationProgress } from '../../types/progress';
+import type { ResolutionPreset, SubscriptionTier, GenerationProgress } from '../../types';
+import type { BatchGenerationProgress } from '../../types/progress';
 import { RESOLUTION_PRESETS, DEFAULT_GENERATION_OPTIONS } from '../../lib/generation-presets';
-import { calculateCreditCost, getUpgradeMessage } from '../../lib/resolution-config';
-import { useState, useEffect } from 'react';
+import { calculateCreditCost, getUpgradeMessage, getResolutionsForTier, isResolutionAvailable } from '../../lib/resolution-config';
+import { useUserInfo } from '@/features/auth/hooks/useUserInfo';
+import { useState, useEffect, useMemo } from 'react';
 
 export interface GenerationOptionsDialogProps {
   /** Whether dialog is open */
@@ -65,11 +66,32 @@ export function GenerationOptionsDialog({
   onGenerationError,
   onProgressUpdate,
 }: GenerationOptionsDialogProps) {
+  // Get user subscription tier
+  const { user } = useUserInfo();
+  const subscriptionTier: SubscriptionTier = user?.subscriptionTier || 'free';
+
+  // Get available resolutions for user's subscription tier
+  const availableResolutions = useMemo(() => {
+    return getResolutionsForTier(subscriptionTier);
+  }, [subscriptionTier]);
+
   // Default options (would load from localStorage in production)
-  const [selectedResolution, setSelectedResolution] = useState<ResolutionPreset>(
-    DEFAULT_GENERATION_OPTIONS.resolution
-  );
-  const [selectedQuantity, setSelectedQuantity] = useState(
+  const [selectedResolution, setSelectedResolution] = useState<ResolutionPreset>(() => {
+    // Try to load saved preference, otherwise use first available
+    const savedPrefs = typeof window !== 'undefined' ? localStorage.getItem('generation-preferences') : null;
+    if (savedPrefs) {
+      try {
+        const prefs = JSON.parse(savedPrefs);
+        if (prefs.resolution && isResolutionAvailable(prefs.resolution, subscriptionTier)) {
+          return prefs.resolution;
+        }
+      } catch (error) {
+        console.error('Failed to load generation preferences:', error);
+      }
+    }
+    return availableResolutions[0] || DEFAULT_GENERATION_OPTIONS.resolution;
+  });
+  const [selectedQuantity, setSelectedQuantity] = useState<number>(
     DEFAULT_GENERATION_OPTIONS.quantity
   );
   const [isGenerating, setIsGenerating] = useState(false);
@@ -90,14 +112,23 @@ export function GenerationOptionsDialog({
 
   // Save preferences when they change
   useEffect(() => {
-    const prefs = {
-      resolution: selectedResolution,
-      quantity: selectedQuantity,
-    };
-    localStorage.setItem('generation-preferences', JSON.stringify(prefs));
+    try {
+      const prefs = {
+        resolution: selectedResolution,
+        quantity: selectedQuantity,
+      };
+      localStorage.setItem('generation-preferences', JSON.stringify(prefs));
+    } catch (error) {
+      console.error('Failed to save generation preferences:', error);
+    }
   }, [selectedResolution, selectedQuantity]);
 
   const handleGenerate = async () => {
+    if (!user?.id) {
+      console.error('[GenerationOptionsDialog] User not authenticated');
+      return;
+    }
+
     setIsGenerating(true);
     onGenerationStart();
 
@@ -113,6 +144,7 @@ export function GenerationOptionsDialog({
           quantity: selectedQuantity,
           template,
         },
+        user.id,
         (progress) => {
           // Handle progress updates
           console.log('[GenerationOptionsDialog] Progress:', progress);
@@ -158,7 +190,7 @@ export function GenerationOptionsDialog({
         <Button
           onClick={onClose}
           disabled={isGenerating}
-          startIcon={<Close size={16} />}
+          startIcon={<X size={16} />}
           sx={{ minWidth: 'auto', color: 'var(--glass-text-gray-medium)' }}
         />
       </DialogTitle>
@@ -173,10 +205,9 @@ export function GenerationOptionsDialog({
           >
             模型提供商
           </Typography>
-          <FormControl component="fieldset">
+          <FormControl component="fieldset" disabled={isGenerating}>
             <RadioGroup
               value="stability-ai"
-              disabled={isGenerating}
             >
               <FormControlLabel
                 value="stability-ai"
@@ -205,23 +236,22 @@ export function GenerationOptionsDialog({
           >
             分辨率
           </Typography>
-          <FormControl component="fieldset">
+          <FormControl component="fieldset" disabled={isGenerating}>
             <RadioGroup
               value={selectedResolution.name}
               onChange={(e) => {
-                const resolution = RESOLUTION_PRESETS.free.find(
+                const resolution = availableResolutions.find(
                   (r) => r.name === e.target.value
                 );
                 if (resolution) setSelectedResolution(resolution);
               }}
             >
-              {RESOLUTION_PRESETS.free.map((resolution) => (
+              {availableResolutions.map((resolution) => (
                 <FormControlLabel
                   key={resolution.name}
                   value={resolution.name}
                   control={<Radio />}
                   label={`${resolution.name} (${resolution.creditCost} credit)`}
-                  disabled={isGenerating}
                   sx={{
                     color: 'var(--glass-text-white-medium)',
                     '& .MuiFormControlLabel-label': {
@@ -248,7 +278,7 @@ export function GenerationOptionsDialog({
           >
             生成数量
           </Typography>
-          <FormControl component="fieldset">
+          <FormControl component="fieldset" disabled={isGenerating}>
             <RadioGroup
               value={selectedQuantity}
               onChange={(e) => setSelectedQuantity(parseInt(e.target.value, 10))}
@@ -259,7 +289,6 @@ export function GenerationOptionsDialog({
                   value={qty}
                   control={<Radio />}
                   label={`${qty} 张`}
-                  disabled={isGenerating}
                   sx={{
                     color: 'var(--glass-text-white-medium)',
                     '& .MuiFormControlLabel-label': {

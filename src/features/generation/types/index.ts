@@ -4,3 +4,4 @@
 
 export * from './generation';
 export * from './progress';
+export * from './history';

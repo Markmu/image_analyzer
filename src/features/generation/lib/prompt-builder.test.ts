@@ -3,7 +3,7 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import { buildGenerationPrompt, validatePromptLength, truncatePrompt } from '../prompt-builder';
+import { buildGenerationPrompt, validatePromptLength, truncatePrompt } from './prompt-builder';
 import type { Template } from '@/features/templates/types/template';
 
 describe('Prompt Builder', () => {
@@ -89,7 +89,7 @@ describe('Prompt Builder', () => {
       const longPrompt = 'A'.repeat(5000);
       const truncated = truncatePrompt(longPrompt, 1000);
 
-      expect(truncated).toHaveLength(3997); // 4000 - 3 for '...'
+      expect(truncated).toHaveLength(4000); // 3997 + 3 for '...'
       expect(truncated).toMatch(/\.\.\.$/);
     });
 

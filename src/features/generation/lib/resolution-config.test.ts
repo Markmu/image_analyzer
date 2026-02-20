@@ -10,8 +10,8 @@ import {
   calculateCreditCost,
   formatResolution,
   getUpgradeMessage,
-} from '../resolution-config';
-import type { ResolutionPreset, SubscriptionTier } from '../../types';
+} from './resolution-config';
+import type { ResolutionPreset, SubscriptionTier } from '../types';
 
 describe('Resolution Config', () => {
   const mockResolution: ResolutionPreset = {

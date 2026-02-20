@@ -92,7 +92,7 @@ export function calculateEstimatedTimeRemaining(
   const elapsed = calculateElapsedTime(progress);
 
   // Use historical average if no progress yet
-  if (progress.percentage === 0 || progress.percentage < 5) {
+  if (progress.progress === 0 || progress.progress < 5) {
     const avg = historicalAverage || getHistoricalAverageTime(
       progress.templateId,
       undefined, // Will be set from resolution
@@ -102,15 +102,15 @@ export function calculateEstimatedTimeRemaining(
   }
 
   // Calculate based on current progress rate
-  const progressRate = progress.percentage / elapsed; // percentage per second
-  const estimatedTotal = progress.percentage > 0 ? 100 / progressRate : 0;
+  const progressRate = progress.progress / elapsed; // percentage per second
+  const estimatedTotal = progress.progress > 0 ? 100 / progressRate : 0;
 
   // Get historical average
   const historical = historicalAverage || getHistoricalAverageTime();
 
   // Weight historical (30%) and current (70%) estimates
   // Current estimate gets higher weight as progress increases
-  const currentWeight = Math.min(0.7, 0.3 + (progress.percentage / 100) * 0.4);
+  const currentWeight = Math.min(0.7, 0.3 + (progress.progress / 100) * 0.4);
   const historicalWeight = 1 - currentWeight;
 
   const weightedEstimate =
@@ -119,7 +119,7 @@ export function calculateEstimatedTimeRemaining(
   const remaining = Math.max(0, weightedEstimate - elapsed);
 
   // Add some buffer for uncertainty (especially at early stages)
-  const bufferMultiplier = progress.percentage < 50 ? 1.2 : 1.0;
+  const bufferMultiplier = progress.progress < 50 ? 1.2 : 1.0;
 
   return Math.round(remaining * bufferMultiplier);
 }
@@ -128,7 +128,7 @@ export function calculateEstimatedTimeRemaining(
  * Calculate elapsed time in seconds
  */
 function calculateElapsedTime(progress: GenerationProgress): number {
-  return (Date.now() - progress.startedAt.getTime()) / 1000;
+  return (Date.now() - progress.createdAt.getTime()) / 1000;
 }
 
 /**
@@ -204,9 +204,9 @@ export function getTimeEstimateWithConfidence(
 
   // Confidence based on progress percentage
   let confidence: 'high' | 'medium' | 'low';
-  if (progress.percentage >= 70) {
+  if (progress.progress >= 70) {
     confidence = 'high';
-  } else if (progress.percentage >= 30) {
+  } else if (progress.progress >= 30) {
     confidence = 'medium';
   } else {
     confidence = 'low';

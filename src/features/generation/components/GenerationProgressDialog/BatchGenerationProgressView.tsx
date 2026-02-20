@@ -28,7 +28,7 @@ export const BatchGenerationProgressView: React.FC<BatchGenerationProgressViewPr
   className,
 }) => {
   // Determine grid columns based on item count
-  const gridCols = batch.totalItems <= 2 ? 1 : 2;
+  const gridCols = batch.totalItems <= 2 ? 12 : 6;
 
   // Validate batch data
   if (!batch || !batch.items || batch.items.length === 0) {
@@ -76,7 +76,7 @@ export const BatchGenerationProgressView: React.FC<BatchGenerationProgressViewPr
       {/* Individual item progress grid */}
       <Grid container spacing={2}>
         {batch.items.map((item) => (
-          <Grid item xs={12 / gridCols} key={item.id}>
+          <Grid size={{ xs: gridCols }} key={item.id}>
             <SingleGenerationProgress
               progress={item}
               showCancel={item.stage !== 'completed' && item.stage !== 'failed'}

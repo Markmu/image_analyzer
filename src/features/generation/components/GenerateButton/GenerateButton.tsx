@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { Button, Tooltip } from '@mui/material';
-import { ImageIcon, Sparkles } from 'lucide-react';
+import { ImageIcon, Wand2 } from 'lucide-react';
 import type { Template } from '@/features/templates/types/template';
 import type { ImageGenerationResult } from '../../types';
 import { GenerationOptionsDialog } from './GenerationOptionsDialog';
@@ -97,7 +97,7 @@ export function GenerateButton({
           variant={variant}
           onClick={handleOpenDialog}
           disabled={isDisabled}
-          startIcon={isGenerating ? <Sparkles size={16} className="animate-spin" /> : <ImageIcon size={16} />}
+          startIcon={isGenerating ? <Wand2 size={16} className="animate-spin" /> : <ImageIcon size={16} />}
           className={className}
           data-testid={testId || 'generate-button'}
           sx={{

@@ -30,9 +30,9 @@ export function createGenerationProgress(
   return {
     id: nanoid(),
     stage: 'initializing' as GenerationStage,
-    percentage: 0,
+    progress: 0,
     estimatedTimeRemaining: DEFAULT_ESTIMATED_TIME,
-    startedAt: new Date(),
+    createdAt: new Date(),
     updatedAt: new Date(),
     templateId,
     templateName,
@@ -58,7 +58,8 @@ export function createBatchGenerationProgress(
     failedItems: 0,
     overallPercentage: 0,
     items,
-    startedAt: new Date(),
+    createdAt: new Date(),
+    updatedAt: new Date(),
     estimatedTimeRemaining: DEFAULT_ESTIMATED_TIME * itemCount,
   };
 }
@@ -67,7 +68,7 @@ export function createBatchGenerationProgress(
  * Check if a generation has timed out
  */
 export function isTimeout(progress: GenerationProgress): boolean {
-  const elapsed = (Date.now() - progress.startedAt.getTime()) / 1000;
+  const elapsed = (Date.now() - progress.createdAt.getTime()) / 1000;
   return elapsed > TIMEOUT_DURATION;
 }
 
@@ -75,7 +76,7 @@ export function isTimeout(progress: GenerationProgress): boolean {
  * Calculate elapsed time in seconds
  */
 export function calculateElapsedTime(progress: GenerationProgress): number {
-  return (progress.updatedAt.getTime() - progress.startedAt.getTime()) / 1000;
+  return (progress.updatedAt.getTime() - progress.createdAt.getTime()) / 1000;
 }
 
 /**
@@ -150,12 +151,12 @@ export function calculateEstimatedTimeRemaining(
   const elapsed = calculateElapsedTime(progress);
 
   // If no progress yet, use historical average
-  if (progress.percentage === 0) {
+  if (progress.progress === 0) {
     return historicalAverage;
   }
 
   // Calculate based on current progress rate
-  const estimatedTotal = (elapsed / progress.percentage) * 100;
+  const estimatedTotal = (elapsed / progress.progress) * 100;
 
   // Weight historical (40%) and current (60%) estimates
   const weightedEstimate = historicalAverage * 0.4 + estimatedTotal * 0.6;

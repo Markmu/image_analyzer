@@ -8,6 +8,7 @@
 import React from 'react';
 import { Check, Loader2, Clock } from 'lucide-react';
 import { Box, Typography, Paper, Stack } from '@mui/material';
+import { cn } from '@/lib/utils';
 import type { GenerationStage } from '../../types/progress';
 import { STAGE_LABELS } from '../../lib/progress-constants';
 

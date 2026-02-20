@@ -16,7 +16,6 @@ import {
   Box,
   Typography,
   Alert,
-  AlertTitle,
 } from '@mui/material';
 import { AlertCircle, RefreshCw } from 'lucide-react';
 import type { GenerationError } from '../../types/progress';
@@ -26,7 +25,7 @@ interface RetryPromptProps {
   /** Whether the dialog is open */
   open: boolean;
   /** Callback when dialog is closed */
-  onOpenChange: (open: boolean) => void;
+  onClose: () => void;
   /** Retry callback */
   onRetry?: () => void;
   /** Cancel callback */
@@ -43,7 +42,7 @@ interface RetryPromptProps {
 
 export const RetryPrompt: React.FC<RetryPromptProps> = ({
   open,
-  onOpenChange,
+  onClose,
   onRetry,
   onCancel,
   error,
@@ -53,73 +52,79 @@ export const RetryPrompt: React.FC<RetryPromptProps> = ({
 }) => {
   const errorInfo = getErrorDisplayInfo(error);
 
+  const handleRetry = () => {
+    onRetry?.();
+    onClose();
+  };
+
+  const handleCancel = () => {
+    onCancel?.();
+    onClose();
+  };
+
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className={cn('max-w-md', className)}>
-        <DialogHeader>
-          <div className="flex items-center gap-3">
-            <div className={cn('rounded-full bg-red-100 p-2', 'dark:bg-red-900/30')}>
-              <AlertCircle className={cn('text-red-600', 'dark:text-red-400')} size={24} />
-            </div>
-            <DialogTitle>{errorInfo.title}</DialogTitle>
-          </div>
-        </DialogHeader>
+    <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
+      <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            borderRadius: '50%',
+            bgcolor: 'error.light',
+            p: 1,
+          }}
+        >
+          <AlertCircle sx={{ color: 'error.main', fontSize: 24 }} />
+        </Box>
+        {errorInfo.title}
+      </DialogTitle>
 
-        <div className="space-y-4 py-4">
-          <DialogDescription className="space-y-3">
-            <p className="text-sm text-gray-700 dark:text-gray-300">
-              {errorInfo.message}
-            </p>
+      <DialogContent>
+        <DialogContentText component="div">
+          <Typography variant="body2" sx={{ mb: 2 }}>
+            {errorInfo.message}
+          </Typography>
 
-            {/* Retry status */}
-            {error.retryable && (
-              <div className={cn('flex items-center gap-2 text-sm', 'text-gray-600 dark:text-gray-400')}>
-                <RefreshCw size={16} />
-                <span>
-                  重试次数: {retryCount}/{maxRetries}
-                </span>
-              </div>
-            )}
-
-            {/* Suggestions */}
-            {errorInfo.suggestions.length > 0 && (
-              <div className="space-y-2">
-                <p className="text-xs font-medium text-gray-700 dark:text-gray-300">
-                  建议:
-                </p>
-                <ul className={cn('ml-4 list-disc space-y-1', 'text-xs text-gray-600 dark:text-gray-400')}>
-                  {errorInfo.suggestions.map((suggestion, index) => (
-                    <li key={index}>{suggestion}</li>
-                  ))}
-                </ul>
-              </div>
-            )}
-          </DialogDescription>
-        </div>
-
-        <DialogFooter className="flex-col gap-2 sm:flex-row">
-          <Button
-            variant="outline"
-            onClick={() => {
-              onCancel?.();
-              onOpenChange(false);
-            }}
-          >
-            取消
-          </Button>
-
-          {errorInfo.canRetry && (
-            <Button
-              onClick={() => {
-                onRetry?.();
-                onOpenChange(false);
-              }}
-            >
-              重试
-            </Button>
+          {/* Retry status */}
+          {error.retryable && (
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2, color: 'text.secondary' }}>
+              <RefreshCw style={{ fontSize: 16 }} />
+              <Typography variant="body2">
+                重试次数: {retryCount}/{maxRetries}
+              </Typography>
+            </Box>
           )}
-        </DialogFooter>
+
+          {/* Suggestions */}
+          {errorInfo.suggestions.length > 0 && (
+            <Box>
+              <Typography variant="body2" fontWeight="medium" sx={{ mb: 1 }}>
+                建议:
+              </Typography>
+              <Box component="ul" sx={{ pl: 2, color: 'text.secondary' }}>
+                {errorInfo.suggestions.map((suggestion, index) => (
+                  <Box component="li" key={index}>
+                    <Typography variant="body2">{suggestion}</Typography>
+                  </Box>
+                ))}
+              </Box>
+            </Box>
+          )}
+        </DialogContentText>
       </DialogContent>
+
+      <DialogActions sx={{ px: 3, pb: 2 }}>
+        <Button variant="outlined" onClick={handleCancel}>
+          取消
+        </Button>
+
+        {errorInfo.canRetry && (
+          <Button variant="contained" onClick={handleRetry} autoFocus>
+            重试
+          </Button>
+        )}
+      </DialogActions>
     </Dialog>
   );
 };

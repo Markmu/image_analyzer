@@ -8,6 +8,7 @@
 import React, { useState, useEffect } from 'react';
 import { Bell, X, CheckCircle2 } from 'lucide-react';
 import { Button, Box, Typography, IconButton, Paper } from '@mui/material';
+import { cn } from '@/lib/utils';
 import { GenerationNotificationItem } from './GenerationNotification';
 import type { GenerationNotification } from '../../types/progress';
 

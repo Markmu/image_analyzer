@@ -67,7 +67,10 @@ function generateShareUrl(
   if (templateId) params.append('template', templateId);
   if (generationId) params.append('generation', generationId);
 
-  const fullUrl = `${baseUrl}${sharePath}&${params.toString()}`;
+  const queryString = params.toString();
+  const fullUrl = queryString
+    ? `${baseUrl}${sharePath}&${queryString}`
+    : `${baseUrl}${sharePath}`;
 
   switch (platform) {
     case 'twitter':

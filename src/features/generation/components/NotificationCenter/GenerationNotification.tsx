@@ -8,6 +8,7 @@
 import React from 'react';
 import { CheckCircle, AlertCircle, Clock, X } from 'lucide-react';
 import { Box, Typography, IconButton, Paper } from '@mui/material';
+import { cn } from '@/lib/utils';
 import type { GenerationNotification } from '../../types/progress';
 
 interface GenerationNotificationItemProps {
