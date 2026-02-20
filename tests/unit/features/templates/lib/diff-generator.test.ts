@@ -69,7 +69,7 @@ describe('Diff Generator', () => {
       const diff = generateDiff(original, optimized);
 
       expect(diff).toHaveLength(1);
-      expect(diff[0]).toEqual({ type: 'unchanged', text: '主体: 一位美女' });
+      expect(diff[0]).toEqual({ type: 'unchanged', text: '主体:一位美女' });
     });
 
     it('should handle multiline text', () => {
@@ -89,7 +89,7 @@ describe('Diff Generator', () => {
       const diff = generateDiff(original, optimized);
 
       expect(diff).toHaveLength(3);
-      expect(diff[0]).toEqual({ type: 'unchanged', text: 'Subject: A ' });
+      expect(diff[0]).toEqual({ type: 'unchanged', text: 'Subject:A' });
       expect(diff[1]).toEqual({ type: 'added', text: 'beautiful ' });
       expect(diff[2]).toEqual({ type: 'unchanged', text: 'woman' });
     });

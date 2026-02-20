@@ -18,6 +18,10 @@ import { FieldEditor } from './FieldEditor';
 import { FieldPreview } from '../TemplatePreview';
 import { CopyButton } from '../CopyButton';
 import { ExportButton } from '../ExportButton';
+import { GenerateButton } from '@/features/generation/components/GenerateButton';
+import type { ImageGenerationResult } from '@/features/generation/types';
+import { GenerationPreviewDialog } from '@/features/generation/components/GenerationPreviewDialog';
+import { useState } from 'react';
 
 interface EnhancedTemplateEditorProps {
   /** Initial field values */
@@ -30,6 +34,8 @@ interface EnhancedTemplateEditorProps {
   readOnly?: boolean;
   /** Test ID */
   'data-testid'?: string;
+  /** Enable generation feature (Story 6.1) */
+  enableGeneration?: boolean;
 }
 
 /**
@@ -64,10 +70,15 @@ export function EnhancedTemplateEditor({
   showSaveButton = false,
   readOnly = false,
   'data-testid': testId,
+  enableGeneration = false,
 }: EnhancedTemplateEditorProps) {
   const theme = useTheme();
   const isDesktop = useMediaQuery(theme.breakpoints.up('lg'));
   const isTablet = useMediaQuery(theme.breakpoints.between('md', 'lg'));
+
+  // Generation state (Story 6.1)
+  const [generationResult, setGenerationResult] = useState<ImageGenerationResult | null>(null);
+  const [showGenerationPreview, setShowGenerationPreview] = useState(false);
 
   const {
     fields,
@@ -131,6 +142,18 @@ export function EnhancedTemplateEditor({
     onSave?.(fields);
   }, [onSave, fields]);
 
+  // Handle generation complete (Story 6.1)
+  const handleGenerationComplete = useCallback((result: ImageGenerationResult) => {
+    setGenerationResult(result);
+    setShowGenerationPreview(true);
+  }, []);
+
+  // Handle regenerate
+  const handleRegenerate = useCallback(() => {
+    setShowGenerationPreview(false);
+    // Trigger new generation by opening options dialog again
+  }, []);
+
   // Generate formatted prompt from fields
   const generatePrompt = useCallback(() => {
     const parts = Object.entries(fields)
@@ -144,6 +167,17 @@ export function EnhancedTemplateEditor({
   }, [fields]);
 
   const promptText = generatePrompt();
+
+  // Create template object for generation (Story 6.1)
+  const templateObject = {
+    id: `temp-${Date.now()}`,
+    userId: 'current-user',
+    analysisResultId: 'temp-analysis',
+    variableFormat: promptText,
+    jsonFormat: fields,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  };
 
   return (
     <Paper
@@ -219,18 +253,17 @@ export function EnhancedTemplateEditor({
             data-testid="copy-prompt"
           />
           <ExportButton
-            template={{
-              id: 'temp',
-              userId: 'temp',
-              analysisResultId: 'temp',
-              variableFormat: promptText,
-              jsonFormat: fields,
-              createdAt: new Date(),
-              updatedAt: new Date(),
-            }}
+            template={templateObject}
             tooltipText="导出为 JSON"
             data-testid="export-json"
           />
+          {enableGeneration && (
+            <GenerateButton
+              template={templateObject}
+              onGenerationComplete={handleGenerationComplete}
+              data-testid="generate-button"
+            />
+          )}
           {showSaveButton && (
             <Button
               variant="contained"
@@ -397,6 +430,16 @@ export function EnhancedTemplateEditor({
           )}
         </Box>
       </Box>
+
+      {/* Generation Preview Dialog (Story 6.1) */}
+      {enableGeneration && (
+        <GenerationPreviewDialog
+          open={showGenerationPreview}
+          result={generationResult}
+          onClose={() => setShowGenerationPreview(false)}
+          onRegenerate={handleRegenerate}
+        />
+      )}
     </Paper>
   );
 }

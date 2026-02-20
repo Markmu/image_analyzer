@@ -66,11 +66,18 @@ export const ProgressBar: React.FC<ProgressBarProps> = ({
             {label}
           </Typography>
         )}
-        {showPercentage && (
-          <Typography variant="body2" sx={{ color: 'var(--glass-text-gray-medium)' }}>
-            {Math.round(value)}%
-          </Typography>
-        )}
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          {estimatedTime && (
+            <Typography variant="body2" sx={{ color: 'var(--glass-text-gray-medium)' }}>
+              {estimatedTime}
+            </Typography>
+          )}
+          {showPercentage && (
+            <Typography variant="body2" sx={{ color: 'var(--glass-text-gray-medium)' }}>
+              {Math.round(value)}%
+            </Typography>
+          )}
+        </Box>
       </Box>
       <LinearProgress
         variant="determinate"

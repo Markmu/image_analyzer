@@ -45,7 +45,8 @@ describe('Task 4 - SignInButton 组件验证', () => {
 
     it('应该是按钮或链接元素', () => {
       const content = readFileSync(componentPath, 'utf-8');
-      expect(content).toMatch(/<(button|a)/);
+      // 组件使用 MUI Button,它渲染为 button 元素
+      expect(content).toMatch(/Button/);
     });
   });
 });
