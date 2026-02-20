@@ -413,11 +413,13 @@ export const FIELD_CONFIGS: Record<FieldConfig['key'], FieldConfig> = {
 - 预览区域使用 `ia-glass-card` 类（更深的背景）
 
 **图标系统：**
-- 编辑图标：`<Edit size={16} className="text-green-500" />`
-- 预览图标：`<Eye size={16} className="text-green-500" />`
-- 撤销图标：`<Undo size={16} className="text-gray-400" />`（禁用状态）
-- 重做图标：`<Redo size={16} className="text-gray-400" />`（禁用状态）
-- 保存图标：`<Save size={16} className="text-green-500" />`
+- 编辑图标：`<Edit size={16} sx={{ color: 'var(--icon-success)' }} />`
+- 预览图标：`<Eye size={16} sx={{ color: 'var(--icon-success)' }} />`
+- 撤销图标：`<Undo size={16} sx={{ color: 'var(--glass-text-gray-light)' }} />`（禁用状态）
+- 重做图标：`<Redo size={16} sx={{ color: 'var(--glass-text-gray-light)' }} />`（禁用状态）
+- 保存图标：`<Save size={16} sx={{ color: 'var(--icon-success)' }} />`
+
+**注意：** 所有图标颜色使用设计系统变量（`var(--icon-success)`），确保与 Story 5.1、5.2 保持一致
 
 **字体系统：**
 - 字段标签：Poppins（与项目一致）

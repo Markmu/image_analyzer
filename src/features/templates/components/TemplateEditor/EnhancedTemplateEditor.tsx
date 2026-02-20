@@ -204,7 +204,7 @@ export function EnhancedTemplateEditor({
         }}
       >
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <Edit size={20} className="text-green-500" />
+          <Edit size={20} sx={{ color: 'var(--icon-success)' }} />
           <Typography
             variant="h6"
             sx={{ fontWeight: 700, color: 'var(--glass-text-white-heavy)' }}
@@ -315,7 +315,7 @@ export function EnhancedTemplateEditor({
               mb: 1.5,
             }}
           >
-            <Edit size={16} className="text-green-500" />
+            <Edit size={16} sx={{ color: 'var(--icon-success)' }} />
             <Typography
               variant="subtitle2"
               sx={{ fontWeight: 600, color: 'var(--glass-text-white-heavy)' }}
@@ -367,7 +367,7 @@ export function EnhancedTemplateEditor({
               }}
             >
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                <Eye size={16} className="text-green-500" />
+                <Eye size={16} sx={{ color: 'var(--icon-success)' }} />
                 <Typography
                   variant="subtitle2"
                   sx={{ fontWeight: 600, color: 'var(--glass-text-white-heavy)' }}

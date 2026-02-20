@@ -110,7 +110,7 @@ export function ExportButton({
           sx={{
             minWidth: 'auto',
             '& .MuiButton-startIcon': {
-              color: 'rgb(34, 197, 94)',
+              color: 'var(--icon-success)',
             },
             ...(className
               ? {}
