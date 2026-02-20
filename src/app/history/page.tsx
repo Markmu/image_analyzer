@@ -26,11 +26,11 @@ import {
   DialogActions,
 } from '@mui/material';
 import {
-  Delete as DeleteIcon,
-  RefreshCw as RefreshIcon,
   Image as ImageIcon,
   Trash2,
   X,
+  Calendar,
+  ImageIcon as ImageIconAlt,
 } from 'lucide-react';
 import {
   fetchImageHistory,
@@ -90,6 +90,21 @@ export default function ImageHistoryPage() {
 
   const totalPages = Math.ceil(total / limit);
 
+  // 格式化日期为相对时间
+  const formatRelativeTime = (date: Date) => {
+    const now = new Date();
+    const diff = now.getTime() - date.getTime();
+    const minutes = Math.floor(diff / 60000);
+    const hours = Math.floor(diff / 3600000);
+    const days = Math.floor(diff / 86400000);
+
+    if (minutes < 1) return '刚刚';
+    if (minutes < 60) return `${minutes}分钟前`;
+    if (hours < 24) return `${hours}小时前`;
+    if (days < 7) return `${days}天前`;
+    return date.toLocaleDateString('zh-CN');
+  };
+
   return (
     <Container maxWidth="xl" sx={{ py: 4 }}>
       {/* Header */}
@@ -98,27 +113,20 @@ export default function ImageHistoryPage() {
         sx={{
           p: 4,
           mb: 4,
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
         }}
       >
-        <Box>
-          <Typography variant="h4" sx={{ mb: 1, fontWeight: 600 }}>
-            图片历史
-          </Typography>
-          <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-            共 {total} 张生成的图片
-          </Typography>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 3 }}>
+          <ImageIconAlt size={32} className="text-blue-400" />
+          <Box>
+            <Typography variant="h4" sx={{ mb: 0.5, fontWeight: 600 }}>
+              图片历史
+            </Typography>
+            <Typography variant="body2" sx={{ color: 'text.secondary', display: 'flex', alignItems: 'center', gap: 1 }}>
+              <Calendar size={14} />
+              共 {total} 张生成的图片
+            </Typography>
+          </Box>
         </Box>
-        <Button
-          variant="outlined"
-          startIcon={<RefreshIcon size={18} />}
-          onClick={loadHistory}
-          disabled={loading}
-        >
-          刷新
-        </Button>
       </Box>
 
       {/* Error Alert */}
@@ -142,7 +150,7 @@ export default function ImageHistoryPage() {
             textAlign: 'center',
           }}
         >
-          <ImageIcon size={64} style={{ opacity: 0.5, marginBottom: 16 }} />
+          <ImageIcon size={64} className="text-slate-600" style={{ opacity: 0.5, marginBottom: 16 }} />
           <Typography variant="h6" sx={{ mb: 1 }}>
             暂无图片历史
           </Typography>
@@ -163,6 +171,10 @@ export default function ImageHistoryPage() {
                     display: 'flex',
                     flexDirection: 'column',
                     position: 'relative',
+                    transition: 'all 0.3s ease',
+                    '&:hover': {
+                      transform: 'translateY(-4px)',
+                    },
                   }}
                 >
                   {/* Image */}
@@ -186,6 +198,7 @@ export default function ImageHistoryPage() {
                         width: '100%',
                         height: '100%',
                         objectFit: 'cover',
+                        transition: 'transform 0.3s ease',
                       }}
                     />
                   </Box>
@@ -200,12 +213,24 @@ export default function ImageHistoryPage() {
                         WebkitLineClamp: 2,
                         WebkitBoxOrient: 'vertical',
                         overflow: 'hidden',
+                        lineHeight: 1.4,
                       }}
                     >
                       {record.generationRequest.prompt}
                     </Typography>
-                    <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-                      {record.width} × {record.height} • {record.format.toUpperCase()}
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
+                      <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                        {record.width} × {record.height}
+                      </Typography>
+                      <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                        •
+                      </Typography>
+                      <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                        {record.format.toUpperCase()}
+                      </Typography>
+                    </Box>
+                    <Typography variant="caption" sx={{ color: 'text.secondary', mt: 1, display: 'block' }}>
+                      {formatRelativeTime(new Date(record.createdAt))}
                     </Typography>
                   </CardContent>
 
@@ -217,12 +242,18 @@ export default function ImageHistoryPage() {
                       right: 8,
                       backgroundColor: 'rgba(0, 0, 0, 0.6)',
                       color: 'white',
+                      backdropFilter: 'blur(8px)',
+                      transition: 'all 0.2s ease',
                       '&:hover': {
-                        backgroundColor: 'rgba(244, 67, 54, 0.8)',
+                        backgroundColor: 'rgba(239, 68, 68, 0.8)',
+                        transform: 'scale(1.1)',
                       },
                     }}
                     size="small"
-                    onClick={() => handleDelete(record)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDelete(record);
+                    }}
                   >
                     <Trash2 size={16} />
                   </IconButton>
@@ -238,6 +269,18 @@ export default function ImageHistoryPage() {
                 variant="outlined"
                 disabled={page === 1}
                 onClick={() => setPage(page - 1)}
+                sx={{
+                  borderColor: 'rgba(34, 197, 94, 0.5)',
+                  color: 'text.primary',
+                  '&:hover:not(:disabled)': {
+                    borderColor: 'rgba(34, 197, 94, 0.8)',
+                    backgroundColor: 'rgba(34, 197, 94, 0.1)',
+                  },
+                  '&:disabled': {
+                    borderColor: 'rgba(255, 255, 255, 0.1)',
+                    color: 'text.secondary',
+                  },
+                }}
               >
                 上一页
               </Button>
@@ -248,6 +291,18 @@ export default function ImageHistoryPage() {
                 variant="outlined"
                 disabled={page === totalPages}
                 onClick={() => setPage(page + 1)}
+                sx={{
+                  borderColor: 'rgba(34, 197, 94, 0.5)',
+                  color: 'text.primary',
+                  '&:hover:not(:disabled)': {
+                    borderColor: 'rgba(34, 197, 94, 0.8)',
+                    backgroundColor: 'rgba(34, 197, 94, 0.1)',
+                  },
+                  '&:disabled': {
+                    borderColor: 'rgba(255, 255, 255, 0.1)',
+                    color: 'text.secondary',
+                  },
+                }}
               >
                 下一页
               </Button>
@@ -262,6 +317,14 @@ export default function ImageHistoryPage() {
         onClose={() => setSelectedImage(null)}
         maxWidth="md"
         fullWidth
+        PaperProps={{
+          className: 'ia-glass-card',
+          sx: {
+            background: 'rgba(30, 41, 59, 0.95)',
+            backdropFilter: 'blur(20px)',
+            border: '1px solid rgba(255, 255, 255, 0.12)',
+          },
+        }}
       >
         <DialogTitle>
           <Box display="flex" justifyContent="space-between" alignItems="center">
@@ -280,10 +343,18 @@ export default function ImageHistoryPage() {
                 alt={selectedImage.generationRequest.prompt}
                 sx={{
                   width: '100%',
-                  borderRadius: 1,
+                  borderRadius: 2,
                   mb: 2,
+                  maxHeight: '50vh',
+                  objectFit: 'contain',
                 }}
               />
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+                <Calendar size={16} className="text-slate-400" />
+                <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                  {formatRelativeTime(new Date(selectedImage.createdAt))}
+                </Typography>
+              </Box>
               <Typography variant="body2" sx={{ mb: 1 }}>
                 <strong>提示词:</strong> {selectedImage.generationRequest.prompt}
               </Typography>
@@ -301,12 +372,31 @@ export default function ImageHistoryPage() {
           )}
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setSelectedImage(null)}>关闭</Button>
+          <Button
+            onClick={() => setSelectedImage(null)}
+            sx={{
+              borderColor: 'rgba(34, 197, 94, 0.5)',
+              color: 'text.primary',
+            }}
+          >
+            关闭
+          </Button>
         </DialogActions>
       </Dialog>
 
       {/* Delete Confirmation Dialog */}
-      <Dialog open={deleteDialogOpen} onClose={() => setDeleteDialogOpen(false)}>
+      <Dialog
+        open={deleteDialogOpen}
+        onClose={() => setDeleteDialogOpen(false)}
+        PaperProps={{
+          className: 'ia-glass-card',
+          sx: {
+            background: 'rgba(30, 41, 59, 0.95)',
+            backdropFilter: 'blur(20px)',
+            border: '1px solid rgba(255, 255, 255, 0.12)',
+          },
+        }}
+      >
         <DialogTitle>确认删除</DialogTitle>
         <DialogContent>
           <Typography>
@@ -314,12 +404,20 @@ export default function ImageHistoryPage() {
           </Typography>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setDeleteDialogOpen(false)}>取消</Button>
+          <Button
+            onClick={() => setDeleteDialogOpen(false)}
+            sx={{
+              borderColor: 'rgba(34, 197, 94, 0.5)',
+              color: 'text.primary',
+            }}
+          >
+            取消
+          </Button>
           <Button
             onClick={confirmDelete}
             color="error"
             variant="contained"
-            startIcon={<DeleteIcon size={18} />}
+            startIcon={<Trash2 size={18} />}
           >
             删除
           </Button>
