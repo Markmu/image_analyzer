@@ -398,3 +398,125 @@ export const replicatePredictions = pgTable('replicate_predictions', {
   statusIdx: index('replicate_predictions_status_idx').on(table.status),
   predictionIdIdx: uniqueIndex('replicate_predictions_prediction_id_idx').on(table.predictionId),
 }));
+
+// ============================================================================
+// 图片生成请求表 (generation_requests) - Epic 6: Story 6-1 图片生成
+// ============================================================================
+export const generationRequests = pgTable('generation_requests', {
+  id: serial('id').primaryKey(),
+  userId: varchar('user_id', { length: 255 }).notNull().references(() => user.id, { onDelete: 'cascade' }),
+  analysisResultId: integer('analysis_result_id').notNull().references(() => analysisResults.id, { onDelete: 'cascade' }),
+  prompt: text('prompt').notNull(),
+  negativePrompt: text('negative_prompt'),
+  provider: varchar('provider', { length: 50 }).notNull(),
+  model: varchar('model', { length: 100 }).notNull(),
+  width: integer('width').notNull(),
+  height: integer('height').notNull(),
+  quantity: integer('quantity').notNull().default(1),
+  format: varchar('format', { length: 10 }).notNull(),
+  status: varchar('status', { length: 32 }).notNull().default('pending'),
+  errorMessage: text('error_message'),
+  predictionId: varchar('prediction_id', { length: 128 }),
+  creditCost: integer('credit_cost').notNull(),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+  completedAt: timestamp('completed_at'),
+}, (table) => ({
+  userIdIdx: index('generation_requests_user_id_idx').on(table.userId),
+  analysisResultIdIdx: index('generation_requests_analysis_result_id_idx').on(table.analysisResultId),
+  statusIdx: index('generation_requests_status_idx').on(table.status),
+  predictionIdIdx: index('generation_requests_prediction_id_idx').on(table.predictionId),
+  createdAtIdx: index('generation_requests_created_at_idx').on(table.createdAt),
+}));
+
+// ============================================================================
+// 生成图片表 (generations) - Epic 6: Story 6-1 图片生成
+// ============================================================================
+export const generations = pgTable('generations', {
+  id: serial('id').primaryKey(),
+  generationRequestId: integer('generation_request_id').notNull().references(() => generationRequests.id, { onDelete: 'cascade' }),
+  imageUrl: varchar('image_url', { length: 2048 }).notNull(),
+  thumbnailUrl: varchar('thumbnail_url', { length: 2048 }),
+  r2Path: varchar('r2_path', { length: 1024 }),
+  fileSize: integer('file_size'),
+  width: integer('width').notNull(),
+  height: integer('height').notNull(),
+  format: varchar('format', { length: 10 }).notNull(),
+  safetyCheckPassed: boolean('safety_check_passed').notNull().default(true),
+  safetyScore: real('safety_score'),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+}, (table) => ({
+  generationRequestIdIdx: index('generations_generation_request_id_idx').on(table.generationRequestId),
+  createdAtIdx: index('generations_created_at_idx').on(table.createdAt),
+}));
+
+// ============================================================================
+// 模版库表 (templates) - Epic 7: Story 7-2 永久模版库
+// ============================================================================
+export const templates = pgTable('templates', {
+  id: serial('id').primaryKey(),
+  userId: varchar('user_id', { length: 255 }).notNull().references(() => user.id, { onDelete: 'cascade' }),
+  analysisResultId: integer('analysis_result_id').notNull().references(() => analysisResults.id, { onDelete: 'cascade' }),
+
+  // 模版基本信息
+  title: varchar('title', { length: 200 }),
+  description: text('description'),
+
+  // 模版内容(快照,避免原始分析结果被删除)
+  templateSnapshot: jsonb('template_snapshot').notNull(),
+
+  // 收藏和组织
+  isFavorite: boolean('is_favorite').notNull().default(false),
+
+  // 使用统计(冗余字段,优化查询性能)
+  usageCount: integer('usage_count').notNull().default(0),
+
+  // 时间戳
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+  updatedAt: timestamp('updated_at').notNull().defaultNow(),
+}, (table) => ({
+  userIdIdx: index('templates_user_id_idx').on(table.userId),
+  analysisResultIdIdx: index('templates_analysis_result_id_idx').on(table.analysisResultId),
+  isFavoriteIdx: index('templates_is_favorite_idx').on(table.isFavorite),
+  usageCountIdx: index('templates_usage_count_idx').on(table.usageCount),
+  createdAtIdx: index('templates_created_at_idx').on(table.createdAt),
+}));
+
+// ============================================================================
+// 模版标签表 (template_tags) - Epic 7: Story 7-2 标签管理
+// ============================================================================
+export const templateTags = pgTable('template_tags', {
+  id: serial('id').primaryKey(),
+  templateId: integer('template_id').notNull().references(() => templates.id, { onDelete: 'cascade' }),
+  tag: varchar('tag', { length: 20 }).notNull(),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+}, (table) => ({
+  templateIdIdx: index('template_tags_template_id_idx').on(table.templateId),
+  tagIdx: index('template_tags_tag_idx').on(table.tag),
+}));
+
+// ============================================================================
+// 模版分类表 (template_categories) - Epic 7: Story 7-2 分类管理
+// ============================================================================
+export const templateCategories = pgTable('template_categories', {
+  id: serial('id').primaryKey(),
+  templateId: integer('template_id').notNull().references(() => templates.id, { onDelete: 'cascade' }),
+  parentCategory: varchar('parent_category', { length: 50 }),
+  childCategory: varchar('child_category', { length: 50 }),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+}, (table) => ({
+  templateIdIdx: index('template_categories_template_id_idx').on(table.templateId),
+  parentCategoryIdx: index('template_categories_parent_category_idx').on(table.parentCategory),
+}));
+
+// ============================================================================
+// 模版生成关联表 (template_generations) - Epic 7: Story 7-2 使用统计(FR69, FR70)
+// ============================================================================
+export const templateGenerations = pgTable('template_generations', {
+  id: serial('id').primaryKey(),
+  templateId: integer('template_id').notNull().references(() => templates.id, { onDelete: 'cascade' }),
+  generationId: integer('generation_id').notNull().references(() => generations.id, { onDelete: 'cascade' }),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+}, (table) => ({
+  templateIdIdx: index('template_generations_template_id_idx').on(table.templateId),
+  generationIdIdx: index('template_generations_generation_id_idx').on(table.generationId),
+}));

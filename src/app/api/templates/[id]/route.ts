@@ -1,40 +1,153 @@
+/**
+ * Template Detail API Routes
+ *
+ * Epic 7 - Story 7.2: Template Library
+ * API endpoints for individual template operations
+ */
+
 import { NextRequest, NextResponse } from 'next/server';
-import { deleteTemplate, isValidUuid, updateTemplate } from '@/lib/mock/store';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
+import {
+  getTemplateDetail,
+  updateTemplate,
+  deleteTemplate,
+} from '@/features/templates/lib/template-library-service';
+import type { UpdateTemplateInput } from '@/features/templates/types/library';
 
-export async function PUT(request: NextRequest, context: { params: Promise<{ id: string }> }) {
-  const { id } = await context.params;
-  if (!isValidUuid(id)) {
-    return NextResponse.json({ error: { code: 'VALIDATION_ERROR', message: 'Invalid template id format' } }, { status: 422 });
+/**
+ * GET /api/templates/[id] - Get template detail
+ */
+export async function GET(
+  request: NextRequest,
+  context: { params: Promise<{ id: string }> }
+) {
+  try {
+    const session = await getServerSession(authOptions);
+
+    if (!session?.user?.id) {
+      return NextResponse.json(
+        { success: false, error: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
+
+    const { id } = await context.params;
+    const templateId = parseInt(id);
+
+    if (isNaN(templateId)) {
+      return NextResponse.json(
+        { success: false, error: 'Invalid template ID' },
+        { status: 400 }
+      );
+    }
+
+    const template = await getTemplateDetail(session.user.id, templateId);
+
+    return NextResponse.json({
+      success: true,
+      data: { template },
+    });
+  } catch (error) {
+    console.error('Error fetching template detail:', error);
+    return NextResponse.json(
+      {
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to fetch template detail',
+      },
+      { status: error instanceof Error && error.message === 'Template not found' ? 404 : 500 }
+    );
   }
-
-  const body = await request.json().catch(() => null);
-  if (!body) {
-    return NextResponse.json({ error: { code: 'INVALID_JSON', message: 'Malformed JSON body' } }, { status: 400 });
-  }
-
-  const updated = updateTemplate(id, {
-    name: typeof body.name === 'string' ? body.name.trim() : undefined,
-    visibility: body.visibility,
-    styles: Array.isArray(body.styles) ? body.styles : undefined,
-  });
-
-  if (!updated) {
-    return NextResponse.json({ error: { code: 'TEMPLATE_NOT_FOUND', message: 'Template not found' } }, { status: 404 });
-  }
-
-  return NextResponse.json(updated);
 }
 
-export async function DELETE(_: NextRequest, context: { params: Promise<{ id: string }> }) {
-  const { id } = await context.params;
-  if (!isValidUuid(id)) {
-    return NextResponse.json({ error: { code: 'VALIDATION_ERROR', message: 'Invalid template id format' } }, { status: 422 });
-  }
+/**
+ * PATCH /api/templates/[id] - Update template
+ */
+export async function PATCH(
+  request: NextRequest,
+  context: { params: Promise<{ id: string }> }
+) {
+  try {
+    const session = await getServerSession(authOptions);
 
-  const ok = deleteTemplate(id);
-  if (!ok) {
-    return NextResponse.json({ error: { code: 'TEMPLATE_NOT_FOUND', message: 'Template not found' } }, { status: 404 });
-  }
+    if (!session?.user?.id) {
+      return NextResponse.json(
+        { success: false, error: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
 
-  return NextResponse.json({ success: true });
+    const { id } = await context.params;
+    const templateId = parseInt(id);
+
+    if (isNaN(templateId)) {
+      return NextResponse.json(
+        { success: false, error: 'Invalid template ID' },
+        { status: 400 }
+      );
+    }
+
+    const body: UpdateTemplateInput = await request.json();
+
+    const template = await updateTemplate(session.user.id, templateId, body);
+
+    return NextResponse.json({
+      success: true,
+      data: { template },
+    });
+  } catch (error) {
+    console.error('Error updating template:', error);
+    return NextResponse.json(
+      {
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to update template',
+      },
+      { status: error instanceof Error && error.message === 'Template not found' ? 404 : 500 }
+    );
+  }
+}
+
+/**
+ * DELETE /api/templates/[id] - Delete template
+ */
+export async function DELETE(
+  request: NextRequest,
+  context: { params: Promise<{ id: string }> }
+) {
+  try {
+    const session = await getServerSession(authOptions);
+
+    if (!session?.user?.id) {
+      return NextResponse.json(
+        { success: false, error: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
+
+    const { id } = await context.params;
+    const templateId = parseInt(id);
+
+    if (isNaN(templateId)) {
+      return NextResponse.json(
+        { success: false, error: 'Invalid template ID' },
+        { status: 400 }
+      );
+    }
+
+    await deleteTemplate(session.user.id, templateId);
+
+    return NextResponse.json({
+      success: true,
+      data: { message: 'Template deleted successfully' },
+    });
+  } catch (error) {
+    console.error('Error deleting template:', error);
+    return NextResponse.json(
+      {
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to delete template',
+      },
+      { status: error instanceof Error && error.message === 'Template not found' ? 404 : 500 }
+    );
+  }
 }
