@@ -44,6 +44,7 @@ export const ProgressDisplay: React.FC<ProgressDisplayProps> = ({
   const queuePosition = useQueuePosition();
   const batchProgress = useBatchProgress();
   const estimatedTime = useAnalysisEstimatedTime();
+  const progressEstimatedTime = stage === 'analyzing' ? undefined : estimatedTime;
   const stageDescription =
     stage === 'uploading'
       ? '正在上传图片并进行基础校验'
@@ -106,7 +107,7 @@ export const ProgressDisplay: React.FC<ProgressDisplayProps> = ({
           stage === 'generating' ? '生成中' :
           stage === 'completed' ? '已完成' : '准备中'
         }
-        estimatedTime={estimatedTime}
+        estimatedTime={progressEstimatedTime}
         color={stage === 'error' ? 'error' : 'success'}
       />
 

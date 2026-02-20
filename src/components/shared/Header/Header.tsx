@@ -62,7 +62,7 @@ export function Header() {
             fontWeight: 500,
           }}
         >
-          查看模板
+          模版库
         </Link>
         <Link
           href="/analytics"

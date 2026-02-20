@@ -1,5 +1,34 @@
 import { z } from 'zod';
-import type { AnalysisData, StyleDimension, StyleFeature } from '@/types/analysis';
+import type { AnalysisData, StyleDimension } from '@/types/analysis';
+
+export type AnalysisParseErrorCode = 'INVALID_JSON' | 'INVALID_STRUCTURE';
+
+export class AnalysisParseError extends Error {
+  readonly code: AnalysisParseErrorCode;
+  readonly rawSnippet: string;
+
+  constructor(message: string, code: AnalysisParseErrorCode, rawSnippet: string, options?: ErrorOptions) {
+    super(message, options);
+    this.name = 'AnalysisParseError';
+    this.code = code;
+    this.rawSnippet = rawSnippet;
+  }
+}
+
+function buildResponseSnippet(response: string | unknown, maxLength = 500): string {
+  const raw =
+    typeof response === 'string'
+      ? response
+      : (() => {
+          try {
+            return JSON.stringify(response);
+          } catch {
+            return String(response);
+          }
+        })();
+
+  return raw.replace(/\s+/g, ' ').trim().slice(0, maxLength);
+}
 
 /**
  * Zod schema for validating style features
@@ -44,6 +73,7 @@ const AnalysisDataSchema = z.object({
  */
 export function parseAnalysisResponse(response: string | unknown): AnalysisData {
   let parsed: unknown;
+  const rawSnippet = buildResponseSnippet(response);
 
   // Try to parse as JSON
   if (typeof response === 'string') {
@@ -52,8 +82,8 @@ export function parseAnalysisResponse(response: string | unknown): AnalysisData 
       const cleanedJson = extractJsonFromResponse(response);
       parsed = JSON.parse(cleanedJson);
     } catch (error) {
-      console.error('Failed to parse analysis response as JSON:', error);
-      throw new Error('Invalid JSON response from model');
+      console.error('Failed to parse analysis response as JSON:', error, { rawSnippet });
+      throw new AnalysisParseError('Invalid JSON response from model', 'INVALID_JSON', rawSnippet, { cause: error });
     }
   } else {
     parsed = response;
@@ -63,8 +93,12 @@ export function parseAnalysisResponse(response: string | unknown): AnalysisData 
   const validationResult = AnalysisDataSchema.safeParse(parsed);
 
   if (!validationResult.success) {
-    console.error('Analysis data validation failed:', validationResult.error);
-    throw new Error(`Invalid analysis data structure: ${validationResult.error.message}`);
+    console.error('Analysis data validation failed:', validationResult.error, { rawSnippet });
+    throw new AnalysisParseError(
+      `Invalid analysis data structure: ${validationResult.error.message}`,
+      'INVALID_STRUCTURE',
+      rawSnippet
+    );
   }
 
   return validationResult.data;
@@ -77,15 +111,81 @@ export function parseAnalysisResponse(response: string | unknown): AnalysisData 
  * @returns Cleaned JSON string
  */
 export function extractJsonFromResponse(response: string): string {
-  // Remove markdown code blocks if present
-  let cleaned = response.trim();
+  const cleaned = response.trim();
 
-  // Remove ```json and ``` markers
-  cleaned = cleaned.replace(/^```json\s*/i, '');
-  cleaned = cleaned.replace(/^```\s*/i, '');
-  cleaned = cleaned.replace(/\s*```$/i, '');
+  // Prefer extracting JSON from markdown code blocks if present.
+  const codeBlockRegex = /```(?:json)?\s*([\s\S]*?)```/gi;
+  const codeBlocks = [...cleaned.matchAll(codeBlockRegex)];
+  for (const match of codeBlocks) {
+    const content = match[1]?.trim();
+    if (!content) continue;
+    const extractedFromBlock = extractFirstBalancedJson(content);
+    if (extractedFromBlock) return extractedFromBlock;
+    if (content.startsWith('{') || content.startsWith('[')) return content;
+  }
 
-  return cleaned;
+  const extracted = extractFirstBalancedJson(cleaned);
+  if (extracted) return extracted;
+
+  // Fallback to previous behavior for compatibility.
+  let fallback = cleaned;
+  fallback = fallback.replace(/^```json\s*/i, '');
+  fallback = fallback.replace(/^```\s*/i, '');
+  fallback = fallback.replace(/\s*```$/i, '');
+  return fallback;
+}
+
+function extractFirstBalancedJson(text: string): string | null {
+  const objectStart = text.indexOf('{');
+  const arrayStart = text.indexOf('[');
+
+  const candidates = [objectStart, arrayStart].filter((i) => i >= 0);
+  if (candidates.length === 0) return null;
+
+  const start = Math.min(...candidates);
+  const openChar = text[start];
+  const closeChar = openChar === '{' ? '}' : ']';
+
+  let depth = 0;
+  let inString = false;
+  let escaped = false;
+
+  for (let i = start; i < text.length; i++) {
+    const ch = text[i];
+
+    if (escaped) {
+      escaped = false;
+      continue;
+    }
+
+    if (inString) {
+      if (ch === '\\') {
+        escaped = true;
+      } else if (ch === '"') {
+        inString = false;
+      }
+      continue;
+    }
+
+    if (ch === '"') {
+      inString = true;
+      continue;
+    }
+
+    if (ch === openChar) {
+      depth++;
+      continue;
+    }
+
+    if (ch === closeChar) {
+      depth--;
+      if (depth === 0) {
+        return text.slice(start, i + 1).trim();
+      }
+    }
+  }
+
+  return null;
 }
 
 /**

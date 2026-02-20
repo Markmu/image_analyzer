@@ -5,7 +5,7 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import { parseAnalysisResponse, extractJsonFromResponse, calculateOverallConfidence } from '@/lib/analysis/parser';
+import { parseAnalysisResponse, extractJsonFromResponse, calculateOverallConfidence, AnalysisParseError } from '@/lib/analysis/parser';
 import type { StyleDimension } from '@/types/analysis';
 
 describe('Analysis Parser', () => {
@@ -67,6 +67,16 @@ describe('Analysis Parser', () => {
       }).toThrow('Invalid JSON response from model');
     });
 
+    it('should include rawSnippet in parse error for debugging', () => {
+      try {
+        parseAnalysisResponse('根据您提供的图片，以下是分析结果: not-json');
+      } catch (error) {
+        expect(error).toBeInstanceOf(AnalysisParseError);
+        expect((error as AnalysisParseError).code).toBe('INVALID_JSON');
+        expect((error as AnalysisParseError).rawSnippet).toContain('根据您提供的图片');
+      }
+    });
+
     it('should throw error for missing required fields', () => {
       const invalidData = {
         dimensions: {
@@ -112,6 +122,20 @@ describe('Analysis Parser', () => {
       const result = extractJsonFromResponse(response);
 
       expect(result).toBe('{"key": "value"}');
+    });
+
+    it('should extract JSON from explanatory text with markdown code block', () => {
+      const response = '根据您提供的图片，以下是分析结果：```json\n{"key":"value"}\n```';
+      const result = extractJsonFromResponse(response);
+
+      expect(result).toBe('{"key":"value"}');
+    });
+
+    it('should extract first JSON object from explanatory text without markdown', () => {
+      const response = '分析结果如下: {"key":"value"} 请查收';
+      const result = extractJsonFromResponse(response);
+
+      expect(result).toBe('{"key":"value"}');
     });
   });
 

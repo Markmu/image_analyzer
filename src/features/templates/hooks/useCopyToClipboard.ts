@@ -30,7 +30,9 @@ interface UseCopyToClipboardOptions {
  * - Fallback for older browsers
  * - Success/error state tracking
  * - Optional callbacks
- * - Keyboard shortcut support (Ctrl/Cmd + C)
+ *
+ * Note: Keyboard shortcuts should be implemented at the component level
+ * using this hook's copy function. See CopyButton component for reference.
  *
  * @example
  * ```tsx

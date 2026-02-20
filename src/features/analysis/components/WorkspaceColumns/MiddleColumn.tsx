@@ -3,7 +3,6 @@
 import { Box, Button, Typography } from '@mui/material';
 import { Brain, CircleX } from 'lucide-react';
 import EmptyState from '@/components/shared/EmptyState';
-import { ProgressDisplay } from '@/features/analysis/components/ProgressDisplay';
 import { AnalysisCard } from '@/features/analysis/components/AnalysisResult/AnalysisCard';
 import { FeedbackButtons } from '@/features/analysis/components/AnalysisResult/FeedbackButtons';
 import type { AnalysisData } from '@/types/analysis';
@@ -30,7 +29,7 @@ export default function MiddleColumn({
       {status === 'idle' && (
         <EmptyState
           title="准备开始分析"
-          description="上传后系统将在 0.5 秒内自动开始分析，中间区域会实时显示阶段、进度和剩余时间。"
+          description="上传后系统将在 0.5 秒内自动开始分析，中间区域会实时显示阶段和进度。"
           icon={<Brain size={34} />}
           testId="middle-column-empty"
         />
@@ -38,7 +37,36 @@ export default function MiddleColumn({
 
       {status === 'analyzing' && (
         <Box className="ia-glass-card ia-glass-card--static" sx={{ p: 3 }} data-testid="progress-display" aria-busy="true" aria-live="polite">
-          <ProgressDisplay type="analysis" showStageIndicator={false} />
+          <Box
+            sx={{
+              minHeight: 180,
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 1.5,
+            }}
+          >
+            <Box
+              sx={{
+                width: 46,
+                height: 46,
+                borderRadius: '50%',
+                border: '3px solid var(--glass-border)',
+                borderTopColor: 'var(--glass-text-primary)',
+                animation: 'ia-spin 0.9s linear infinite',
+                '@keyframes ia-spin': {
+                  from: { transform: 'rotate(0deg)' },
+                  to: { transform: 'rotate(360deg)' },
+                },
+              }}
+              aria-hidden="true"
+              data-testid="analysis-loading-spinner"
+            />
+            <Typography variant="body1" sx={{ color: 'var(--glass-text-white-heavy)', fontWeight: 700 }}>
+              分析中...
+            </Typography>
+          </Box>
           <Box sx={{ mt: 2, display: 'flex', justifyContent: 'center' }}>
             <Button
               variant="outlined"

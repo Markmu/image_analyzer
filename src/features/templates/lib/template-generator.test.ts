@@ -181,4 +181,149 @@ describe('Template Generator', () => {
       expect(result).toContain('写实主义');
     });
   });
+
+  describe('Edge Cases', () => {
+    it('should handle empty analysis data', () => {
+      const emptyData: AnalysisData = {
+        overallConfidence: 0,
+        modelUsed: 'test-model',
+        analysisDuration: 0,
+        dimensions: {
+          lighting: {
+            name: 'Lighting',
+            features: [],
+            confidence: 0,
+          },
+          composition: {
+            name: 'Composition',
+            features: [],
+            confidence: 0,
+          },
+          color: {
+            name: 'Color',
+            features: [],
+            confidence: 0,
+          },
+          artisticStyle: {
+            name: 'Artistic Style',
+            features: [],
+            confidence: 0,
+          },
+        },
+      };
+
+      const template = generateTemplate('analysis-empty', 'user-1', emptyData);
+
+      expect(template).toBeDefined();
+      expect(template.jsonFormat).toBeDefined();
+      expect(template.variableFormat).toBeDefined();
+    });
+
+    it('should handle missing optional features', () => {
+      const partialData: AnalysisData = {
+        overallConfidence: 0.5,
+        modelUsed: 'test-model',
+        analysisDuration: 1.0,
+        dimensions: {
+          lighting: {
+            name: 'Lighting',
+            features: [{ name: 'type', value: '自然光', confidence: 0.8 }],
+            confidence: 0.8,
+          },
+          composition: {
+            name: 'Composition',
+            features: [],
+            confidence: 0,
+          },
+          color: {
+            name: 'Color',
+            features: [],
+            confidence: 0,
+          },
+          artisticStyle: {
+            name: 'Artistic Style',
+            features: [],
+            confidence: 0,
+          },
+        },
+      };
+
+      const template = generateTemplate('analysis-partial', 'user-1', partialData);
+
+      expect(template).toBeDefined();
+      expect(template.jsonFormat.lighting).toBe('自然光');
+    });
+
+    it('should handle special characters in values', () => {
+      const specialData: AnalysisData = {
+        overallConfidence: 0.8,
+        modelUsed: 'test-model',
+        analysisDuration: 1.0,
+        dimensions: {
+          lighting: {
+            name: 'Lighting',
+            features: [{ name: 'type', value: '自然光 <script>', confidence: 0.8 }],
+            confidence: 0.8,
+          },
+          composition: {
+            name: 'Composition',
+            features: [],
+            confidence: 0,
+          },
+          color: {
+            name: 'Color',
+            features: [],
+            confidence: 0,
+          },
+          artisticStyle: {
+            name: 'Artistic Style',
+            features: [],
+            confidence: 0,
+          },
+        },
+      };
+
+      const template = generateTemplate('analysis-special', 'user-1', specialData);
+
+      expect(template).toBeDefined();
+      // Special characters should be preserved
+      expect(template.variableFormat).toContain('自然光');
+    });
+
+    it('should handle unicode characters', () => {
+      const unicodeData: AnalysisData = {
+        overallConfidence: 0.9,
+        modelUsed: 'test-model',
+        analysisDuration: 1.0,
+        dimensions: {
+          lighting: {
+            name: 'Lighting',
+            features: [{ name: 'type', value: '🌟 自然光 ✨', confidence: 0.9 }],
+            confidence: 0.9,
+          },
+          composition: {
+            name: 'Composition',
+            features: [],
+            confidence: 0,
+          },
+          color: {
+            name: 'Color',
+            features: [],
+            confidence: 0,
+          },
+          artisticStyle: {
+            name: 'Artistic Style',
+            features: [],
+            confidence: 0,
+          },
+        },
+      };
+
+      const template = generateTemplate('analysis-unicode', 'user-1', unicodeData);
+
+      expect(template).toBeDefined();
+      expect(template.variableFormat).toContain('🌟');
+      expect(template.variableFormat).toContain('✨');
+    });
+  });
 });
