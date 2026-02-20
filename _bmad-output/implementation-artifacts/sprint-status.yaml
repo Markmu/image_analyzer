@@ -98,7 +98,7 @@ development_status:
   epic-7: in-progress
   7-1-history-management: done
   7-2-template-library: done
-  7-3-template-analytics: backlog
+  7-3-template-analytics: review
   epic-7-retrospective: optional
 
   # Epic 8: 订阅与支付系统
