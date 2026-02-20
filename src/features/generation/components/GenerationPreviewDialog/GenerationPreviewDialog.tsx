@@ -30,6 +30,7 @@ import type { ImageGenerationResult, GeneratedImage } from '../../types';
 import { useState } from 'react';
 import { downloadImage, shareImage } from '../../lib/share-handler';
 import { SaveOptionsDialog } from '../SaveOptionsDialog';
+import { ShareDialog } from '../ShareDialog';
 import type { ImageSaveOptions } from '../../types/save';
 
 export interface GenerationPreviewDialogProps {
@@ -62,6 +63,7 @@ export function GenerationPreviewDialog({
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [zoomLevel, setZoomLevel] = useState(1);
   const [saveDialogOpen, setSaveDialogOpen] = useState(false);
+  const [shareDialogOpen, setShareDialogOpen] = useState(false);
 
   if (!result || result.images.length === 0) {
     return null;
@@ -103,17 +105,7 @@ export function GenerationPreviewDialog({
   };
 
   const handleShare = async () => {
-    try {
-      await shareImage({
-        platform: 'twitter',
-        imageUrl: selectedImage.url,
-        generationId: result.id,
-        templateId: result.templateId,
-        isFirstTime: false, // Would track this in production
-      });
-    } catch (error) {
-      console.error('[GenerationPreviewDialog] Share failed:', error);
-    }
+    setShareDialogOpen(true);
   };
 
   return (
@@ -352,6 +344,12 @@ export function GenerationPreviewDialog({
         onClose={() => setSaveDialogOpen(false)}
         onSave={handleSaveWithOptions}
         defaultFilename={`${result.templateId}-${selectedImage.id}`}
+      />
+      <ShareDialog
+        open={shareDialogOpen}
+        onClose={() => setShareDialogOpen(false)}
+        imageUrl={selectedImage.url}
+        templateName={result.templateId}
       />
     </Dialog>
   );
