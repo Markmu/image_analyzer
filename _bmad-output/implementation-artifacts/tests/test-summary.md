@@ -1,117 +1,120 @@
-# 测试自动化摘要
+# Story 6.2 测试自动化摘要
 
-**生成时间**: 2026-02-20
-**工作流**: QA Automate
-**分支**: feature/story-6-1
+**日期**: 2026-02-20
+**Story**: Epic 6 - Story 6.2 生成进度管理功能
+**测试框架**: Vitest (单元测试) + Playwright (E2E 测试)
 
-## 测试执行概览
+---
 
-### 单元测试 (Vitest)
+## 生成测试列表
 
-**总体结果**:
-- ✅ **通过**: 778 个测试
-- ❌ **失败**: 15 个测试
-- ⏭️ **跳过**: 7 个测试
-- 📊 **通过率**: 96.6%
+### 单元测试
 
-**测试文件**:
-- ✅ **通过**: 38 个文件
-- ❌ **失败**: 8 个文件
-- 📁 **总计**: 46 个文件
+#### 1. Generation Progress Store 测试
+**文件**: `tests/unit/story-6-2-generation-progress-store.test.ts`
 
-## 测试文件列表
+**测试覆盖**:
+- ✅ 单个生成任务管理 (4 个测试)
+- ✅ 批量生成任务管理 (4 个测试)
+- ✅ 清除操作 (2 个测试)
+- ✅ 通知权限管理 (2 个测试)
+- ✅ Hook 导出验证 (1 个测试)
 
-### 单元测试文件 (46 个)
+**总计**: 13 个测试用例
 
-#### API 测试 (10 个)
-- tests/api/account-deletion.spec.ts
-- tests/api/analysis/analysis-api.spec.ts
-- tests/api/analysis/batch-analysis-api.spec.ts
-- tests/api/error-scenarios.spec.ts
-- tests/api/oauth-setup.spec.ts
-- tests/api/session-management.spec.ts
-- tests/api/user-menu.spec.ts
-- tests/api/user-registration.spec.ts
-- tests/api/users.spec.ts
-- tests/api/webhooks/replicate.spec.ts
+### E2E 测试
 
-#### E2E 测试 (13 个)
-- tests/e2e/account-deletion.spec.ts
-- tests/e2e/auth/user-menu-quick.spec.ts
-- tests/e2e/auth/user-menu.spec.ts
-- tests/e2e/batch-analysis.spec.ts
-- tests/e2e/batch-upload.spec.ts
-- tests/e2e/image-upload.spec.ts
-- tests/e2e/oauth-login.spec.ts
-- tests/e2e/session-management.spec.ts
-- tests/e2e/story-2-4-progress-feedback.spec.ts
-- tests/e2e/story-3-1-style-analysis.spec.ts
-- tests/e2e/upload-validation.spec.ts
-- tests/e2e/user-registration.spec.ts
-- tests/e2e/ux-upgrade-1.spec.ts
+#### 1. Generation Progress E2E 测试
+**文件**: `tests/e2e/story-6-2-generation-progress.spec.ts`
 
-#### 单元测试 (23+ 个)
-- tests/unit/task-1.1-nextauth-installation.test.ts
-- tests/unit/task-1.2-env-config.test.ts
-- tests/unit/task-2.1-users-schema.test.ts
-- tests/unit/task-3-nextauth-config.test.ts
-- tests/unit/task-4-signin-button-component.test.ts
-- tests/unit/account-deletion-api-route.test.ts
-- tests/unit/account-deletion-service.test.ts
-- tests/unit/batch-analysis-service.test.ts
-- tests/unit/features/templates/lib/diff-generator.test.ts
-- tests/unit/features/templates/lib/language-detector.test.ts
-- tests/unit/features/templates/lib/optimization-constants.test.ts
-- tests/unit/lib/api.test.ts
-- tests/unit/lib/auth.test.ts
-- tests/unit/lib/creem.test.ts
-- tests/unit/lib/field-configs.test.ts
-- tests/unit/lib/image-validation.test.ts
-- tests/unit/lib/r2.test.ts
-- tests/unit/lib/replicate-async.test.ts
-- tests/unit/lib/replicate.test.ts
-- tests/unit/lib/template-editor-store.test.ts
-- tests/unit/components/DeleteAccountDialog.test.tsx
-- tests/unit/components/FieldEditor.test.tsx
-- tests/unit/components/ImageUploader.test.tsx
-- 以及更多...
+**测试覆盖**:
+- ✅ 单个图片生成进度 (4 个场景)
+- ✅ 批量生成进度 (3 个场景)
+- ✅ 错误处理和重试 (3 个场景)
+- ✅ 生成预览和结果 (2 个场景)
 
-## 失败的测试详情
+**总计**: 12 个测试场景
 
-### 剩余 15 个失败测试:
+---
 
-1. **optimization-constants.test.ts** (3 个失败)
-   - localStorage 模拟和偏好设置合并逻辑问题
+## 测试执行结果
 
-2. **其他组件测试** (12 个失败)
-   - React 组件渲染时序问题
-   - MUI 组件特定行为
-   - 需要更多 act() 包装
+### 单元测试结果
 
-## 修复成果
+**测试文件**: `tests/unit/story-6-2-generation-progress-store.test.ts`
 
-✅ 修复了 9 个失败测试:
-- prompt-builder.test.ts 正则表达式语法
-- resolution-config.test.ts 导入路径
-- task-1.2-env-config.test.ts 环境变量测试
-- task-4-signin-button-component.test.ts 组件断言
-- ProgressBar.tsx 组件功能 (显示预计时间)
-- FieldEditor.test.tsx 组件行为匹配
-- diff-generator.test.ts 文本格式断言
+```
+✓ Story 6.2 - Generation Progress Store (13 tests)
+  ✓ 单个生成任务管理
+    ✓ 应该成功添加单个生成任务
+    ✓ 应该成功更新单个生成任务
+    ✓ 应该成功移除单个生成任务
+    ✓ 更新不存在的任务时不应该报错
+  ✓ 批量生成任务管理
+    ✓ 应该成功添加批量生成任务
+    ✓ 应该成功更新批量任务中的单个项目
+    ✓ 应该正确计算批量任务的失败项目数
+    ✓ 应该成功移除批量生成任务
+  ✓ 清除操作
+    ✓ clearCompleted 应该只清除已完成的任务
+    ✓ clearAll 应该清除所有任务
+  ✓ 通知权限管理
+    ✓ 应该能够设置通知权限
+    ✓ 应该支持所有权限状态
+  ✓ Hook 导出
+    ✓ 应该导出正确的 hooks
+
+Test Files: 1 passed (1)
+Tests: 13 passed (13)
+Duration: 3.39s
+```
+
+**通过率**: ✅ 100% (13/13)
+
+### E2E 测试状态
+
+⏳ E2E 测试已创建但需要以下前提条件才能运行:
+1. 应用服务器运行在 `http://localhost:3000`
+2. 安装 Playwright 浏览器
+3. 生成功能的前端组件已实现并包含正确的 `data-testid` 属性
+
+---
+
+## 运行测试
+
+### 运行单元测试
+
+```bash
+# 运行 Story 6.2 单元测试
+npm run test:run -- tests/unit/story-6-2-generation-progress-store.test.ts
+
+# 运行所有单元测试
+npm run test:run
+```
+
+### 运行 E2E 测试
+
+```bash
+# 首先安装 Playwright 浏览器
+npm run test:e2e:install
+
+# 运行 Story 6.2 E2E 测试
+npm run test:e2e -- story-6-2-generation-progress.spec.ts
+
+# 运行所有 E2E 测试
+npm run test:e2e
+```
+
+---
 
 ## 总结
 
-🎉 **测试通过率: 96.6%** (778/800 通过)
+✅ **测试生成成功**: 为 Story 6.2 生成了全面的测试套件
+✅ **单元测试通过**: 13/13 测试全部通过 (100% 通过率)
+✅ **E2E 测试就绪**: 12 个 E2E 测试场景已定义
 
-项目拥有完善的测试套件,覆盖了:
-- ✅ API 路由和端点
-- ✅ 用户认证和会话管理
-- ✅ 图片上传和分析功能
-- ✅ 模板生成和编辑
-- ✅ React 组件和 Hooks
-- ✅ 核心库函数
+**测试文件**:
+- `/Users/muchao/code/image_analyzer-story-6-2/tests/unit/story-6-2-generation-progress-store.test.ts`
+- `/Users/muchao/code/image_analyzer-story-6-2/tests/e2e/story-6-2-generation-progress.spec.ts`
 
-主要成就:
-1. ✅ 修复了多个语法和配置错误
-2. ✅ 提升了组件功能完整性 (ProgressBar)
-3. ✅ 改善了测试可靠性
+**状态**: 🟢 测试自动化完成,单元测试全部通过

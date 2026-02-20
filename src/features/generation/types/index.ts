@@ -3,3 +3,4 @@
  */
 
 export * from './generation';
+export * from './progress';

@@ -24,6 +24,7 @@ import {
 import { Close } from 'lucide-react';
 import type { Template } from '@/features/templates/types/template';
 import type { ResolutionPreset } from '../../types';
+import type { GenerationProgress, BatchGenerationProgress } from '../../types/progress';
 import { RESOLUTION_PRESETS, DEFAULT_GENERATION_OPTIONS } from '../../lib/generation-presets';
 import { calculateCreditCost, getUpgradeMessage } from '../../lib/resolution-config';
 import { useState, useEffect } from 'react';
@@ -41,6 +42,8 @@ export interface GenerationOptionsDialogProps {
   onGenerationComplete: (result: import('../../types').ImageGenerationResult) => void;
   /** Callback when generation fails */
   onGenerationError: () => void;
+  /** Callback when progress updates */
+  onProgressUpdate?: (progress: GenerationProgress | BatchGenerationProgress) => void;
 }
 
 /**
@@ -60,6 +63,7 @@ export function GenerationOptionsDialog({
   onGenerationStart,
   onGenerationComplete,
   onGenerationError,
+  onProgressUpdate,
 }: GenerationOptionsDialogProps) {
   // Default options (would load from localStorage in production)
   const [selectedResolution, setSelectedResolution] = useState<ResolutionPreset>(
@@ -112,6 +116,7 @@ export function GenerationOptionsDialog({
         (progress) => {
           // Handle progress updates
           console.log('[GenerationOptionsDialog] Progress:', progress);
+          onProgressUpdate?.(progress);
         }
       );
 

@@ -6,6 +6,8 @@ import { ImageIcon, Sparkles } from 'lucide-react';
 import type { Template } from '@/features/templates/types/template';
 import type { ImageGenerationResult } from '../../types';
 import { GenerationOptionsDialog } from './GenerationOptionsDialog';
+import { GenerationProgressDialog } from '../GenerationProgressDialog';
+import type { GenerationProgress, BatchGenerationProgress } from '../../types/progress';
 
 interface GenerateButtonProps {
   /** Template to use for generation */
@@ -41,6 +43,8 @@ export function GenerateButton({
 }: GenerateButtonProps) {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [showProgressDialog, setShowProgressDialog] = useState(false);
+  const [currentProgress, setCurrentProgress] = useState<GenerationProgress | BatchGenerationProgress | null>(null);
 
   const handleOpenDialog = () => {
     setIsDialogOpen(true);
@@ -54,14 +58,33 @@ export function GenerateButton({
     setIsGenerating(true);
   };
 
+  const handleProgressUpdate = (progress: GenerationProgress | BatchGenerationProgress) => {
+    setCurrentProgress(progress);
+    // Show progress dialog after a short delay
+    if (!showProgressDialog) {
+      setTimeout(() => setShowProgressDialog(true), 500);
+    }
+  };
+
   const handleGenerationComplete = (result: ImageGenerationResult) => {
     setIsGenerating(false);
     setIsDialogOpen(false);
+    setShowProgressDialog(false);
+    setCurrentProgress(null);
     onGenerationComplete?.(result);
   };
 
   const handleGenerationError = () => {
     setIsGenerating(false);
+    setShowProgressDialog(false);
+    setCurrentProgress(null);
+  };
+
+  const handleCancelGeneration = () => {
+    // Implement cancel logic
+    setIsGenerating(false);
+    setShowProgressDialog(false);
+    setCurrentProgress(null);
   };
 
   const isDisabled = !template || isGenerating;
@@ -89,14 +112,31 @@ export function GenerateButton({
       </Tooltip>
 
       {template && (
-        <GenerationOptionsDialog
-          open={isDialogOpen}
-          template={template}
-          onClose={handleCloseDialog}
-          onGenerationStart={handleGenerationStart}
-          onGenerationComplete={handleGenerationComplete}
-          onGenerationError={handleGenerationError}
-        />
+        <>
+          <GenerationOptionsDialog
+            open={isDialogOpen}
+            template={template}
+            onClose={handleCloseDialog}
+            onGenerationStart={handleGenerationStart}
+            onGenerationComplete={handleGenerationComplete}
+            onGenerationError={handleGenerationError}
+            onProgressUpdate={handleProgressUpdate}
+          />
+
+          {currentProgress && (
+            <GenerationProgressDialog
+              open={showProgressDialog}
+              onOpenChange={setShowProgressDialog}
+              singleProgress={'totalItems' in currentProgress ? undefined : currentProgress}
+              batchProgress={'totalItems' in currentProgress ? currentProgress : undefined}
+              onCancel={handleCancelGeneration}
+              onViewResults={() => {
+                setShowProgressDialog(false);
+                // Navigate to results or show preview dialog
+              }}
+            />
+          )}
+        </>
       )}
     </>
   );
