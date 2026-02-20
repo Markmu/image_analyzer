@@ -1,6 +1,6 @@
 # Story 5.4: prompt-optimization
 
-Status: in-progress
+Status: done
 
 <!-- Note: Validation is optional. Run validate-create-story for quality check before dev-story. -->
 

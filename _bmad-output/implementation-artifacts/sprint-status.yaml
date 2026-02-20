@@ -78,11 +78,11 @@ development_status:
   epic-4-retrospective: optional
 
   # Epic 5: 模版生成与管理
-  epic-5: in-progress
-  5-1-template-generation: backlog
-  5-2-json-export: backlog
-  5-3-template-editor: ready-for-dev
-  5-4-prompt-optimization: in-progress
+  epic-5: done
+  5-1-template-generation: done
+  5-2-json-export: done
+  5-3-template-editor: done
+  5-4-prompt-optimization: done
   epic-5-retrospective: optional
 
   # Epic 6: AI 图片生成
