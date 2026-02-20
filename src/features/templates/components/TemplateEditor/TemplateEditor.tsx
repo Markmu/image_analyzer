@@ -12,6 +12,7 @@ import { OptimizeButton } from '../OptimizeButton';
 import { OptimizationOptionsPanel } from '../OptimizeButton/OptimizationOptionsPanel';
 import { OptimizationPreviewDialog } from '../OptimizationPreviewDialog';
 import { optimizePrompt, buildFullPrompt } from '../../lib/optimize-prompt';
+import { parseOptimizedPromptToTemplate } from '../../lib/parse-optimized-prompt';
 import {
   loadOptimizationPreferences,
   DEFAULT_OPTIMIZATION_PREFERENCES,
@@ -163,10 +164,30 @@ export function TemplateEditor({
 
   const handleAcceptOptimization = useCallback(() => {
     if (optimizationResult) {
-      // TODO: Parse and apply optimized prompt to template fields
+      // Parse optimized prompt back to template fields
+      const parsedTemplate = parseOptimizedPromptToTemplate(
+        optimizationResult.optimized,
+        optimizationResult.language,
+        editedTemplate.jsonFormat
+      );
+
+      // Update the edited template with parsed fields
+      const updated = {
+        ...editedTemplate,
+        jsonFormat: parsedTemplate,
+        updatedAt: new Date(),
+      };
+      setEditedTemplate(updated);
+      onChange?.(updated);
+
+      // Notify parent component
       onOptimize?.(optimizationResult);
+
+      // Close preview dialog
+      setPreviewDialogOpen(false);
+      setOptimizationResult(null);
     }
-  }, [optimizationResult, onOptimize]);
+  }, [optimizationResult, editedTemplate, onChange, onOptimize]);
 
   const handleRejectOptimization = useCallback(() => {
     setPreviewDialogOpen(false);

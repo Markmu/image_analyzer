@@ -1,6 +1,6 @@
 # Story 5.4: prompt-optimization
 
-Status: done
+Status: in-progress
 
 <!-- Note: Validation is optional. Run validate-create-story for quality check before dev-story. -->
 
@@ -545,21 +545,22 @@ _待开发时填写_
 - `/src/features/templates/components/TemplateEditor/TemplateEditor.tsx` - 集成优化功能的模版编辑器
 
 **库文件 (Library):**
-- `/src/features/templates/lib/optimize-prompt.ts` - 优化 API 客户端 (含内容安全检查占位符)
+- `/src/features/templates/lib/optimize-prompt.ts` - 优化 API 客户端 (改进的内容安全检查)
 - `/src/features/templates/lib/language-detector.ts` - 语言检测
 - `/src/features/templates/lib/diff-generator.ts` - Diff 生成
 - `/src/features/templates/lib/optimization-presets.ts` - 优化预设配置
 - `/src/features/templates/lib/optimization-constants.ts` - 优化常量和 localStorage 工具
+- `/src/features/templates/lib/parse-optimized-prompt.ts` - 优化结果解析回模版字段 (新增)
 
 **类型定义 (Types):**
 - `/src/features/templates/types/optimization.ts` - 优化功能类型定义
 
 **Hooks:**
-- `/src/features/templates/hooks/useToast.ts` - Toast 通知 Hook (占位符实现)
+- `/src/features/templates/hooks/useToast.ts` - Toast 通知 Hook (已实现真实 UI 状态管理)
 
 **测试文件 (Tests):**
-- `/src/features/templates/lib/language-detector.test.ts` - 语言检测测试
+- `/src/features/templates/lib/language-detector.test.ts` - 语言检测测试 (25个测试用例全部通过)
 - `/src/features/templates/lib/diff-generator.test.ts` - Diff 生成测试
 - `/src/features/templates/lib/optimization-constants.test.ts` - 常量和偏好测试
 
-**总计:** 16 个文件 (9 个实现文件 + 3 个测试文件 + 4 个导出/配置文件)
+**总计:** 18 个文件 (10 个实现文件 + 3 个测试文件 + 5 个导出/配置文件)

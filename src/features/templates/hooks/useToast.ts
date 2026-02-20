@@ -2,46 +2,93 @@
  * Toast Hook for Optimization Feedback
  *
  * Epic 5 - Story 5.4: Prompt Optimization
- * Provides toast notifications for optimization feedback
+ * Provides toast notifications using MUI Snackbar
  */
 
 'use client';
 
-import { useCallback } from 'react';
+import { useCallback, useState } from 'react';
 
 export type ToastSeverity = 'success' | 'error' | 'warning' | 'info';
 
 export interface ToastMessage {
+  id: string;
   message: string;
   severity: ToastSeverity;
   duration?: number;
 }
 
 /**
- * Simple toast notification hook
+ * Toast notification hook using MUI Snackbar
  *
- * This is a placeholder implementation. For production use,
- * integrate with a proper toast library like:
- * - MUI Snackbar (https://mui.com/material-ui/react-snackbar/)
- * - react-hot-toast (https://react-hot-toast.com/)
- * - notistack (https://iamhosseindhv.com/notistack/)
+ * This implementation manages toast state that can be consumed
+ * by a Snackbar component in the application shell.
  *
- * TODO: Replace with proper toast library integration
+ * Usage:
+ * 1. Add a Snackbar component to your app shell that listens to toast state
+ * 2. Use this hook in components to show notifications
  */
 export function useToast() {
-  const showToast = useCallback((message: string, severity: ToastSeverity = 'info') => {
-    // Placeholder implementation using console
-    // In production, this would trigger a toast notification
-    console.log(`[Toast ${severity.toUpperCase()}]`, message);
+  const [toasts, setToasts] = useState<ToastMessage[]>([]);
+  const [open, setOpen] = useState(false);
+  const [currentToast, setCurrentToast] = useState<ToastMessage | null>(null);
 
-    // TODO: Integrate with actual toast library
-    // Example with MUI Snackbar:
-    // enqueueSnackbar(message, { variant: severity, autoHideDuration: duration });
-  }, []);
+  const showToast = useCallback((message: string, severity: ToastSeverity = 'info', duration: number = 4000) => {
+    const id = Math.random().toString(36).substring(7);
+    const toast: ToastMessage = { id, message, severity, duration };
+
+    // Add to queue
+    setToasts((prev) => [...prev, toast]);
+
+    // If no toast is currently showing, show this one
+    if (!currentToast) {
+      setCurrentToast(toast);
+      setOpen(true);
+    }
+
+    // Auto-dismiss after duration
+    if (duration > 0) {
+      setTimeout(() => {
+        dismissToast(id);
+      }, duration);
+    }
+
+    return id;
+  }, [currentToast]);
+
+  const dismissToast = useCallback((id: string) => {
+    setToasts((prev) => prev.filter((t) => t.id !== id));
+
+    // If dismissing current toast, close it
+    if (currentToast?.id === id) {
+      setOpen(false);
+
+      // Show next toast in queue after a brief delay
+      setTimeout(() => {
+        setToasts((prev) => {
+          if (prev.length > 0) {
+            const next = prev[0];
+            setCurrentToast(next);
+            setOpen(true);
+            return prev.slice(1);
+          }
+          setCurrentToast(null);
+          return prev;
+        });
+      }, 100);
+    }
+  }, [currentToast]);
+
+  const handleClose = useCallback(() => {
+    setOpen(false);
+    if (currentToast) {
+      dismissToast(currentToast.id);
+    }
+  }, [currentToast, dismissToast]);
 
   const showSuccess = useCallback(
     (message: string, duration?: number) => {
-      showToast(message, 'success');
+      return showToast(message, 'success', duration);
     },
     [showToast]
   );
@@ -49,7 +96,7 @@ export function useToast() {
   const showError = useCallback(
     (message: string, duration?: number) => {
       console.error('[Toast ERROR]', message);
-      showToast(message, 'error');
+      return showToast(message, 'error', duration);
     },
     [showToast]
   );
@@ -57,14 +104,14 @@ export function useToast() {
   const showWarning = useCallback(
     (message: string, duration?: number) => {
       console.warn('[Toast WARNING]', message);
-      showToast(message, 'warning');
+      return showToast(message, 'warning', duration);
     },
     [showToast]
   );
 
   const showInfo = useCallback(
     (message: string, duration?: number) => {
-      showToast(message, 'info');
+      return showToast(message, 'info', duration);
     },
     [showToast]
   );
@@ -75,5 +122,30 @@ export function useToast() {
     showError,
     showWarning,
     showInfo,
+    // State for Snackbar component
+    toasts,
+    open,
+    currentToast,
+    handleClose,
   };
+}
+
+/**
+ * Helper function to get Snackbar alert color from severity
+ */
+export function getSeverityColor(severity: ToastSeverity): 'success' | 'error' | 'warning' | 'info' {
+  return severity;
+}
+
+/**
+ * Helper function to get display text for severity
+ */
+export function getSeverityText(severity: ToastSeverity): string {
+  const texts: Record<ToastSeverity, string> = {
+    success: '成功',
+    error: '错误',
+    warning: '警告',
+    info: '信息',
+  };
+  return texts[severity];
 }

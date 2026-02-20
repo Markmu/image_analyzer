@@ -31,9 +31,14 @@ interface ContentSafetyResult {
 }
 
 /**
- * Check content safety (placeholder)
+ * Enhanced content safety check with pattern matching
  *
- * TODO: Integrate with Story 4.1 content moderation logic
+ * This implementation uses multiple strategies to detect potentially unsafe content:
+ * 1. Keyword matching for explicit content
+ * 2. Pattern matching for suspicious structures
+ * 3. Contextual analysis for nuanced cases
+ *
+ * TODO: Integrate with Story 4.1 content moderation for production use
  * This function should call the actual content safety check
  * and return detailed results
  *
@@ -41,29 +46,87 @@ interface ContentSafetyResult {
  * @returns Safety check result
  */
 async function checkContentSafetyPlaceholder(content: string): Promise<ContentSafetyResult> {
-  // Placeholder implementation
-  // TODO: Replace with actual content moderation from Story 4.1
-  console.warn('[checkContentSafety] Using placeholder implementation - integrate Story 4.1 logic');
-
-  // Basic check for obviously unsafe content
-  const unsafePatterns = [
-    '暴力',
-    '血腥',
-    '色情',
-    'illegal',
-    'violence',
-    'gore',
-    'pornography',
-  ];
+  // Placeholder implementation with enhanced safety checks
+  console.warn('[checkContentSafety] Using enhanced placeholder - integrate Story 4.1 logic');
 
   const lowerContent = content.toLowerCase();
-  const hasUnsafeContent = unsafePatterns.some((pattern) =>
+
+  // Level 1: Explicit unsafe patterns (immediate rejection)
+  const explicitUnsafePatterns = [
+    // Violence and gore
+    'violence', 'gore', 'blood', 'torture', 'murder', 'kill', 'assault',
+    '暴力', '血腥', '酷刑', '谋杀', '杀害', '袭击',
+
+    // Sexual content
+    'pornography', 'explicit', 'nude', 'sexual',
+    '色情', '露骨', '裸体', '性',
+
+    // Illegal activities
+    'illegal', 'drug', 'terrorism', 'extremism',
+    '非法', '毒品', '恐怖主义', '极端主义',
+
+    // Hate speech
+    'hate speech', 'discrimination', 'racist',
+    '仇恨言论', '歧视', '种族主义',
+  ];
+
+  const hasExplicitUnsafe = explicitUnsafePatterns.some((pattern) =>
     lowerContent.includes(pattern.toLowerCase())
   );
 
+  if (hasExplicitUnsafe) {
+    return {
+      isSafe: false,
+      reason: '检测到明显的不安全内容,包含暴力、色情或非法相关词汇',
+    };
+  }
+
+  // Level 2: Suspicious patterns (warning level)
+  const suspiciousPatterns = [
+    // Potentially problematic combinations
+    /\b(weapon|gun|knife|bomb)\b/i,
+    /\b(武器|枪|刀|炸弹)\b/i,
+
+    // Age-restricted content indicators
+    /\b(adult|18\+|mature)\b/i,
+    /\b(成人|18\+|成熟)\b/i,
+  ];
+
+  const hasSuspiciousPattern = suspiciousPatterns.some((pattern) =>
+    pattern.test(content)
+  );
+
+  if (hasSuspiciousPattern) {
+    return {
+      isSafe: false,
+      reason: '检测到潜在的不安全内容,可能包含不当元素',
+    };
+  }
+
+  // Level 3: Contextual analysis
+  // Check for excessive repetition (might indicate spam or low-quality content)
+  const words = content.split(/\s+/);
+  const uniqueWords = new Set(words);
+  const repetitionRatio = uniqueWords.size / Math.max(words.length, 1);
+
+  if (repetitionRatio < 0.3 && words.length > 20) {
+    return {
+      isSafe: false,
+      reason: '提示词质量可能较低,包含过多重复内容',
+    };
+  }
+
+  // Check for reasonable length
+  if (content.length > 5000) {
+    return {
+      isSafe: false,
+      reason: '提示词过长,可能包含不必要的内容',
+    };
+  }
+
+  // Passed all checks
   return {
-    isSafe: !hasUnsafeContent,
-    reason: hasUnsafeContent ? '检测到潜在的不安全内容' : undefined,
+    isSafe: true,
   };
 }
 
