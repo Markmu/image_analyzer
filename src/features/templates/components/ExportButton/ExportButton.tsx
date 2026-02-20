@@ -98,37 +98,63 @@ export function ExportButton({
 
   return (
     <>
-      <Tooltip title={isSuccess ? `已导出: ${lastResult.filename}` : tooltipText} arrow>
+      {isExporting ? (
+        // When disabled, render button without Tooltip to avoid MUI warning
         <Button
           size={size}
           variant={variant}
-          onClick={handleExport}
-          disabled={isExporting}
-          startIcon={isSuccess ? <Check size={16} /> : <Download size={16} />}
+          disabled
+          startIcon={<Download size={16} />}
           className={className || 'ia-glass-card'}
           data-testid={testId || 'export-button'}
           sx={{
             minWidth: 'auto',
             '& .MuiButton-startIcon': {
-              // Use consistent green-500 color (rgb(34, 197, 94)) per AC4
               color: 'rgb(34, 197, 94)',
             },
             ...(className
               ? {}
               : {
-                  // Apply glassmorphism styles when className is not provided
                   backgroundColor: 'rgba(255, 255, 255, 0.05)',
                   backdropFilter: 'blur(10px)',
                   border: '1px solid rgba(255, 255, 255, 0.1)',
-                  '&:hover': {
-                    backgroundColor: 'rgba(255, 255, 255, 0.1)',
-                  },
                 }),
           }}
         >
-          {isSuccess ? '已导出' : '导出'}
+          导出中...
         </Button>
-      </Tooltip>
+      ) : (
+        <Tooltip title={isSuccess ? `已导出: ${lastResult.filename}` : tooltipText} arrow>
+          <Button
+            size={size}
+            variant={variant}
+            onClick={handleExport}
+            startIcon={isSuccess ? <Check size={16} /> : <Download size={16} />}
+            className={className || 'ia-glass-card'}
+            data-testid={testId || 'export-button'}
+            sx={{
+              minWidth: 'auto',
+              '& .MuiButton-startIcon': {
+                // Use consistent green-500 color (rgb(34, 197, 94)) per AC4
+                color: 'rgb(34, 197, 94)',
+              },
+              ...(className
+                ? {}
+                : {
+                    // Apply glassmorphism styles when className is not provided
+                    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                    backdropFilter: 'blur(10px)',
+                    border: '1px solid rgba(255, 255, 255, 0.1)',
+                    '&:hover': {
+                      backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                    },
+                  }),
+            }}
+          >
+            {isSuccess ? '已导出' : '导出'}
+          </Button>
+        </Tooltip>
+      )}
 
       <Snackbar
         open={toastOpen}

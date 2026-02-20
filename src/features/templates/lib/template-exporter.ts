@@ -353,14 +353,14 @@ export async function checkContentSafety(template: Template): Promise<ContentSaf
       warning: undefined,
     };
   } catch (error) {
-    // If moderation service fails, log error but allow export (fail-open)
-    // This prevents service issues from blocking legitimate exports
+    // If moderation service fails, block export (fail-closed) for security
+    // This prevents unsafe content from being exported when the service is down
     console.error('[TemplateExporter] Content safety check error:', error);
 
     return {
-      isSafe: true,
-      unsafeContent: undefined,
-      warning: undefined,
+      isSafe: false,
+      unsafeContent: ['moderation_service_error'],
+      warning: '内容审核服务暂时不可用，为确保安全，暂时无法导出此模版。请稍后重试。',
     };
   }
 }

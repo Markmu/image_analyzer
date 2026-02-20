@@ -1,6 +1,6 @@
 # Story 5.2: json-export
 
-Status: done
+Status: in-progress
 
 <!-- Note: Validation is optional. Run validate-create-story for quality check before dev-story. -->
 
@@ -108,6 +108,12 @@ so that 我可以在其他工具和工作流中集成使用这些模版
   - [ ] 10.2 验证导出的 JSON 文件格式正确
   - [ ] 10.3 测试移动端导出流程
   - [ ] 10.4 测试不同浏览器的导出功能
+
+## Review Follow-ups (AI)
+
+- [x] **[AI-Review][HIGH]** 修复内容安全检查 fail-open 策略 - 改为 fail-closed 确保安全 [src/features/templates/lib/template-exporter.ts:355-365]
+- [x] **[AI-Review][MEDIUM]** 修复导出按钮禁用状态下的 MUI Tooltip 警告 [src/features/templates/components/ExportButton/ExportButton.tsx:101-131]
+- [ ] **[AI-Review][LOW]** 修复内容安全检查测试中的模块导入错误（动态导入 @/lib/moderation/text-moderation 失败）
 
 ## Dev Notes
 
@@ -501,3 +507,9 @@ Claude Sonnet 4.6 (claude-sonnet-4-6)
 - 集成内容安全检查（占位符，需后续集成 Story 4.1）
 - 37 个单元测试和集成测试全部通过
 - Glassmorphism 样式与项目设计系统一致
+
+**2026-02-20 - 代码审查修复**
+- 修复内容安全检查 fail-open 策略 → fail-closed（安全优先）
+- 修复导出按钮禁用状态下的 MUI Tooltip 警告
+- 更新测试以反映 fail-closed 行为
+- 所有 225 个测试通过
