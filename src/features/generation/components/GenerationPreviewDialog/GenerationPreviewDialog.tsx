@@ -24,10 +24,13 @@ import {
   RefreshCw,
   ZoomIn,
   ZoomOut,
+  Save,
 } from 'lucide-react';
 import type { ImageGenerationResult, GeneratedImage } from '../../types';
 import { useState } from 'react';
 import { downloadImage, shareImage } from '../../lib/share-handler';
+import { SaveOptionsDialog } from '../SaveOptionsDialog';
+import type { ImageSaveOptions } from '../../types/save';
 
 export interface GenerationPreviewDialogProps {
   /** Whether dialog is open */
@@ -58,6 +61,7 @@ export function GenerationPreviewDialog({
 }: GenerationPreviewDialogProps) {
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [zoomLevel, setZoomLevel] = useState(1);
+  const [saveDialogOpen, setSaveDialogOpen] = useState(false);
 
   if (!result || result.images.length === 0) {
     return null;
@@ -83,8 +87,16 @@ export function GenerationPreviewDialog({
   };
 
   const handleDownload = async () => {
+    setSaveDialogOpen(true);
+  };
+
+  const handleSaveWithOptions = async (options: ImageSaveOptions) => {
     try {
-      await downloadImage(selectedImage.url, `generated-image-${selectedImage.id}.png`);
+      const { downloadImage: downloadWithOptions } = await import('../../lib/image-downloader');
+      await downloadWithOptions(selectedImage.url, {
+        ...options,
+        filename: options.filename || `${result.templateId}-${selectedImage.id}`,
+      });
     } catch (error) {
       console.error('[GenerationPreviewDialog] Download failed:', error);
     }
@@ -310,10 +322,10 @@ export function GenerationPreviewDialog({
         </Button>
         <Button
           onClick={handleDownload}
-          startIcon={<Download size={16} />}
+          startIcon={<Save size={16} />}
           sx={{ color: 'var(--glass-text-success)' }}
         >
-          保存到本地
+          保存选项
         </Button>
         <Button
           onClick={handleShare}
@@ -334,6 +346,13 @@ export function GenerationPreviewDialog({
           完成
         </Button>
       </DialogActions>
+
+      <SaveOptionsDialog
+        open={saveDialogOpen}
+        onClose={() => setSaveDialogOpen(false)}
+        onSave={handleSaveWithOptions}
+        defaultFilename={`${result.templateId}-${selectedImage.id}`}
+      />
     </Dialog>
   );
 }

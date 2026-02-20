@@ -86,9 +86,9 @@ development_status:
   epic-5-retrospective: optional
 
   # Epic 6: AI 图片生成
-  epic-6: backlog
-  6-1-image-generation: backlog
-  6-2-generation-progress: backlog
+  epic-6: in-progress
+  6-1-image-generation: done
+  6-2-generation-progress: done
   6-3-image-save: backlog
   6-4-social-sharing: backlog
   6-5-sharing-rewards: backlog
