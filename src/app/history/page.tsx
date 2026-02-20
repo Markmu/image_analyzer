@@ -118,10 +118,10 @@ export default function ImageHistoryPage() {
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 3 }}>
           <ImageIconAlt size={32} className="text-blue-400" />
           <Box>
-            <Typography variant="h4" sx={{ mb: 0.5, fontWeight: 600 }}>
+            <Typography variant="h4" sx={{ mb: 0.5, fontWeight: 600, color: '#F8FAFC' }}>
               图片历史
             </Typography>
-            <Typography variant="body2" sx={{ color: 'text.secondary', display: 'flex', alignItems: 'center', gap: 1 }}>
+            <Typography variant="body2" sx={{ color: '#CBD5E1', display: 'flex', alignItems: 'center', gap: 1 }}>
               <Calendar size={14} />
               共 {total} 张生成的图片
             </Typography>
@@ -151,10 +151,10 @@ export default function ImageHistoryPage() {
           }}
         >
           <ImageIcon size={64} className="text-slate-600" style={{ opacity: 0.5, marginBottom: 16 }} />
-          <Typography variant="h6" sx={{ mb: 1 }}>
+          <Typography variant="h6" sx={{ mb: 1, color: '#F8FAFC' }}>
             暂无图片历史
           </Typography>
-          <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+          <Typography variant="body2" sx={{ color: '#94A3B8' }}>
             生成的图片会显示在这里
           </Typography>
         </Box>
@@ -214,22 +214,23 @@ export default function ImageHistoryPage() {
                         WebkitBoxOrient: 'vertical',
                         overflow: 'hidden',
                         lineHeight: 1.4,
+                        color: '#F8FAFC', // Slate 50 - 主要文本
                       }}
                     >
                       {record.generationRequest.prompt}
                     </Typography>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
-                      <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                      <Typography variant="caption" sx={{ color: '#94A3B8' }}>
                         {record.width} × {record.height}
                       </Typography>
-                      <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                      <Typography variant="caption" sx={{ color: '#94A3B8' }}>
                         •
                       </Typography>
-                      <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                      <Typography variant="caption" sx={{ color: '#94A3B8' }}>
                         {record.format.toUpperCase()}
                       </Typography>
                     </Box>
-                    <Typography variant="caption" sx={{ color: 'text.secondary', mt: 1, display: 'block' }}>
+                    <Typography variant="caption" sx={{ color: '#94A3B8', mt: 1, display: 'block' }}>
                       {formatRelativeTime(new Date(record.createdAt))}
                     </Typography>
                   </CardContent>
@@ -271,20 +272,20 @@ export default function ImageHistoryPage() {
                 onClick={() => setPage(page - 1)}
                 sx={{
                   borderColor: 'rgba(34, 197, 94, 0.5)',
-                  color: 'text.primary',
+                  color: '#F8FAFC',
                   '&:hover:not(:disabled)': {
                     borderColor: 'rgba(34, 197, 94, 0.8)',
                     backgroundColor: 'rgba(34, 197, 94, 0.1)',
                   },
                   '&:disabled': {
                     borderColor: 'rgba(255, 255, 255, 0.1)',
-                    color: 'text.secondary',
+                    color: '#64748B',
                   },
                 }}
               >
                 上一页
               </Button>
-              <Typography variant="body2" sx={{ display: 'flex', alignItems: 'center' }}>
+              <Typography variant="body2" sx={{ display: 'flex', alignItems: 'center', color: '#CBD5E1' }}>
                 第 {page} / {totalPages} 页
               </Typography>
               <Button
@@ -293,14 +294,14 @@ export default function ImageHistoryPage() {
                 onClick={() => setPage(page + 1)}
                 sx={{
                   borderColor: 'rgba(34, 197, 94, 0.5)',
-                  color: 'text.primary',
+                  color: '#F8FAFC',
                   '&:hover:not(:disabled)': {
                     borderColor: 'rgba(34, 197, 94, 0.8)',
                     backgroundColor: 'rgba(34, 197, 94, 0.1)',
                   },
                   '&:disabled': {
                     borderColor: 'rgba(255, 255, 255, 0.1)',
-                    color: 'text.secondary',
+                    color: '#64748B',
                   },
                 }}
               >
@@ -328,7 +329,7 @@ export default function ImageHistoryPage() {
       >
         <DialogTitle>
           <Box display="flex" justifyContent="space-between" alignItems="center">
-            <Typography variant="h6">图片详情</Typography>
+            <Typography variant="h6" sx={{ color: '#F8FAFC' }}>图片详情</Typography>
             <IconButton onClick={() => setSelectedImage(null)} size="small">
               <X size={20} />
             </IconButton>
@@ -351,20 +352,20 @@ export default function ImageHistoryPage() {
               />
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
                 <Calendar size={16} className="text-slate-400" />
-                <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                <Typography variant="caption" sx={{ color: '#94A3B8' }}>
                   {formatRelativeTime(new Date(selectedImage.createdAt))}
                 </Typography>
               </Box>
-              <Typography variant="body2" sx={{ mb: 1 }}>
+              <Typography variant="body2" sx={{ mb: 1, color: '#F8FAFC' }}>
                 <strong>提示词:</strong> {selectedImage.generationRequest.prompt}
               </Typography>
-              <Typography variant="body2" sx={{ mb: 1 }}>
+              <Typography variant="body2" sx={{ mb: 1, color: '#F8FAFC' }}>
                 <strong>尺寸:</strong> {selectedImage.width} × {selectedImage.height}
               </Typography>
-              <Typography variant="body2" sx={{ mb: 1 }}>
+              <Typography variant="body2" sx={{ mb: 1, color: '#F8FAFC' }}>
                 <strong>格式:</strong> {selectedImage.format.toUpperCase()}
               </Typography>
-              <Typography variant="body2">
+              <Typography variant="body2" sx={{ color: '#F8FAFC' }}>
                 <strong>模型:</strong> {selectedImage.generationRequest.provider} /{' '}
                 {selectedImage.generationRequest.model}
               </Typography>
@@ -376,7 +377,7 @@ export default function ImageHistoryPage() {
             onClick={() => setSelectedImage(null)}
             sx={{
               borderColor: 'rgba(34, 197, 94, 0.5)',
-              color: 'text.primary',
+              color: '#F8FAFC',
             }}
           >
             关闭
@@ -397,9 +398,9 @@ export default function ImageHistoryPage() {
           },
         }}
       >
-        <DialogTitle>确认删除</DialogTitle>
+        <DialogTitle sx={{ color: '#F8FAFC' }}>确认删除</DialogTitle>
         <DialogContent>
-          <Typography>
+          <Typography sx={{ color: '#CBD5E1' }}>
             确定要删除这张图片吗？此操作无法撤销。
           </Typography>
         </DialogContent>
@@ -408,7 +409,7 @@ export default function ImageHistoryPage() {
             onClick={() => setDeleteDialogOpen(false)}
             sx={{
               borderColor: 'rgba(34, 197, 94, 0.5)',
-              color: 'text.primary',
+              color: '#F8FAFC',
             }}
           >
             取消
