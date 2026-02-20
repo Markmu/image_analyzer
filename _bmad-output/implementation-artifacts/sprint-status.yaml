@@ -95,10 +95,10 @@ development_status:
   epic-6-retrospective: optional
 
   # Epic 7: 模版库与历史记录
-  epic-7: in-progress
+  epic-7: done
   7-1-history-management: done
   7-2-template-library: done
-  7-3-template-analytics: review
+  7-3-template-analytics: done
   epic-7-retrospective: optional
 
   # Epic 8: 订阅与支付系统
