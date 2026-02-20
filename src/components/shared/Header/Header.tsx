@@ -54,6 +54,26 @@ export function Header() {
         >
           风格分析
         </Link>
+        <Link
+          href="/library"
+          className="transition-colors duration-200 hover:opacity-100"
+          style={{
+            color: 'var(--glass-text-white-medium)',
+            fontWeight: 500,
+          }}
+        >
+          查看模板
+        </Link>
+        <Link
+          href="/analytics"
+          className="transition-colors duration-200 hover:opacity-100"
+          style={{
+            color: 'var(--glass-text-white-medium)',
+            fontWeight: 500,
+          }}
+        >
+          查看历史记录
+        </Link>
       </nav>
 
       <div className="flex items-center gap-4">

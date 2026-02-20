@@ -37,8 +37,8 @@ COMMENT ON COLUMN "replicate_predictions"."status" IS '任务状态: pending | p
 COMMENT ON COLUMN "replicate_predictions"."input" IS '预测输入参数';
 COMMENT ON COLUMN "replicate_predictions"."output" IS '预测输出结果';
 COMMENT ON COLUMN "replicate_predictions"."credit_transaction_id" IS '关联的积分预扣事务 ID';
-COMMENT ON COLUMN "replicate_predictions"."error_message" ISCOMMENT ON COLUMN " '错误信息';
-replicate_predictions"."created_at" IS '创建时间';
+COMMENT ON COLUMN "replicate_predictions"."error_message" IS '错误信息';
+COMMENT ON COLUMN "replicate_predictions"."created_at" IS '创建时间';
 COMMENT ON COLUMN "replicate_predictions"."completed_at" IS '完成时间';
 
 -- ============================================================================

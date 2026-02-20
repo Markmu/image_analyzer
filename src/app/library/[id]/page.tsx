@@ -8,8 +8,7 @@
  */
 
 import { TemplateLibraryDetail } from '@/features/templates/components/TemplateLibraryDetail/TemplateLibraryDetail';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
+import { auth } from '@/lib/auth';
 
 interface TemplateDetailPageProps {
   params: {
@@ -18,7 +17,7 @@ interface TemplateDetailPageProps {
 }
 
 export default async function TemplateDetailPage({ params }: TemplateDetailPageProps) {
-  const session = await getServerSession(authOptions);
+  const session = await auth();
 
   if (!session?.user?.id) {
     return (
