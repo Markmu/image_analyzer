@@ -35,8 +35,8 @@ import {
 import {
   fetchImageHistory,
   deleteImageHistory,
-} from '@/features/generation/lib';
-import type { ImageHistoryRecord, ImageHistoryParams } from '@/features/generation/types';
+} from '@/features/generation/lib/image-history-client';
+import type { ImageHistoryRecord, ImageHistoryParams } from '@/features/generation/types/history';
 
 export default function ImageHistoryPage() {
   const [records, setRecords] = useState<ImageHistoryRecord[]>([]);

@@ -17,6 +17,5 @@ export * from './time-estimator';
 export * from './retry-handler';
 export * from './notification-handler';
 
-// Story 6.3: Image history
-export * from './image-history-service';
+// Story 6.3: Image history client (safe for client-side)
 export * from './image-history-client';
