@@ -4,26 +4,80 @@
 
 import { ShareOptions, ShareResult, SocialPlatform } from '../types/social-share';
 import { SOCIAL_PLATFORMS } from './platform-configs';
+import { calculateShareReward, validateShare } from './reward-calculator';
+import { useRewardsStore } from '../stores/rewards.store';
+import { ShareRecord } from '../types/rewards';
 
 /**
- * 分享到指定平台
+ * 分享到指定平台(带奖励)
  */
-export async function shareToSocialPlatform(options: ShareOptions): Promise<ShareResult> {
+export async function shareToSocialPlatform(
+  options: ShareOptions,
+  imageUrl?: string
+): Promise<ShareResult & { reward?: any }> {
   try {
+    const result: ShareResult & { reward?: any } = {
+      success: false,
+    };
+
+    // 检查是否有效分享(如果有 imageUrl)
+    if (imageUrl) {
+      const rewardsStore = useRewardsStore.getState();
+      const validation = validateShare(imageUrl, options.platform, rewardsStore.shareHistory);
+
+      if (!validation.valid) {
+        return { success: false, error: validation.reason };
+      }
+    }
+
     switch (options.platform) {
       case SocialPlatform.TWITTER:
-        return shareToTwitter(options);
+        result.success = true;
+        shareToTwitter(options);
+        break;
       case SocialPlatform.WEIBO:
-        return shareToWeibo(options);
+        result.success = true;
+        shareToWeibo(options);
+        break;
       case SocialPlatform.WECHAT:
-        return shareToWeChat(options);
+        result.success = true;
+        await shareToWeChat(options);
+        break;
       case SocialPlatform.XIAOHONGSHU:
-        return shareToXiaohongshu(options);
+        result.success = true;
+        await shareToXiaohongshu(options);
+        break;
       case SocialPlatform.LINK:
-        return copyLink(options);
+        const linkResult = await copyLink(options);
+        result.success = linkResult.success;
+        break;
       default:
         return { success: false, error: '不支持的平台' };
     }
+
+    // 计算和发放奖励
+    if (result.success && imageUrl) {
+      const rewardsStore = useRewardsStore.getState();
+      const rewardResult = calculateShareReward(options.platform, rewardsStore.shareHistory);
+
+      if (rewardResult.success && rewardResult.reward) {
+        // 发放奖励
+        rewardsStore.addReward(rewardResult.reward.amount, options.platform);
+
+        // 添加分享记录
+        const shareRecord: ShareRecord = {
+          imageUrl,
+          platform: options.platform,
+          timestamp: new Date(),
+          rewarded: true,
+        };
+        rewardsStore.addShareRecord(shareRecord);
+
+        result.reward = rewardResult.reward;
+      }
+    }
+
+    return result;
   } catch (error) {
     return {
       success: false,

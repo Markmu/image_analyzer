@@ -28,6 +28,8 @@ import {
 import { SocialPlatform, ShareOptions } from '../types/social-share';
 import { SOCIAL_PLATFORMS, DEFAULT_HASHTAGS } from '../lib/platform-configs';
 import { shareToSocialPlatform, generateShareText, nativeShare, supportsWebShareAPI } from '../lib/social-share';
+import { RewardNotification } from '../RewardNotification';
+import { useRewardsStore } from '../stores/rewards.store';
 
 interface ShareDialogProps {
   open: boolean;
@@ -53,6 +55,10 @@ export function ShareDialog({
   const [selectedPlatform, setSelectedPlatform] = useState<SocialPlatform | null>(null);
   const [shareText, setShareText] = useState(generateShareText(templateName));
   const [copied, setCopied] = useState(false);
+  const [rewardOpen, setRewardOpen] = useState(false);
+  const [lastReward, setLastReward] = useState<any>(null);
+
+  const rewardsStore = useRewardsStore();
 
   const handlePlatformSelect = async (platform: SocialPlatform) => {
     // 移动端优先使用原生分享
@@ -65,6 +71,19 @@ export function ShareDialog({
       });
 
       if (result.success) {
+        // 触发奖励检查
+        const shareResult = await shareToSocialPlatform({
+          platform,
+          imageUrl,
+          text: shareText,
+          title: 'AI 生成的图片',
+        }, imageUrl);
+
+        if (shareResult.reward) {
+          setLastReward(shareResult.reward);
+          setRewardOpen(true);
+        }
+
         onClose();
         return;
       }
@@ -75,14 +94,19 @@ export function ShareDialog({
       // 微信需要二维码,显示二维码对话框
       setSelectedPlatform(platform);
     } else {
-      const result = await shareToSocialPlatform({
+      const shareResult = await shareToSocialPlatform({
         platform,
         imageUrl,
         text: shareText,
         hashtags: DEFAULT_HASHTAGS,
-      });
+      }, imageUrl);
 
-      if (result.success) {
+      if (shareResult.success) {
+        // 显示奖励通知
+        if (shareResult.reward) {
+          setLastReward(shareResult.reward);
+          setRewardOpen(true);
+        }
         onClose();
       }
     }
@@ -208,6 +232,14 @@ export function ShareDialog({
           取消
         </Button>
       </DialogActions>
+
+      <RewardNotification
+        open={rewardOpen}
+        onClose={() => setRewardOpen(false)}
+        reward={lastReward}
+        totalPoints={rewardsStore.totalPoints}
+        level={rewardsStore.level}
+      />
     </Dialog>
   );
 }
