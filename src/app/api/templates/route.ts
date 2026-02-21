@@ -40,7 +40,13 @@ export async function GET(request: NextRequest) {
         : undefined,
       search: searchParams.get('search') || undefined,
       tags: searchParams.get('tags')?.split(',').filter(Boolean) || undefined,
-      categories: searchParams.get('categories')?.split(',').filter(Boolean) || undefined,
+      categories: searchParams.get('categories')?.split(',').filter(Boolean).map(cat => {
+        const parts = cat.split('/');
+        return {
+          parent: parts[0] || undefined,
+          child: parts[1] || undefined,
+        };
+      }) || undefined,
       isFavorite: searchParams.get('isFavorite') === 'true' ? true :
                   searchParams.get('isFavorite') === 'false' ? false :
                   undefined,

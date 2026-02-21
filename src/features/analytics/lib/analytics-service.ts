@@ -14,7 +14,7 @@ import {
   generations,
   generationRequests,
 } from '@/lib/db/schema';
-import { and, gte, lte, count, desc, asc, eq, inArray } from 'drizzle-orm';
+import { and, gte, lte, count, desc, asc, eq, inArray, sql } from 'drizzle-orm';
 import type {
   OverviewStats,
   OverviewStatsParams,
@@ -170,30 +170,159 @@ export async function getTemplateUsageStats(
   const { page = 1, limit = 10, sortBy = 'usageCount', sortOrder = 'desc' } = params;
   const offset = (page - 1) * limit;
 
-  // 构建排序条件
-  const orderByColumn = {
-    usageCount: templates.usageCount,
-    lastUsedAt: templates.createdAt, // 使用 createdAt 作为 lastUsedAt 的近似
-    generationCount: templates.usageCount, // 使用 usageCount 作为近似
-    successRate: templates.usageCount, // 使用 usageCount 作为近似
-  }[sortBy];
-
-  const orderDirection = sortOrder === 'asc' ? asc : desc;
-
-  // 获取模版列表
-  const templatesData = await db
+  // 批量获取最后使用时间（从 templateGenerations 表）
+  // 子查询：获取每个模版的最后生成时间
+  const lastUsedTimes = await db
     .select({
-      id: templates.id,
-      title: templates.title,
-      description: templates.description,
-      usageCount: templates.usageCount,
-      createdAt: templates.createdAt,
+      templateId: templateGenerations.templateId,
+      lastUsedAt: sql<string>`MAX(${templateGenerations.createdAt})`.as('lastUsedAt'),
     })
-    .from(templates)
+    .from(templateGenerations)
+    .innerJoin(templates, eq(templateGenerations.templateId, templates.id))
     .where(eq(templates.userId, userId))
-    .orderBy(orderDirection(orderByColumn))
-    .limit(limit)
-    .offset(offset);
+    .groupBy(templateGenerations.templateId);
+
+  // 构建 lastUsedAt 的 Map
+  const lastUsedAtMap = new Map<number, Date>();
+  lastUsedTimes.forEach((item) => {
+    lastUsedAtMap.set(item.templateId, new Date(item.lastUsedAt));
+  });
+
+  // 获取模版列表并根据 sortBy 选择排序策略
+  let templatesData;
+
+  if (sortBy === 'lastUsedAt') {
+    // 按最后使用时间排序 - 使用子查询结果
+    const templateIdsWithLastUsed = lastUsedTimes
+      .sort((a, b) => {
+        const dateA = lastUsedAtMap.get(a.templateId) || new Date(0);
+        const dateB = lastUsedAtMap.get(b.templateId) || new Date(0);
+        return sortOrder === 'asc'
+          ? dateA.getTime() - dateB.getTime()
+          : dateB.getTime() - dateA.getTime();
+      })
+      .slice(offset, offset + limit)
+      .map((item) => item.templateId);
+
+    templatesData = await db
+      .select({
+        id: templates.id,
+        title: templates.title,
+        description: templates.description,
+        usageCount: templates.usageCount,
+        createdAt: templates.createdAt,
+      })
+      .from(templates)
+      .where(
+        and(
+          eq(templates.userId, userId),
+          inArray(templates.id, templateIdsWithLastUsed)
+        )
+      );
+
+    // 按 lastUsedAt 时间在内存中排序
+    templatesData.sort((a, b) => {
+      const timeA = lastUsedAtMap.get(a.id) || new Date(0);
+      const timeB = lastUsedAtMap.get(b.id) || new Date(0);
+      return sortOrder === 'asc'
+        ? timeA.getTime() - timeB.getTime()
+        : timeB.getTime() - timeA.getTime();
+    });
+  } else if (sortBy === 'generationCount' || sortBy === 'successRate') {
+    // 对于 generationCount 和 successRate，需要先获取统计数据再排序
+    // 这里我们先获取所有模版，然后在内存中排序（因为需要计算）
+    const allTemplates = await db
+      .select({
+        id: templates.id,
+        title: templates.title,
+        description: templates.description,
+        usageCount: templates.usageCount,
+        createdAt: templates.createdAt,
+      })
+      .from(templates)
+      .where(eq(templates.userId, userId));
+
+    // 获取生成统计
+    const templateIds = allTemplates.map((t) => t.id);
+
+    const allGenerationCounts = await db
+      .select({
+        templateId: templateGenerations.templateId,
+        count: count(),
+      })
+      .from(templateGenerations)
+      .where(inArray(templateGenerations.templateId, templateIds))
+      .groupBy(templateGenerations.templateId);
+
+    const allSuccessfulCounts = await db
+      .select({
+        templateId: templateGenerations.templateId,
+        count: count(),
+      })
+      .from(templateGenerations)
+      .innerJoin(generations, eq(templateGenerations.generationId, generations.id))
+      .innerJoin(generationRequests, eq(generations.generationRequestId, generationRequests.id))
+      .where(
+        and(
+          inArray(templateGenerations.templateId, templateIds),
+          eq(generationRequests.status, 'completed')
+        )
+      )
+      .groupBy(templateGenerations.templateId);
+
+    const generationCountsMap = new Map<number, number>();
+    allGenerationCounts.forEach((gc) => {
+      generationCountsMap.set(gc.templateId, gc.count);
+    });
+
+    const successfulCountsMap = new Map<number, number>();
+    allSuccessfulCounts.forEach((sc) => {
+      successfulCountsMap.set(sc.templateId, sc.count);
+    });
+
+    // 在内存中排序
+    allTemplates.sort((a, b) => {
+      const generationCountA = generationCountsMap.get(a.id) || 0;
+      const generationCountB = generationCountsMap.get(b.id) || 0;
+
+      if (sortBy === 'generationCount') {
+        return sortOrder === 'asc'
+          ? generationCountA - generationCountB
+          : generationCountB - generationCountA;
+      } else { // successRate
+        const successRateA = generationCountA > 0
+          ? Math.round(((successfulCountsMap.get(a.id) || 0) / generationCountA) * 100)
+          : 0;
+        const successRateB = generationCountB > 0
+          ? Math.round(((successfulCountsMap.get(b.id) || 0) / generationCountB) * 100)
+          : 0;
+
+        return sortOrder === 'asc'
+          ? successRateA - successRateB
+          : successRateB - successRateA;
+      }
+    });
+
+    // 应用分页
+    templatesData = allTemplates.slice(offset, offset + limit);
+  } else {
+    // 默认按 usageCount 排序
+    const orderDirection = sortOrder === 'asc' ? asc : desc;
+
+    templatesData = await db
+      .select({
+        id: templates.id,
+        title: templates.title,
+        description: templates.description,
+        usageCount: templates.usageCount,
+        createdAt: templates.createdAt,
+      })
+      .from(templates)
+      .where(eq(templates.userId, userId))
+      .orderBy(orderDirection(templates.usageCount))
+      .limit(limit)
+      .offset(offset);
+  }
 
   // 获取总数
   const [totalResult] = await db
@@ -224,32 +353,62 @@ export async function getTemplateUsageStats(
     .from(templateCategories)
     .where(inArray(templateCategories.templateId, templateIds));
 
-  // 批量获取生成数量和成功率
-  const allGenerationCounts = await db
-    .select({
-      templateId: templateGenerations.templateId,
-      count: count(),
-    })
-    .from(templateGenerations)
-    .where(inArray(templateGenerations.templateId, templateIds))
-    .groupBy(templateGenerations.templateId);
+  // 批量获取生成数量和成功率（如果之前没有获取过）
+  let allGenerationCounts;
+  let allSuccessfulCounts;
 
-  // 批量获取成功生成数量（status = 'completed'）
-  const allSuccessfulCounts = await db
-    .select({
-      templateId: templateGenerations.templateId,
-      count: count(),
-    })
-    .from(templateGenerations)
-    .innerJoin(generations, eq(templateGenerations.generationId, generations.id))
-    .innerJoin(generationRequests, eq(generations.generationRequestId, generationRequests.id))
-    .where(
-      and(
-        inArray(templateGenerations.templateId, templateIds),
-        eq(generationRequests.status, 'completed')
+  if (sortBy === 'generationCount' || sortBy === 'successRate') {
+    // 已经在上面获取过了，需要重新获取以用于 Map 构建
+    allGenerationCounts = await db
+      .select({
+        templateId: templateGenerations.templateId,
+        count: count(),
+      })
+      .from(templateGenerations)
+      .where(inArray(templateGenerations.templateId, templateIds))
+      .groupBy(templateGenerations.templateId);
+
+    allSuccessfulCounts = await db
+      .select({
+        templateId: templateGenerations.templateId,
+        count: count(),
+      })
+      .from(templateGenerations)
+      .innerJoin(generations, eq(templateGenerations.generationId, generations.id))
+      .innerJoin(generationRequests, eq(generations.generationRequestId, generationRequests.id))
+      .where(
+        and(
+          inArray(templateGenerations.templateId, templateIds),
+          eq(generationRequests.status, 'completed')
+        )
       )
-    )
-    .groupBy(templateGenerations.templateId);
+      .groupBy(templateGenerations.templateId);
+  } else {
+    allGenerationCounts = await db
+      .select({
+        templateId: templateGenerations.templateId,
+        count: count(),
+      })
+      .from(templateGenerations)
+      .where(inArray(templateGenerations.templateId, templateIds))
+      .groupBy(templateGenerations.templateId);
+
+    allSuccessfulCounts = await db
+      .select({
+        templateId: templateGenerations.templateId,
+        count: count(),
+      })
+      .from(templateGenerations)
+      .innerJoin(generations, eq(templateGenerations.generationId, generations.id))
+      .innerJoin(generationRequests, eq(generations.generationRequestId, generationRequests.id))
+      .where(
+        and(
+          inArray(templateGenerations.templateId, templateIds),
+          eq(generationRequests.status, 'completed')
+        )
+      )
+      .groupBy(templateGenerations.templateId);
+  }
 
   // 构建 Map 以便快速查找
   const tagsMap = new Map<number, string[]>();
@@ -291,7 +450,7 @@ export async function getTemplateUsageStats(
       title: template.title,
       description: template.description,
       usageCount: template.usageCount,
-      lastUsedAt: template.createdAt, // 使用 createdAt 作为 lastUsedAt
+      lastUsedAt: lastUsedAtMap.get(template.id) || null, // ✅ 修复：使用真实的最后使用时间
       generationCount,
       successRate,
       thumbnail: undefined, // templates 表没有 thumbnailUrl 字段
@@ -531,6 +690,7 @@ export async function getPerformanceMetrics(
       templateId: templateGenerations.templateId,
       generationId: templateGenerations.generationId,
       status: generationRequests.status,
+      createdAt: generations.createdAt,
     })
     .from(templateGenerations)
     .innerJoin(generations, eq(templateGenerations.generationId, generations.id))
@@ -538,20 +698,32 @@ export async function getPerformanceMetrics(
     .where(inArray(templateGenerations.templateId, templateIds));
 
   // 按 templateId 分组统计成功和失败数量
-  const generationStatsMap = new Map<number, { total: number; successful: number }>();
+  const generationStatsMap = new Map<number, { total: number; successful: number; lastUsedAt: Date | null }>();
+
+  // 首先获取每个模版的最后使用时间
+  const lastUsedTimesMap = new Map<number, Date>();
   allGenerationRecords.forEach((record) => {
-    const stats = generationStatsMap.get(record.templateId) || { total: 0, successful: 0 };
+    const existing = lastUsedTimesMap.get(record.templateId);
+    const recordTime = record.createdAt || new Date();
+    if (!existing || recordTime > existing) {
+      lastUsedTimesMap.set(record.templateId, recordTime);
+    }
+  });
+
+  allGenerationRecords.forEach((record) => {
+    const stats = generationStatsMap.get(record.templateId) || { total: 0, successful: 0, lastUsedAt: null };
     stats.total += 1;
     // status 为 'completed' 表示成功，其他状态（pending, failed）表示失败或进行中
     if (record.status === 'completed') {
       stats.successful += 1;
     }
+    stats.lastUsedAt = lastUsedTimesMap.get(record.templateId) || null;
     generationStatsMap.set(record.templateId, stats);
   });
 
   // 为每个模版计算性能指标（避免 N+1 查询）
   const performanceData = allTemplates.map((template) => {
-    const stats = generationStatsMap.get(template.id) || { total: 0, successful: 0 };
+    const stats = generationStatsMap.get(template.id) || { total: 0, successful: 0, lastUsedAt: null };
     const totalGenerations = stats.total;
     const successfulGenerations = stats.successful;
     const successRate = totalGenerations > 0 ? Math.round((successfulGenerations / totalGenerations) * 100) : 0;
@@ -562,7 +734,7 @@ export async function getPerformanceMetrics(
       totalGenerations,
       successfulGenerations,
       successRate,
-      lastUsedAt: template.createdAt, // 使用 createdAt 作为 lastUsedAt
+      lastUsedAt: stats.lastUsedAt || null, // ✅ 修复：使用真实的最后使用时间
     };
   });
 

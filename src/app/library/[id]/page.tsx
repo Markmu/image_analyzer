@@ -7,8 +7,9 @@
  * 功能：显示单个模版的详细信息
  */
 
+'use client';
+
 import { TemplateLibraryDetail } from '@/features/templates/components/TemplateLibraryDetail/TemplateLibraryDetail';
-import { auth } from '@/lib/auth';
 
 interface TemplateDetailPageProps {
   params: {
@@ -16,28 +17,6 @@ interface TemplateDetailPageProps {
   };
 }
 
-export default async function TemplateDetailPage({ params }: TemplateDetailPageProps) {
-  const session = await auth();
-
-  if (!session?.user?.id) {
-    return (
-      <div className="p-6">
-        <h1 className="text-2xl font-bold mb-4">模版详情</h1>
-        <p className="text-gray-600">请先登录以查看模版详情。</p>
-      </div>
-    );
-  }
-
-  const templateId = parseInt(params.id);
-
-  if (isNaN(templateId)) {
-    return (
-      <div className="p-6">
-        <h1 className="text-2xl font-bold mb-4">模版详情</h1>
-        <p className="text-red-600">无效的模版 ID。</p>
-      </div>
-    );
-  }
-
-  return <TemplateLibraryDetail templateId={templateId} />;
+export default function TemplateDetailPage({ params }: TemplateDetailPageProps) {
+  return <TemplateLibraryDetail />;
 }

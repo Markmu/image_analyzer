@@ -15,6 +15,7 @@ import {
   generations,
   analysisResults,
 } from '@/lib/db/schema';
+import { generateImageAsync } from '@/lib/replicate/async';
 import type {
   SavedTemplate,
   SaveToLibraryInput,
@@ -127,7 +128,8 @@ export async function saveToLibrary(
 /**
  * Get user's template library
  *
- * FIXES M1, M2, M3: 实现完整的搜索、标签和分类过滤功能
+ * FIXES M1, M2, M3, H3: 实现完整的搜索、标签和分类过滤功能
+ * FIX H3: 将过滤逻辑从内存移到数据库查询中，确保先过滤再分页
  */
 export async function getTemplateLibrary(
   userId: string,
@@ -144,28 +146,29 @@ export async function getTemplateLibrary(
     sortOrder = 'desc',
   } = params;
 
-  const offset = (page - 1) * limit;
+  // 验证 page 参数
+  const validatedPage = Math.max(1, page);
+  const offset = (validatedPage - 1) * limit;
 
-  // Build query conditions
+  // Build base conditions
   const conditions = [eq(templates.userId, userId)];
-
-  // Search filter - FIX M1: 添加标签搜索
-  if (search) {
-    conditions.push(
-      or(
-        like(templates.title, `%${search}%`),
-        like(templates.description, `%${search}%`)
-        // 注意：标签搜索在下面的 tags 参数中处理，因为需要 JOIN
-      )!
-    );
-  }
 
   // Favorite filter
   if (isFavorite !== undefined) {
     conditions.push(eq(templates.isFavorite, isFavorite));
   }
 
-  // Build base query with conditions that don't require joins
+  // Search filter - FIX M1: 搜索标题和描述
+  if (search) {
+    conditions.push(
+      or(
+        like(templates.title, `%${search}%`),
+        like(templates.description, `%${search}%`)
+      )!
+    );
+  }
+
+  // Build query with joins for tags and categories
   let query = db
     .select({
       id: templates.id,
@@ -179,10 +182,92 @@ export async function getTemplateLibrary(
       createdAt: templates.createdAt,
       updatedAt: templates.updatedAt,
     })
-    .from(templates)
-    .where(and(...conditions));
+    .from(templates);
 
-  // Add sorting BEFORE getting results
+  // FIX M3: 标签过滤 - 使用子查询确保在数据库层面过滤
+  if (tags && tags.length > 0) {
+    // 获取包含指定标签的模版 ID
+    const templatesWithTags = await db
+      .selectDistinct({ templateId: templateTags.templateId })
+      .from(templateTags)
+      .where(inArray(templateTags.tag, tags));
+
+    if (templatesWithTags.length === 0) {
+      // 没有匹配的模版，直接返回空结果
+      return {
+        templates: [],
+        total: 0,
+        page: validatedPage,
+        limit,
+      };
+    }
+
+    const templateIds = templatesWithTags.map((t) => t.templateId);
+    conditions.push(inArray(templates.id, templateIds));
+  }
+
+  // FIX M2: 分类过滤 - 使用子查询确保在数据库层面过滤
+  if (categories && categories.length > 0) {
+    const categoryConditions = [];
+
+    for (const cat of categories) {
+      if (typeof cat === 'string') {
+        const parts = cat.split('/');
+        const parent = parts[0];
+        const child = parts[1];
+
+        if (child) {
+          categoryConditions.push(
+            and(
+              eq(templateCategories.parentCategory, parent),
+              eq(templateCategories.childCategory, child)
+            )
+          );
+        } else {
+          categoryConditions.push(eq(templateCategories.parentCategory, parent));
+        }
+      } else if (cat.parent || cat.child) {
+        if (cat.parent && cat.child) {
+          categoryConditions.push(
+            and(
+              eq(templateCategories.parentCategory, cat.parent),
+              eq(templateCategories.childCategory, cat.child)
+            )
+          );
+        } else if (cat.parent) {
+          categoryConditions.push(eq(templateCategories.parentCategory, cat.parent));
+        } else if (cat.child) {
+          categoryConditions.push(eq(templateCategories.childCategory, cat.child));
+        }
+      }
+    }
+
+    if (categoryConditions.length > 0) {
+      // 获取匹配分类的模版 ID
+      const templatesWithCategories = await db
+        .selectDistinct({ templateId: templateCategories.templateId })
+        .from(templateCategories)
+        .where(or(...categoryConditions)!);
+
+      if (templatesWithCategories.length === 0) {
+        // 没有匹配的模版，直接返回空结果
+        return {
+          templates: [],
+          total: 0,
+          page: validatedPage,
+          limit,
+        };
+      }
+
+      const templateIds = templatesWithCategories.map((t) => t.templateId);
+      conditions.push(inArray(templates.id, templateIds));
+    }
+  }
+
+  // Apply all conditions
+  query = query.where(and(...conditions));
+
+  // Add sorting
   const orderByColumn =
     sortBy === 'createdAt'
       ? templates.createdAt
@@ -191,10 +276,16 @@ export async function getTemplateLibrary(
       : templates.title;
   query = query.orderBy(sortOrder === 'asc' ? asc(orderByColumn) : desc(orderByColumn));
 
-  // Get paginated results
+  // Get total count BEFORE pagination (for accurate total)
+  const [{ value: total }] = await db
+    .select({ value: count() })
+    .from(templates)
+    .where(and(...conditions));
+
+  // Get paginated results AFTER filtering
   const result = await query.limit(limit).offset(offset);
 
-  // Fetch tags and categories for each template
+  // Fetch tags and categories for each template (仅用于展示，不影响过滤)
   const templatesWithRelations = await Promise.all(
     result.map(async (template) => {
       const [tagList, categoryList] = await Promise.all([
@@ -229,66 +320,10 @@ export async function getTemplateLibrary(
     })
   );
 
-  // Apply filters that require joined data (M2, M3)
-  let filteredTemplates = templatesWithRelations;
-
-  // FIX M2: 按分类过滤
-  if (categories && categories.length > 0) {
-    filteredTemplates = filteredTemplates.filter((template) => {
-      return template.categories.some((cat) =>
-        categories.some((filterCat) => {
-          // filterCat 可以是字符串（格式："parent" 或 "parent/child"）或对象
-          if (typeof filterCat === 'string') {
-            const parts = filterCat.split('/');
-            const parent = parts[0];
-            const child = parts[1];
-            return (
-              (parent && cat.parent === parent) ||
-              (child && cat.child === child) ||
-              (!child && cat.parent === parent)
-            );
-          } else {
-            // 对象格式
-            return (
-              (filterCat.parent && cat.parent === filterCat.parent) ||
-              (filterCat.child && cat.child === filterCat.child)
-            );
-          }
-        })
-      );
-    });
-  }
-
-  // FIX M3: 按标签过滤
-  if (tags && tags.length > 0) {
-    filteredTemplates = filteredTemplates.filter((template) => {
-      return tags.some((tag) => template.tags.includes(tag));
-    });
-  }
-
-  // FIX M1: 如果搜索词包含在标签中
-  if (search) {
-    const searchLower = search.toLowerCase();
-    filteredTemplates = filteredTemplates.filter((template) => {
-      const titleMatch = template.title?.toLowerCase().includes(searchLower);
-      const descMatch = template.description?.toLowerCase().includes(searchLower);
-      const tagMatch = template.tags.some((tag) =>
-        tag.toLowerCase().includes(searchLower)
-      );
-      return titleMatch || descMatch || tagMatch;
-    });
-  }
-
-  // Get total count for pagination (after filtering)
-  const total = filteredTemplates.length;
-
-  // Apply pagination to filtered results
-  const paginatedTemplates = filteredTemplates.slice(offset, offset + limit);
-
   return {
-    templates: paginatedTemplates,
+    templates: templatesWithRelations,
     total,
-    page,
+    page: validatedPage,
     limit,
   };
 }
@@ -445,35 +480,68 @@ export async function getTemplateGenerations(
 /**
  * Regenerate image from template
  *
- * FIX H4: 实现基本功能，保存模版到 sessionStorage 供前端使用
+ * FIX H4 (Task #8): 集成真实的图片生成服务
  *
- * 注意：这是一个临时实现，完整的功能需要与生成服务集成 (Task 7)
- * 当前实现将模版数据保存到 sessionStorage，前端可以读取并跳转到生成页面
+ * 修复说明:
+ * - 调用 generateImageAsync 真实生成图片
+ * - 传递 templateId 到生成服务
+ * - Webhook 回调会自动调用 linkGenerationToTemplate 和 incrementUsageCount
+ *
+ * @param userId - User ID
+ * @param templateId - Template ID
+ * @returns Generation result with prediction ID
  */
 export async function regenerateFromTemplate(
   userId: string,
   templateId: number
-): Promise<{ generationId: number; templateData: any }> {
+): Promise<{ generationId: number; predictionId: string }> {
   const template = await getTemplateDetail(userId, templateId);
 
-  // 临时实现：返回模版数据供前端使用
-  // 在真实场景中，这里会：
-  // 1. 从 templateSnapshot 提取风格参数
-  // 2. 调用生成服务 API
-  // 3. 创建 generation 记录
-  // 4. 返回 generationId
+  // 从模版快照中提取生成参数
+  const templateSnapshot = template.templateSnapshot;
+  const analysisData = templateSnapshot.analysisData as Record<string, unknown> | null;
 
-  // 当前实现：返回模版快照数据，前端可以将此数据传递给生成页面
+  // 构建生成提示词
+  // 优先使用 description，如果不存在则从 analysisData 提取
+  let prompt = template.description || '';
+  if (analysisData && typeof analysisData === 'object') {
+    // 尝试从分析结果中提取风格描述
+    const styleDescription = (
+      analysisData.artisticStyle?.description ||
+      analysisData.styleDescription ||
+      analysisData.description ||
+      ''
+    );
+
+    if (styleDescription && typeof styleDescription === 'string') {
+      prompt = styleDescription;
+    }
+  }
+
+  // 如果没有有效的提示词，使用模版标题
+  if (!prompt || prompt.trim().length === 0) {
+    prompt = template.title;
+  }
+
+  // 调用异步图片生成服务，传递 templateId
+  const result = await generateImageAsync({
+    userId,
+    prompt: prompt.trim(),
+    modelId: templateSnapshot.modelId || process.env.REPLICATE_IMAGE_MODEL_ID || 'default-image-model',
+    width: 1024,
+    height: 1024,
+    numOutputs: 1,
+    creditCost: 5,
+    templateId, // 传递 templateId，用于 webhook 回调时更新统计
+  });
+
+  console.log(`Regeneration started for template ${templateId}, prediction ${result.predictionId}`);
+
+  // 注意：generationId 会在 webhook 回调时创建
+  // 当前返回 predictionId 供前端跟踪状态
   return {
-    generationId: 0, // 占位符，表示尚未创建真实的生成记录
-    templateData: {
-      templateId: template.id,
-      title: template.title,
-      description: template.description,
-      analysisData: template.templateSnapshot.analysisData,
-      modelId: template.templateSnapshot.modelId,
-      confidenceScore: template.templateSnapshot.confidenceScore,
-    },
+    generationId: 0, // 占位符，真实 ID 在 webhook 回调后创建
+    predictionId: result.predictionId,
   };
 }
 

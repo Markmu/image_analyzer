@@ -219,6 +219,8 @@ export interface GenerateImageAsyncInput {
   height?: number;
   numOutputs?: number;
   creditCost: number;
+  /** Optional template ID if generating from a template */
+  templateId?: number;
 }
 
 /**
@@ -260,6 +262,10 @@ export async function generateImageAsync(input: GenerateImageAsyncInput): Promis
   }
   if (input.numOutputs) {
     modelInput.num_outputs = input.numOutputs;
+  }
+  // 存储模版 ID（如果有），用于 webhook 回调时更新模版统计（Epic 7: Story 7.2）
+  if (input.templateId) {
+    modelInput.templateId = input.templateId;
   }
 
   // 预扣积分 + 创建预测 + 保存记录（使用事务保证原子性）

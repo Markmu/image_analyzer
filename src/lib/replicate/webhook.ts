@@ -10,7 +10,7 @@
 import { createHmac, timingSafeEqual } from 'crypto';
 import { replicate } from './index';
 import { getDb } from '@/lib/db';
-import { replicatePredictions, creditTransactions, user } from '@/lib/db/schema';
+import { replicatePredictions, creditTransactions, user, generations, generationRequests } from '@/lib/db/schema';
 import { eq, and } from 'drizzle-orm';
 
 /**
@@ -291,6 +291,70 @@ export async function handleWebhookCallback(
               transactionId: prediction.predictionId,
               predictionId: predictionId,
             });
+        }
+
+        // 如果是图片生成任务，创建 generations 记录并更新模版统计（Epic 7: Story 7.2）
+        if (prediction.taskType === 'generation' && output) {
+          try {
+            // 从 prediction.input 中提取 templateId（如果有）
+            const predictionInput = prediction.input as Record<string, unknown>;
+            const templateId = typeof predictionInput.templateId === 'number'
+              ? predictionInput.templateId
+              : undefined;
+
+            // 查找或创建 generationRequest 记录
+            // 注意：当前简化实现，直接创建 generation 记录
+            const outputData = output as Record<string, unknown>;
+            const imageUrl = Array.isArray(outputData.output)
+              ? outputData.output[0]
+              : outputData.output;
+
+            if (typeof imageUrl === 'string') {
+              // 创建 generations 记录
+              const [generation] = await tx
+                .insert(generations)
+                .values({
+                  userId: prediction.userId,
+                  imageUrl: imageUrl,
+                  r2Key: imageUrl, // 简化实现，直接使用 URL
+                  status: 'completed',
+                  width: typeof predictionInput.width === 'number' ? predictionInput.width : 1024,
+                  height: typeof predictionInput.height === 'number' ? predictionInput.height : 1024,
+                  prompt: typeof predictionInput.prompt === 'string' ? predictionInput.prompt : '',
+                  negativePrompt: typeof predictionInput.negative_prompt === 'string' ? predictionInput.negative_prompt : null,
+                  provider: 'replicate',
+                  model: prediction.modelId,
+                  metadata: {
+                    predictionId: predictionId,
+                    completedAt: new Date().toISOString(),
+                  },
+                })
+                .returning();
+
+              console.log(`Generation record created: ${generation.id} for prediction ${predictionId}`);
+
+              // 如果是从模版生成的，更新模版统计（在事务外异步处理）
+              if (templateId) {
+                // 延迟到事务完成后执行
+                setImmediate(async () => {
+                  try {
+                    const { linkGenerationToTemplate, incrementUsageCount } = await import('@/features/templates/lib/template-library-service');
+                    await Promise.all([
+                      linkGenerationToTemplate(templateId, generation.id),
+                      incrementUsageCount(templateId),
+                    ]);
+                    console.log(`Template ${templateId} stats updated for generation ${generation.id}`);
+                  } catch (error) {
+                    console.error(`Failed to update template stats for ${templateId}:`, error);
+                    // 统计失败不影响主流程
+                  }
+                });
+              }
+            }
+          } catch (genError) {
+            console.error(`Failed to create generation record for ${predictionId}:`, genError);
+            // generations 记录创建失败不影响主流程
+          }
         }
 
         console.log(`Prediction ${predictionId} completed successfully`);

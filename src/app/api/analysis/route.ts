@@ -102,6 +102,17 @@ export async function POST(request: NextRequest) {
       const confidenceScores = existing.confidenceScores as ConfidenceScores | null;
       const warning = confidenceScores ? generateConfidenceWarning(confidenceScores) : null;
 
+      // 保存到分析历史记录 (Epic 7: Story 7.1)
+      // 即使是已分析过的图片，重新请求时也应该更新历史记录
+      try {
+        const { saveToHistory } = await import('@/features/history');
+        await saveToHistory(userId, existing.id, 'success');
+        console.log(`Existing analysis saved to history for image ${imageId}`);
+      } catch (error) {
+        // 保存历史失败不影响主流程，只记录错误
+        console.error('Failed to save existing analysis to history:', error);
+      }
+
       return NextResponse.json({
         success: true,
         data: {
@@ -411,6 +422,16 @@ async function executeAnalysisAsync(
 
     // 处理队列中的下一个任务
     await processQueue();
+
+    // 保存到分析历史记录 (Epic 7: Story 7.1)
+    try {
+      const { saveToHistory } = await import('@/features/history');
+      await saveToHistory(userId, insertedResult.id, 'success');
+      console.log(`Analysis saved to history for batch ${batchId}, image ${imageId}`);
+    } catch (error) {
+      // 保存历史失败不影响主流程，只记录错误
+      console.error('Failed to save to history:', error);
+    }
 
     console.log(`Analysis completed for batch ${batchId}, image ${imageId} using model ${modelId}`);
   } catch (error) {

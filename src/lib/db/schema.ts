@@ -520,3 +520,19 @@ export const templateGenerations = pgTable('template_generations', {
   templateIdIdx: index('template_generations_template_id_idx').on(table.templateId),
   generationIdIdx: index('template_generations_generation_id_idx').on(table.generationId),
 }));
+
+// ============================================================================
+// 分析历史表 (analysis_history) - Epic 7: Story 7-1 临时历史记录
+// ============================================================================
+export const analysisHistory = pgTable('analysis_history', {
+  id: serial('id').primaryKey(),
+  userId: varchar('user_id', { length: 255 }).notNull().references(() => user.id, { onDelete: 'cascade' }),
+  analysisResultId: integer('analysis_result_id').notNull().references(() => analysisResults.id, { onDelete: 'cascade' }),
+  templateSnapshot: jsonb('template_snapshot').notNull(),
+  status: varchar('status', { length: 32 }).notNull(), // 'success' | 'failed'
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+}, (table) => ({
+  userIdIdx: index('analysis_history_user_id_idx').on(table.userId),
+  analysisResultIdIdx: index('analysis_history_analysis_result_id_idx').on(table.analysisResultId),
+  createdAtIdx: index('analysis_history_created_at_idx').on(table.createdAt),
+}));

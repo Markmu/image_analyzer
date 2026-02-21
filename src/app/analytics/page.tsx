@@ -6,7 +6,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { BarChart3, RefreshCw } from 'lucide-react';
+import { BarChart3 } from 'lucide-react';
 import {
   useOverviewStats,
   useTemplateUsageStats,

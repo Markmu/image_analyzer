@@ -38,7 +38,7 @@ export async function POST(
     return NextResponse.json({
       success: true,
       data: {
-        generationId: result.generationId,
+        predictionId: result.predictionId,
         message: 'Image generation started successfully',
       },
     });
