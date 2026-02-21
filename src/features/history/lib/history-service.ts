@@ -53,6 +53,35 @@ function extractTemplateSnapshot(analysisData: unknown): TemplateSnapshot {
   };
 }
 
+/**
+ * 将数据库中的图片路径转换为可访问 URL
+ * - 已经是 http/https URL：直接返回
+ * - R2 key：基于环境变量拼接公开 URL
+ */
+function resolveImageUrl(filePath: string | null | undefined): string | undefined {
+  if (!filePath) {
+    return undefined;
+  }
+
+  if (filePath.startsWith('http://') || filePath.startsWith('https://')) {
+    return filePath;
+  }
+
+  const publicDomain = process.env.R2_PUBLIC_DOMAIN;
+  if (publicDomain) {
+    return `https://${publicDomain}/${filePath}`;
+  }
+
+  const accountId = process.env.R2_ACCOUNT_ID;
+  const bucketName = process.env.R2_BUCKET_NAME;
+  if (accountId && bucketName) {
+    return `https://${accountId}.r2.dev/${bucketName}/${filePath}`;
+  }
+
+  // 回退：保持原值，避免在缺少环境变量时抛错
+  return filePath;
+}
+
 // ============================================================================
 // 核心服务函数
 // ============================================================================
@@ -184,10 +213,13 @@ export async function getHistoryList(
     .offset(offset);
 
   return {
-    records: records.map((r) => ({
-      ...r,
-      analysisResult: r.imageUrl ? { imageUrl: r.imageUrl, analysisData: null } : undefined,
-    })) as HistoryRecord[],
+    records: records.map((r) => {
+      const imageUrl = resolveImageUrl(r.imageUrl);
+      return {
+        ...r,
+        analysisResult: imageUrl ? { imageUrl, analysisData: null } : undefined,
+      };
+    }) as HistoryRecord[],
     total: count,
     page,
     limit,
@@ -234,7 +266,7 @@ export async function getHistoryDetail(
   return {
     ...record,
     analysisResult: {
-      imageUrl: record.imageUrl,
+      imageUrl: resolveImageUrl(record.imageUrl) || '',
       analysisData: record.analysisData,
     },
   };
