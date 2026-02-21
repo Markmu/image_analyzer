@@ -218,8 +218,11 @@ export default function AnalysisHistoryDetailPage() {
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
             <Chip
               label={data.status === 'success' ? '成功' : '失败'}
-              color={data.status === 'success' ? 'success' : 'error'}
               size="small"
+              sx={{
+                backgroundColor: data.status === 'success' ? 'var(--success-bg)' : 'var(--error-bg)',
+                color: data.status === 'success' ? 'var(--success)' : 'var(--error)',
+              }}
             />
             <Typography
               variant="body2"
@@ -236,6 +239,13 @@ export default function AnalysisHistoryDetailPage() {
             variant="contained"
             startIcon={<RefreshCw size={18} />}
             onClick={handleReuse}
+            sx={{
+              backgroundColor: 'var(--primary)',
+              color: 'var(--glass-text-white-heavy)',
+              '&:hover': {
+                backgroundColor: 'var(--primary-hover)',
+              },
+            }}
           >
             重新使用模版
           </Button>
@@ -246,7 +256,17 @@ export default function AnalysisHistoryDetailPage() {
       <Grid container spacing={3}>
         {/* 变量模版 */}
         <Grid item xs={12} md={6}>
-          <Card className="ia-glass-card" sx={{ height: '100%' }}>
+          <Card
+            className="ia-glass-card"
+            sx={{
+              height: '100%',
+              backgroundColor: 'var(--glass-bg-dark)',
+              backdropFilter: 'blur(var(--glass-blur))',
+              WebkitBackdropFilter: 'blur(var(--glass-blur))',
+              border: '1px solid var(--glass-border)',
+              boxShadow: 'var(--glass-shadow)',
+            }}
+          >
             <CardContent>
               <Box
                 sx={{
@@ -273,7 +293,7 @@ export default function AnalysisHistoryDetailPage() {
                   whiteSpace: 'pre-wrap',
                   wordBreak: 'break-word',
                   p: 2,
-                  backgroundColor: 'rgba(0, 0, 0, 0.2)',
+                  backgroundColor: 'var(--glass-bg-dark-heavy)',
                   borderRadius: 1,
                 }}
               >
@@ -285,7 +305,17 @@ export default function AnalysisHistoryDetailPage() {
 
         {/* JSON 模版 */}
         <Grid item xs={12} md={6}>
-          <Card className="ia-glass-card" sx={{ height: '100%' }}>
+          <Card
+            className="ia-glass-card"
+            sx={{
+              height: '100%',
+              backgroundColor: 'var(--glass-bg-dark)',
+              backdropFilter: 'blur(var(--glass-blur))',
+              WebkitBackdropFilter: 'blur(var(--glass-blur))',
+              border: '1px solid var(--glass-border)',
+              boxShadow: 'var(--glass-shadow)',
+            }}
+          >
             <CardContent>
               <Typography variant="h6" sx={{ mb: 2, color: 'var(--glass-text-white-heavy)' }}>
                 JSON 格式
@@ -298,7 +328,7 @@ export default function AnalysisHistoryDetailPage() {
                   whiteSpace: 'pre-wrap',
                   wordBreak: 'break-word',
                   p: 2,
-                  backgroundColor: 'rgba(0, 0, 0, 0.2)',
+                  backgroundColor: 'var(--glass-bg-dark-heavy)',
                   borderRadius: 1,
                   m: 0,
                 }}

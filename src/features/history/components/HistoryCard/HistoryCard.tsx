@@ -30,8 +30,8 @@ function formatRelativeTimeSafe(value: unknown): string {
 }
 
 export function HistoryCard({ record, onViewDetail, onReuse, onDelete }: HistoryCardProps) {
-  const statusColor = record.status === 'success' ? 'success' : 'error';
   const statusLabel = record.status === 'success' ? '成功' : '失败';
+  const isSuccess = record.status === 'success';
 
   return (
     <Card
@@ -40,10 +40,17 @@ export function HistoryCard({ record, onViewDetail, onReuse, onDelete }: History
         height: '100%',
         display: 'flex',
         flexDirection: 'column',
+        backgroundColor: 'var(--glass-bg-dark)',
+        backdropFilter: 'blur(var(--glass-blur))',
+        WebkitBackdropFilter: 'blur(var(--glass-blur))',
+        border: '1px solid var(--glass-border)',
+        boxShadow: 'var(--glass-shadow)',
         transition: 'transform 0.2s, box-shadow 0.2s',
         '&:hover': {
           transform: 'translateY(-4px)',
-          boxShadow: '0 8px 16px rgba(0, 0, 0, 0.2)',
+          boxShadow: 'var(--glass-shadow-hover)',
+          backgroundColor: 'var(--glass-bg-dark-hover)',
+          borderColor: 'var(--glass-border-hover)',
         },
       }}
       data-testid="history-card"
@@ -53,7 +60,7 @@ export function HistoryCard({ record, onViewDetail, onReuse, onDelete }: History
         component="div"
         sx={{
           height: 180,
-          backgroundColor: 'rgba(255, 255, 255, 0.05)',
+          backgroundColor: 'var(--glass-bg-light)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
@@ -66,7 +73,7 @@ export function HistoryCard({ record, onViewDetail, onReuse, onDelete }: History
         data-testid="history-thumbnail"
       >
         {!record.analysisResult?.imageUrl && (
-          <HistoryIcon size={48} className="text-gray-600 opacity-50" />
+          <HistoryIcon size={48} style={{ color: 'var(--glass-text-gray-light)' }} />
         )}
       </CardMedia>
 
@@ -75,8 +82,11 @@ export function HistoryCard({ record, onViewDetail, onReuse, onDelete }: History
         <Box sx={{ mb: 1 }}>
           <Chip
             label={statusLabel}
-            color={statusColor}
             size="small"
+            sx={{
+              backgroundColor: isSuccess ? 'var(--success-bg)' : 'var(--error-bg)',
+              color: isSuccess ? 'var(--success)' : 'var(--error)',
+            }}
             data-testid="history-status"
           />
         </Box>
@@ -84,8 +94,8 @@ export function HistoryCard({ record, onViewDetail, onReuse, onDelete }: History
         {/* 模版摘要 */}
         <Typography
           variant="body2"
-          color="text.secondary"
           sx={{
+            color: 'var(--glass-text-white-medium)',
             display: '-webkit-box',
             WebkitLineClamp: 2,
             WebkitBoxOrient: 'vertical',
@@ -101,8 +111,8 @@ export function HistoryCard({ record, onViewDetail, onReuse, onDelete }: History
         {/* 时间 */}
         <Typography
           variant="caption"
-          color="text.secondary"
           display="block"
+          sx={{ color: 'var(--glass-text-gray-medium)' }}
           data-testid="history-time"
         >
           {formatRelativeTimeSafe(record.createdAt)}
@@ -115,6 +125,7 @@ export function HistoryCard({ record, onViewDetail, onReuse, onDelete }: History
           <IconButton
             size="small"
             onClick={() => onViewDetail(record.id)}
+            sx={{ color: 'var(--icon-secondary)' }}
             data-testid="history-view-detail"
           >
             <Eye size={18} />
@@ -125,8 +136,8 @@ export function HistoryCard({ record, onViewDetail, onReuse, onDelete }: History
           <Tooltip title="重新使用">
             <IconButton
               size="small"
-              color="primary"
               onClick={() => onReuse(record.id)}
+              sx={{ color: 'var(--glass-text-primary)' }}
               data-testid="history-reuse"
             >
               <RefreshCw size={18} />
@@ -137,8 +148,8 @@ export function HistoryCard({ record, onViewDetail, onReuse, onDelete }: History
         <Tooltip title="删除">
           <IconButton
             size="small"
-            color="error"
             onClick={() => onDelete(record.id)}
+            sx={{ color: 'var(--icon-error)' }}
             data-testid="history-delete"
           >
             <Trash2 size={18} />

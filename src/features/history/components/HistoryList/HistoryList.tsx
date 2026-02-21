@@ -37,7 +37,7 @@ export function HistoryList({ userId }: HistoryListProps) {
 
   // 获取历史记录列表
   const { data, isLoading, error, refetch } = useQuery({
-    queryKey: ['history', page],
+    queryKey: ['history', userId, page],
     queryFn: async () => {
       const response = await fetch(`/api/history?page=${page}&limit=10`);
       if (!response.ok) {
@@ -140,7 +140,7 @@ export function HistoryList({ userId }: HistoryListProps) {
         minHeight={400}
         data-testid="history-empty"
       >
-        <HistoryIcon size={64} className="text-gray-600 opacity-30" />
+        <HistoryIcon size={64} style={{ color: 'var(--glass-text-gray-light)' }} />
         <Typography variant="h6" sx={{ mt: 2, color: 'var(--glass-text-white-heavy)' }}>
           还没有分析历史记录
         </Typography>
@@ -149,8 +149,14 @@ export function HistoryList({ userId }: HistoryListProps) {
         </Typography>
         <Button
           variant="contained"
-          color="primary"
-          sx={{ mt: 3 }}
+          sx={{
+            mt: 3,
+            backgroundColor: 'var(--primary)',
+            color: 'var(--glass-text-white-heavy)',
+            '&:hover': {
+              backgroundColor: 'var(--primary-hover)',
+            },
+          }}
           onClick={() => router.push('/analysis')}
         >
           开始分析
@@ -182,8 +188,17 @@ export function HistoryList({ userId }: HistoryListProps) {
             count={Math.ceil(data.total / data.limit)}
             page={page}
             onChange={(_, newPage) => setPage(newPage)}
-            color="primary"
             size="large"
+            sx={{
+              '& .MuiPaginationItem-root': {
+                color: 'var(--glass-text-white-medium)',
+                borderColor: 'var(--glass-border)',
+              },
+              '& .MuiPaginationItem-root.Mui-selected': {
+                backgroundColor: 'var(--glass-bg-active)',
+                color: 'var(--glass-text-primary)',
+              },
+            }}
           />
         </Box>
       )}
@@ -197,8 +212,24 @@ export function HistoryList({ userId }: HistoryListProps) {
           </Typography>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setDeleteDialogOpen(false)}>取消</Button>
-          <Button onClick={handleDeleteConfirm} color="error" variant="contained">
+          <Button
+            onClick={() => setDeleteDialogOpen(false)}
+            sx={{ color: 'var(--glass-text-white-medium)' }}
+          >
+            取消
+          </Button>
+          <Button
+            onClick={handleDeleteConfirm}
+            variant="contained"
+            sx={{
+              backgroundColor: 'var(--error)',
+              color: 'var(--glass-text-white-heavy)',
+              '&:hover': {
+                backgroundColor: 'var(--error)',
+                opacity: 0.9,
+              },
+            }}
+          >
             删除
           </Button>
         </DialogActions>

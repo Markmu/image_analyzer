@@ -68,7 +68,7 @@ export default function AnalysisHistoryPage() {
           gap: 3,
         }}
       >
-        <HistoryIcon size={32} className="text-blue-400" />
+        <HistoryIcon size={32} style={{ color: 'var(--glass-text-primary)' }} />
         <Box>
           <Typography
             variant="h4"
