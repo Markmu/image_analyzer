@@ -16,9 +16,18 @@
  */
 
 import OpenAI from 'openai';
-import type { VisionAnalysisProvider, AnalyzeImageStyleParams, ValidateImageComplexityParams, ComplexityAnalysisResult } from './interface';
+import type {
+  VisionAnalysisProvider,
+  AnalyzeImageStyleParams,
+  ValidateImageComplexityParams,
+  ComplexityAnalysisResult,
+} from './interface';
 import type { AnalysisData } from '@/types/analysis';
-import { extractJsonFromResponse, parseAnalysisResponse, normalizeProviderResponse } from '@/lib/analysis/parser';
+import {
+  extractJsonFromResponse,
+  parseAnalysisResponse,
+  normalizeProviderResponse,
+} from '@/lib/analysis/parser';
 
 /**
  * 将文件转换为 Base64 编码
@@ -71,7 +80,7 @@ export class AliyunBailianProvider implements VisionAnalysisProvider {
    * Note: qwen-vl-plus is Alibaba Bailian's multimodal vision model
    * See: https://help.aliyun.com/zh/model-studio/developer-reference/use-qwen-by-calling-api
    */
-  private readonly defaultModel = 'qwen-vl-plus';
+  private readonly defaultModel = 'qwen3-vl-plus-2025-12-19';
 
   /**
    * Constructor - Initialize OpenAI client and validate environment variables
@@ -83,8 +92,8 @@ export class AliyunBailianProvider implements VisionAnalysisProvider {
     if (!process.env.ALIYUN_API_KEY) {
       throw new Error(
         'ALIYUN_API_KEY is required for AliyunBailianProvider. ' +
-        'Please set the environment variable before starting the application. ' +
-        'Example: ALIYUN_API_KEY=sk-xxx'
+          'Please set the environment variable before starting the application. ' +
+          'Example: ALIYUN_API_KEY=sk-xxx',
       );
     }
 
@@ -179,10 +188,7 @@ Return the result in JSON format:
       messages: [
         {
           role: 'user',
-          content: [
-            { type: 'text', text: finalPrompt },
-            imageContent,
-          ],
+          content: [{ type: 'text', text: finalPrompt }, imageContent],
         },
       ],
       max_tokens: maxTokens,
@@ -201,7 +207,9 @@ Return the result in JSON format:
   /**
    * Validate image complexity using Aliyun Bailian vision model
    */
-  async validateImageComplexity(params: ValidateImageComplexityParams): Promise<ComplexityAnalysisResult> {
+  async validateImageComplexity(
+    params: ValidateImageComplexityParams,
+  ): Promise<ComplexityAnalysisResult> {
     const { imageUrl, imageFile, prompt } = params;
 
     const defaultPrompt = `Analyze this image for style analysis suitability and respond ONLY with valid JSON in this exact format:
@@ -247,10 +255,7 @@ Guidelines:
         messages: [
           {
             role: 'user',
-            content: [
-              { type: 'text', text: finalPrompt },
-              imageContent,
-            ],
+            content: [{ type: 'text', text: finalPrompt }, imageContent],
           },
         ],
         max_tokens: 300,
@@ -269,11 +274,11 @@ Guidelines:
       const reason = respObj.reason ?? '图像分析完成';
 
       return {
-        subjectCount: typeof subjectCount === 'number' ? subjectCount : parseInt(String(subjectCount)) || 1,
-        complexity: ['low', 'medium', 'high'].includes(complexity)
-          ? complexity
-          : 'medium',
-        confidence: typeof confidence === 'number' ? confidence : parseFloat(String(confidence)) || 0.5,
+        subjectCount:
+          typeof subjectCount === 'number' ? subjectCount : parseInt(String(subjectCount)) || 1,
+        complexity: ['low', 'medium', 'high'].includes(complexity) ? complexity : 'medium',
+        confidence:
+          typeof confidence === 'number' ? confidence : parseFloat(String(confidence)) || 0.5,
         reason,
       };
     } catch (error) {

@@ -176,12 +176,13 @@ export function AnalysisCard({ analysisData }: AnalysisCardProps) {
         <Box
           sx={{
             display: 'grid',
-            gridTemplateColumns: { xs: '1fr', md: '1fr 1fr', lg: 'repeat(4, minmax(0, 1fr))' },
+            gridTemplateColumns: 'repeat(4, minmax(0, 1fr))',
             gap: 2,
+            minWidth: 0,
           }}
         >
           {Object.entries(dimensions).map(([key, dimension]) => (
-            <Box key={key} data-testid={getTestId(key)}>
+            <Box key={key} data-testid={getTestId(key)} sx={{ minWidth: 0 }}>
               <DimensionCard
                 dimensionType={key}
                 dimension={dimension}

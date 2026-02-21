@@ -30,11 +30,18 @@ export default function MiddleColumn({
           description="上传后系统将在 0.5 秒内自动开始分析，中间区域会实时显示阶段和进度。"
           icon={<Brain size={34} />}
           testId="middle-column-empty"
+          descriptionMaxWidth={560}
         />
       )}
 
       {status === 'analyzing' && (
-        <Box className="ia-glass-card ia-glass-card--static" sx={{ p: 3 }} data-testid="progress-display" aria-busy="true" aria-live="polite">
+        <Box
+          className="ia-glass-card ia-glass-card--static ia-glass-card--lg"
+          sx={{ p: 3 }}
+          data-testid="progress-display"
+          aria-busy="true"
+          aria-live="polite"
+        >
           <Box
             sx={{
               minHeight: 180,

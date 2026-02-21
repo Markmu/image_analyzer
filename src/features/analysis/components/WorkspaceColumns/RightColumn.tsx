@@ -33,7 +33,9 @@ export default function RightColumn({
   onCopyTemplate,
   onVariableChange,
 }: RightColumnProps) {
-  if (status !== 'completed' || !analysisData) {
+  const hasTemplateContent = templateContent.trim().length > 0;
+
+  if (!hasTemplateContent && (status !== 'completed' || !analysisData)) {
     return (
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }} data-testid="workspace-right-column">
         <EmptyState
@@ -79,14 +81,16 @@ export default function RightColumn({
           )}
         </CollapsibleSection>
 
-        <CollapsibleSection title="质量信息" defaultExpanded={true} storageKey="quality-meta">
-          <Typography variant="body2" sx={{ color: 'var(--glass-text-gray-medium)' }}>
-            当前整体置信度：{(analysisData.overallConfidence * 100).toFixed(0)}%
-          </Typography>
-          <Typography variant="caption" sx={{ color: 'var(--glass-text-gray-heavy)', display: 'block', mt: 1 }}>
-            结果将根据你的反馈持续优化。
-          </Typography>
-        </CollapsibleSection>
+        {status === 'completed' && analysisData && (
+          <CollapsibleSection title="质量信息" defaultExpanded={true} storageKey="quality-meta">
+            <Typography variant="body2" sx={{ color: 'var(--glass-text-gray-medium)' }}>
+              当前整体置信度：{(analysisData.overallConfidence * 100).toFixed(0)}%
+            </Typography>
+            <Typography variant="caption" sx={{ color: 'var(--glass-text-gray-heavy)', display: 'block', mt: 1 }}>
+              结果将根据你的反馈持续优化。
+            </Typography>
+          </CollapsibleSection>
+        )}
       </Box>
     </Box>
   );

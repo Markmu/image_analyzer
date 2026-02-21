@@ -9,9 +9,17 @@ interface EmptyStateProps {
   icon?: ReactNode;
   hint?: string;
   testId?: string;
+  descriptionMaxWidth?: number | string;
 }
 
-export default function EmptyState({ title, description, icon, hint, testId }: EmptyStateProps) {
+export default function EmptyState({
+  title,
+  description,
+  icon,
+  hint,
+  testId,
+  descriptionMaxWidth = 320,
+}: EmptyStateProps) {
   return (
     <Box
       className="ia-glass-card ia-glass-card--static ia-glass-card--lg"
@@ -54,7 +62,7 @@ export default function EmptyState({ title, description, icon, hint, testId }: E
         variant="body2"
         sx={{
           color: 'var(--glass-text-gray-medium)',
-          maxWidth: 320,
+          maxWidth: descriptionMaxWidth,
           lineHeight: 1.6,
         }}
       >

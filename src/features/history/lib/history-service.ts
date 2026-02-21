@@ -12,46 +12,15 @@ import {
   images,
 } from '@/lib/db/schema';
 import { eq, desc, and, asc, inArray } from 'drizzle-orm';
+import { buildTemplateSnapshotFromAnalysis } from '@/lib/analysis/template-snapshot';
 import type {
   AnalysisHistory,
   HistoryListParams,
   HistoryListResponse,
   HistoryRecord,
   ReuseHistoryResponse,
-  TemplateSnapshot,
 } from '../types';
 import { MAX_HISTORY_RECORDS } from '../types';
-
-// ============================================================================
-// 辅助函数
-// ============================================================================
-
-/**
- * 从分析结果中提取模版快照
- */
-function extractTemplateSnapshot(analysisData: unknown): TemplateSnapshot {
-  // TODO: 根据实际的分析数据结构提取模版
-  // 这里是一个临时实现，需要根据实际的数据结构来调整
-  const data = analysisData as {
-    dimensions?: unknown;
-    template?: {
-      variableFormat?: string;
-      jsonFormat?: Record<string, string>;
-    };
-  };
-
-  return {
-    variableFormat: data.template?.variableFormat || '',
-    jsonFormat: {
-      subject: data.template?.jsonFormat?.subject || '',
-      style: data.template?.jsonFormat?.style || '',
-      composition: data.template?.jsonFormat?.composition || '',
-      colors: data.template?.jsonFormat?.colors || '',
-      lighting: data.template?.jsonFormat?.lighting || '',
-      additional: data.template?.jsonFormat?.additional || '',
-    },
-  };
-}
 
 /**
  * 将数据库中的图片路径转换为可访问 URL
@@ -116,7 +85,7 @@ export async function saveToHistory(
   }
 
   const result = results[0];
-  const templateSnapshot = extractTemplateSnapshot(result.analysisData);
+  const templateSnapshot = buildTemplateSnapshotFromAnalysis(result.analysisData);
 
   // 2. 保存新记录到历史
   const [newRecord] = await db

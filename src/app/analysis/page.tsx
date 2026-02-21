@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useCallback, useEffect, useRef, Fragment, useMemo } from 'react';
+import { useSearchParams } from 'next/navigation';
 import {
   Alert,
   Box,
@@ -20,6 +21,10 @@ import type { ImageData } from '@/features/analysis/components/ImageUploader/typ
 import type { AnalysisData } from '@/types/analysis';
 import { useProgressStore } from '@/stores/useProgressStore';
 import { useRequireAuth } from '@/features/auth/hooks/useRequireAuth';
+import {
+  buildTemplateSnapshotFromAnalysis,
+  normalizeTemplateSnapshot,
+} from '@/lib/analysis/template-snapshot';
 
 type ImageStatus = 'idle' | 'ready';
 type AnalysisStatus = 'idle' | 'analyzing' | 'completed' | 'error';
@@ -44,24 +49,6 @@ interface TemplateWorkspaceState {
 
 const TERMS_VERSION = '1.0';
 
-const buildTemplateFromAnalysis = (analysisData: AnalysisData): string => {
-  const lighting = analysisData.dimensions.lighting.features.map((feature) => feature.value).join('、') || '自然光';
-  const composition =
-    analysisData.dimensions.composition.features.map((feature) => feature.value).join('、') || '平衡构图';
-  const color = analysisData.dimensions.color.features.map((feature) => feature.value).join('、') || '中性色彩';
-  const artisticStyle =
-    analysisData.dimensions.artisticStyle.features.map((feature) => feature.value).join('、') || '写实';
-
-  return [
-    '请创作一张[主题]图片。',
-    `风格方向：${artisticStyle}。`,
-    `光影表现：${lighting}。`,
-    `构图建议：${composition}。`,
-    `色彩策略：${color}。`,
-    '附加要求：[附加要求]。',
-  ].join('\n');
-};
-
 const applyVariableValues = (template: string, values: Record<string, string>): string => {
   return template.replace(/\[([^\]]+)\]/g, (_match, key: string) => {
     const normalizedKey = key.trim();
@@ -70,6 +57,7 @@ const applyVariableValues = (template: string, values: Record<string, string>): 
 };
 
 export default function AnalysisPage() {
+  const searchParams = useSearchParams();
   const { isLoading, isAuthenticated } = useRequireAuth();
   const theme = useTheme();
   const isMobileLayout = useMediaQuery(theme.breakpoints.down('md'));
@@ -98,6 +86,7 @@ export default function AnalysisPage() {
   const stopPollingRef = useRef(false);
   const autoStartTimerRef = useRef<number | null>(null);
   const copyResetTimerRef = useRef<number | null>(null);
+  const appliedTemplateParamRef = useRef<string | null>(null);
 
   const { setAnalysisStage, setAnalysisProgress, resetAnalysis } = useProgressStore();
 
@@ -169,13 +158,39 @@ export default function AnalysisPage() {
       return;
     }
 
-    const template = buildTemplateFromAnalysis(analysisState.data);
+    const template = buildTemplateSnapshotFromAnalysis(analysisState.data).variableFormat;
     setTemplateState({
       content: template,
       copied: false,
       variables: {},
     });
   }, [analysisState.data, analysisState.status]);
+
+  useEffect(() => {
+    if (!isAuthenticated) return;
+
+    const templateParam = searchParams.get('template');
+    if (!templateParam || appliedTemplateParamRef.current === templateParam) {
+      return;
+    }
+
+    appliedTemplateParamRef.current = templateParam;
+    try {
+      const parsed = JSON.parse(templateParam);
+      const normalized = normalizeTemplateSnapshot(parsed);
+      setTemplateState({
+        content: normalized.variableFormat,
+        copied: false,
+        variables: {},
+      });
+      setAnalysisState((prev) => ({
+        ...prev,
+        error: null,
+      }));
+    } catch (error) {
+      console.error('Failed to parse template from query param:', error);
+    }
+  }, [isAuthenticated, searchParams]);
 
   const renderedTemplate = useMemo(() => {
     if (!templateState.content) return '';
@@ -496,7 +511,7 @@ export default function AnalysisPage() {
             gap: 3,
             gridTemplateColumns: {
               xs: '1fr',
-              md: '1fr 1.8fr 1.2fr',
+              md: '0.5fr 2fr 1fr',
             },
             alignItems: 'start',
           }}
