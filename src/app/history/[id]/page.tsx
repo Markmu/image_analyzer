@@ -25,8 +25,19 @@ import {
 } from '@mui/material';
 import { ArrowLeft, RefreshCw, Calendar, Copy, CheckCircle } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
-import { formatDistanceToNow } from 'date-fns';
+import { formatDistanceToNow, isValid, parseISO } from 'date-fns';
 import { zhCN } from 'date-fns/locale';
+
+function formatRelativeTimeSafe(value: unknown): string {
+  if (value instanceof Date) {
+    return isValid(value) ? formatDistanceToNow(value, { addSuffix: true, locale: zhCN }) : '时间未知';
+  }
+  if (typeof value === 'string' && value.trim()) {
+    const parsed = parseISO(value);
+    return isValid(parsed) ? formatDistanceToNow(parsed, { addSuffix: true, locale: zhCN }) : '时间未知';
+  }
+  return '时间未知';
+}
 
 export default function AnalysisHistoryDetailPage() {
   const { data: session, status } = useSession();
@@ -68,7 +79,7 @@ export default function AnalysisHistoryDetailPage() {
       const result = await response.json();
 
       // 导航到分析页面并传递模版数据
-      router.push(`/analyze?template=${encodeURIComponent(JSON.stringify(result.data.template))}`);
+      router.push(`/analysis?template=${encodeURIComponent(JSON.stringify(result.data.template))}`);
     } catch (error) {
       console.error('Error reusing template:', error);
       // TODO: 显示错误提示
@@ -100,7 +111,7 @@ export default function AnalysisHistoryDetailPage() {
         minHeight="100vh"
       >
         <CircularProgress />
-        <Typography sx={{ mt: 2 }} color="text.secondary">
+        <Typography sx={{ mt: 2, color: 'var(--glass-text-white-medium)' }}>
           加载中...
         </Typography>
       </Box>
@@ -140,8 +151,8 @@ export default function AnalysisHistoryDetailPage() {
           startIcon={<ArrowLeft size={18} />}
           onClick={() => router.back()}
           sx={{
-            borderColor: 'rgba(34, 197, 94, 0.5)',
-            color: '#F8FAFC',
+            borderColor: 'var(--glass-border-active)',
+            color: 'var(--glass-text-white-heavy)',
           }}
         >
           返回列表
@@ -162,7 +173,7 @@ export default function AnalysisHistoryDetailPage() {
         <Box>
           <Typography
             variant="h5"
-            sx={{ mb: 0.5, fontWeight: 600, color: '#F8FAFC' }}
+            sx={{ mb: 0.5, fontWeight: 600, color: 'var(--glass-text-white-heavy)' }}
           >
             分析历史详情
           </Typography>
@@ -174,13 +185,10 @@ export default function AnalysisHistoryDetailPage() {
             />
             <Typography
               variant="body2"
-              sx={{ color: '#CBD5E1', display: 'flex', alignItems: 'center', gap: 1 }}
+              sx={{ color: 'var(--glass-text-white-medium)', display: 'flex', alignItems: 'center', gap: 1 }}
             >
               <Calendar size={14} />
-              {formatDistanceToNow(new Date(data.createdAt), {
-                addSuffix: true,
-                locale: zhCN,
-              })}
+              {formatRelativeTimeSafe(data.createdAt)}
             </Typography>
           </Box>
         </Box>
@@ -210,20 +218,20 @@ export default function AnalysisHistoryDetailPage() {
                   mb: 2,
                 }}
               >
-                <Typography variant="h6" sx={{ color: '#F8FAFC' }}>
+                <Typography variant="h6" sx={{ color: 'var(--glass-text-white-heavy)' }}>
                   变量模版
                 </Typography>
                 <IconButton
                   size="small"
                   onClick={handleCopyTemplate}
-                  sx={{ color: copied ? '#22C55E' : '#94A3B8' }}
+                  sx={{ color: copied ? 'var(--icon-success)' : 'var(--icon-secondary)' }}
                 >
                   {copied ? <CheckCircle size={18} /> : <Copy size={18} />}
                 </IconButton>
               </Box>
               <Typography
                 sx={{
-                  color: '#CBD5E1',
+                  color: 'var(--glass-text-white-medium)',
                   whiteSpace: 'pre-wrap',
                   wordBreak: 'break-word',
                   p: 2,
@@ -241,13 +249,13 @@ export default function AnalysisHistoryDetailPage() {
         <Grid item xs={12} md={6}>
           <Card className="ia-glass-card" sx={{ height: '100%' }}>
             <CardContent>
-              <Typography variant="h6" sx={{ mb: 2, color: '#F8FAFC' }}>
+              <Typography variant="h6" sx={{ mb: 2, color: 'var(--glass-text-white-heavy)' }}>
                 JSON 格式
               </Typography>
               <Typography
                 component="pre"
                 sx={{
-                  color: '#CBD5E1',
+                  color: 'var(--glass-text-white-medium)',
                   fontSize: '0.875rem',
                   whiteSpace: 'pre-wrap',
                   wordBreak: 'break-word',

@@ -36,7 +36,7 @@ export interface AnalysisHistory {
   analysisResultId: number;
   templateSnapshot: TemplateSnapshot;
   status: 'success' | 'failed';
-  createdAt: Date;
+  createdAt: Date | string | null;
 }
 
 /**

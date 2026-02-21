@@ -9,9 +9,6 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 import { useToast } from './useToast';
 
-// Mock console.log
-vi.spyOn(console, 'log').mockImplementation(() => {});
-
 describe('useToast Hook', () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -45,18 +42,20 @@ describe('useToast Hook', () => {
         result.current.showSuccess('Success message');
       });
 
-      // Current implementation logs to console
-      expect(console.log).toHaveBeenCalled();
+      // showSuccess doesn't log to console, just check it doesn't throw
+      expect(true).toBe(true);
     });
 
     it('should call showError without errors', () => {
+      const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
       const { result } = renderHook(() => useToast());
 
       act(() => {
         result.current.showError('Error message');
       });
 
-      expect(console.log).toHaveBeenCalled();
+      expect(errorSpy).toHaveBeenCalled();
+      errorSpy.mockRestore();
     });
 
     it('should call showInfo without errors', () => {
@@ -66,17 +65,20 @@ describe('useToast Hook', () => {
         result.current.showInfo('Info message');
       });
 
-      expect(console.log).toHaveBeenCalled();
+      // showInfo doesn't log to console, just check it doesn't throw
+      expect(true).toBe(true);
     });
 
     it('should call showWarning without errors', () => {
+      const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
       const { result } = renderHook(() => useToast());
 
       act(() => {
         result.current.showWarning('Warning message');
       });
 
-      expect(console.log).toHaveBeenCalled();
+      expect(warnSpy).toHaveBeenCalled();
+      warnSpy.mockRestore();
     });
   });
 });

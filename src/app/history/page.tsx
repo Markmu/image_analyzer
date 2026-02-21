@@ -43,7 +43,7 @@ export default function AnalysisHistoryPage() {
         minHeight="100vh"
       >
         <CircularProgress />
-        <Typography sx={{ mt: 2 }} color="text.secondary">
+        <Typography sx={{ mt: 2, color: 'var(--glass-text-white-medium)' }}>
           加载中...
         </Typography>
       </Box>
@@ -72,13 +72,13 @@ export default function AnalysisHistoryPage() {
         <Box>
           <Typography
             variant="h4"
-            sx={{ mb: 0.5, fontWeight: 600, color: '#F8FAFC' }}
+            sx={{ mb: 0.5, fontWeight: 600, color: 'var(--glass-text-white-heavy)' }}
           >
             分析历史
           </Typography>
           <Typography
             variant="body2"
-            sx={{ color: '#CBD5E1', display: 'flex', alignItems: 'center', gap: 1 }}
+            sx={{ color: 'var(--glass-text-white-medium)', display: 'flex', alignItems: 'center', gap: 1 }}
           >
             <Calendar size={14} />
             最近的 10 次分析记录（自动保存）

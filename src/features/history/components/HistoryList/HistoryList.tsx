@@ -65,7 +65,7 @@ export function HistoryList({ userId }: HistoryListProps) {
       const result = await response.json();
 
       // 导航到分析页面并传递模版数据
-      router.push(`/analyze?template=${encodeURIComponent(JSON.stringify(result.data.template))}`);
+      router.push(`/analysis?template=${encodeURIComponent(JSON.stringify(result.data.template))}`);
     } catch (error) {
       console.error('Error reusing template:', error);
       // TODO: 显示错误提示
@@ -111,7 +111,7 @@ export function HistoryList({ userId }: HistoryListProps) {
         data-testid="history-loading"
       >
         <CircularProgress />
-        <Typography sx={{ mt: 2 }} color="text.secondary">
+        <Typography sx={{ mt: 2, color: 'var(--glass-text-white-medium)' }}>
           加载中...
         </Typography>
       </Box>
@@ -141,17 +141,17 @@ export function HistoryList({ userId }: HistoryListProps) {
         data-testid="history-empty"
       >
         <HistoryIcon size={64} className="text-gray-600 opacity-30" />
-        <Typography variant="h6" color="text.secondary" sx={{ mt: 2 }}>
+        <Typography variant="h6" sx={{ mt: 2, color: 'var(--glass-text-white-heavy)' }}>
           还没有分析历史记录
         </Typography>
-        <Typography variant="body2" color="text.secondary">
+        <Typography variant="body2" sx={{ color: 'var(--glass-text-white-medium)' }}>
           完成图片分析后，记录会自动保存到这里
         </Typography>
         <Button
           variant="contained"
           color="primary"
           sx={{ mt: 3 }}
-          onClick={() => router.push('/analyze')}
+          onClick={() => router.push('/analysis')}
         >
           开始分析
         </Button>

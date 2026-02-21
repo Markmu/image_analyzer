@@ -17,13 +17,24 @@ process.env.R2_BUCKET_NAME = 'test-bucket';
 
 // NODE_ENV is read-only, so we skip setting it
 
-// Mock localStorage
-const localStorageMock = {
-  getItem: vi.fn(),
-  setItem: vi.fn(),
-  removeItem: vi.fn(),
-  clear: vi.fn(),
-};
+// Mock localStorage with a working in-memory implementation
+const localStorageMock = (() => {
+  let store: Record<string, string> = {};
+
+  return {
+    getItem: (key: string) => store[key] ?? null,
+    setItem: (key: string, value: string) => {
+      store[key] = value.toString();
+    },
+    removeItem: (key: string) => {
+      delete store[key];
+    },
+    clear: () => {
+      store = {};
+    },
+  };
+})();
+
 Object.defineProperty(window, 'localStorage', {
   value: localStorageMock,
   writable: true,

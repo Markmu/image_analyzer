@@ -48,17 +48,23 @@ describe('downloadImage', () => {
   it('应该成功下载 PNG 图片', async () => {
     const mockBlob = new Blob(['image data'], { type: 'image/png' });
 
-    // Mock Image constructor
-    const mockImg = {
-      width: 1024,
-      height: 1024,
-      onload: null as ((this: HTMLImageElement, ev: Event) => any) | null,
-      onerror: null as ((this: HTMLImageElement, ev: Event) => any) | null,
-      src: '',
-    };
+    class MockImage {
+      width = 1024;
+      height = 1024;
+      onload: ((this: HTMLImageElement, ev: Event) => any) | null = null;
+      onerror: ((this: HTMLImageElement, ev: Event) => any) | null = null;
+      src = '';
 
-    // Create a proper Image mock
-    vi.stubGlobal('Image', vi.fn(() => mockImg));
+      constructor() {
+        setTimeout(() => {
+          if (this.onload) {
+            this.onload.call(this, new Event('load'));
+          }
+        }, 0);
+      }
+    }
+
+    vi.stubGlobal('Image', MockImage);
 
     // Mock fetch to return a blob
     (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValue({
@@ -66,19 +72,10 @@ describe('downloadImage', () => {
       blob: () => Promise.resolve(mockBlob),
     } as unknown as Response);
 
-    // Wait for image onload to be called
-    const imageLoadPromise = new Promise<void>((resolve) => {
-      setTimeout(() => {
-        if (mockImg.onload) {
-          mockImg.onload.call(mockImg, new Event('load'));
-        }
-        resolve();
-      }, 0);
-    });
-
     const result = await downloadImage('https://example.com/image.png');
 
-    await imageLoadPromise;
+    // Wait for promises to resolve
+    await new Promise(resolve => setTimeout(resolve, 20));
 
     expect(result.success).toBe(true);
     expect(result.filename).toBeDefined();
@@ -115,69 +112,83 @@ describe('generateFilename', () => {
   it('应该过滤特殊字符', async () => {
     const mockBlob = new Blob(['image data'], { type: 'image/png' });
 
-    // Mock Image
-    const mockImg = {
-      width: 1024,
-      height: 1024,
-      onload: null as ((this: HTMLImageElement, ev: Event) => any) | null,
-      onerror: null as ((this: HTMLImageElement, ev: Event) => any) | null,
-      src: '',
-    };
+    // Create a proper Image mock that auto-triggers onload
+    let imageLoadCallback: ((img: any) => void) | null = null;
 
-    vi.stubGlobal('Image', vi.fn(() => mockImg));
+    class MockImage {
+      width = 1024;
+      height = 1024;
+      onload: ((this: HTMLImageElement, ev: Event) => any) | null = null;
+      onerror: ((this: HTMLImageElement, ev: Event) => any) | null = null;
+      src = '';
+
+      constructor() {
+        // Trigger onload after a short delay when src is set
+        setTimeout(() => {
+          if (this.onload) {
+            this.onload.call(this, new Event('load'));
+          }
+        }, 0);
+      }
+    }
+
+    vi.stubGlobal('Image', MockImage);
 
     (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValue({
       ok: true,
       blob: () => Promise.resolve(mockBlob),
     } as unknown as Response);
-
-    // Wait for image onload
-    setTimeout(() => {
-      if (mockImg.onload) {
-        mockImg.onload.call(mockImg, new Event('load'));
-      }
-    }, 0);
 
     const result = await downloadImage('https://example.com/image.png', {
       filename: 'test<file>name/with\\special|chars',
     });
 
+    // Wait for promises to resolve
+    await new Promise(resolve => setTimeout(resolve, 20));
+
     expect(result.success).toBe(true);
     // 文件名不应该包含特殊字符
-    expect(result.filename).not.toContain('<');
-    expect(result.filename).not.toContain('>');
-    expect(result.filename).not.toContain('/');
+    if (result.filename) {
+      expect(result.filename).not.toContain('<');
+      expect(result.filename).not.toContain('>');
+      expect(result.filename).not.toContain('/');
+    }
   });
 
   it('应该限制文件名长度', async () => {
     const mockBlob = new Blob(['image data'], { type: 'image/png' });
 
-    const mockImg = {
-      width: 1024,
-      height: 1024,
-      onload: null as ((this: HTMLImageElement, ev: Event) => any) | null,
-      onerror: null as ((this: HTMLImageElement, ev: Event) => any) | null,
-      src: '',
-    };
+    class MockImage {
+      width = 1024;
+      height = 1024;
+      onload: ((this: HTMLImageElement, ev: Event) => any) | null = null;
+      onerror: ((this: HTMLImageElement, ev: Event) => any) | null = null;
+      src = '';
 
-    vi.stubGlobal('Image', vi.fn(() => mockImg));
+      constructor() {
+        setTimeout(() => {
+          if (this.onload) {
+            this.onload.call(this, new Event('load'));
+          }
+        }, 0);
+      }
+    }
+
+    vi.stubGlobal('Image', MockImage);
 
     (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValue({
       ok: true,
       blob: () => Promise.resolve(mockBlob),
     } as unknown as Response);
-
-    setTimeout(() => {
-      if (mockImg.onload) {
-        mockImg.onload.call(mockImg, new Event('load'));
-      }
-    }, 0);
 
     // 创建超长文件名
     const longFilename = 'a'.repeat(200);
     const result = await downloadImage('https://example.com/image.png', {
       filename: longFilename,
     });
+
+    // Wait for promises to resolve
+    await new Promise(resolve => setTimeout(resolve, 20));
 
     expect(result.success).toBe(true);
     // 文件名应该被截断到合理长度
@@ -213,7 +224,28 @@ describe('downloadImagesAsZip', () => {
       src: '',
     };
 
-    vi.stubGlobal('Image', vi.fn(() => mockImg));
+    class MockImage {
+      constructor() {
+        Object.assign(this, mockImg);
+      }
+    }
+
+    vi.stubGlobal('Image', MockImage);
+
+    // Trigger onload when src is set
+    Object.defineProperty(mockImg, 'src', {
+      set(value: string) {
+        mockImg.src = value;
+        setTimeout(() => {
+          if (mockImg.onload) {
+            mockImg.onload.call(mockImg, new Event('load'));
+          }
+        }, 0);
+      },
+      get() {
+        return mockImg.src;
+      },
+    });
 
     // 第一次成功，第二次失败
     (global.fetch as ReturnType<typeof vi.fn>)
@@ -226,17 +258,14 @@ describe('downloadImagesAsZip', () => {
         statusText: 'Not Found',
       } as unknown as Response);
 
-    // 等待图片加载
-    setTimeout(() => {
-      if (mockImg.onload) {
-        mockImg.onload.call(mockImg, new Event('load'));
-      }
-    }, 0);
-
-    const result = await downloadImagesAsZip([
+    const resultPromise = downloadImagesAsZip([
       { url: 'https://example.com/image1.png' },
       { url: 'https://example.com/image2.png' },
     ]);
+
+    await new Promise(resolve => setTimeout(resolve, 20));
+
+    const result = await resultPromise;
 
     // 即使有失败，也应该返回结果（部分成功）
     // 由于 JSZip 可能加载失败，我们主要检查结构

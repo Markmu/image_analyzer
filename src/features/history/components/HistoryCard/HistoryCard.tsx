@@ -7,7 +7,7 @@
 
 import { Card, CardMedia, CardContent, CardActions, Box, Typography, Chip, IconButton, Tooltip } from '@mui/material';
 import { History as HistoryIcon, Eye, Trash2, RefreshCw } from 'lucide-react';
-import { formatDistanceToNow } from 'date-fns';
+import { formatDistanceToNow, isValid, parseISO } from 'date-fns';
 import { zhCN } from 'date-fns/locale';
 import type { HistoryRecord } from '../../types';
 
@@ -16,6 +16,17 @@ interface HistoryCardProps {
   onViewDetail: (id: number) => void;
   onReuse: (id: number) => void;
   onDelete: (id: number) => void;
+}
+
+function formatRelativeTimeSafe(value: unknown): string {
+  if (value instanceof Date) {
+    return isValid(value) ? formatDistanceToNow(value, { addSuffix: true, locale: zhCN }) : '时间未知';
+  }
+  if (typeof value === 'string' && value.trim()) {
+    const parsed = parseISO(value);
+    return isValid(parsed) ? formatDistanceToNow(parsed, { addSuffix: true, locale: zhCN }) : '时间未知';
+  }
+  return '时间未知';
 }
 
 export function HistoryCard({ record, onViewDetail, onReuse, onDelete }: HistoryCardProps) {
@@ -94,10 +105,7 @@ export function HistoryCard({ record, onViewDetail, onReuse, onDelete }: History
           display="block"
           data-testid="history-time"
         >
-          {formatDistanceToNow(new Date(record.createdAt), {
-            addSuffix: true,
-            locale: zhCN,
-          })}
+          {formatRelativeTimeSafe(record.createdAt)}
         </Typography>
       </CardContent>
 

@@ -5,7 +5,7 @@
  * Unit tests for optimization constants and preferences
  */
 
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import {
   OPTIMIZATION_MODES,
   OPTIMIZATION_TARGETS,
@@ -114,23 +114,17 @@ describe('Optimization Preferences (localStorage)', () => {
     });
 
     it('should handle corrupted localStorage data', () => {
-      if (typeof window === 'undefined' || !window.localStorage) {
-        // Skip in Node.js environment
-        return;
-      }
-
       localStorage.setItem(OPTIMIZATION_PREFERENCES_STORAGE_KEY, 'invalid json');
+
+      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
       const prefs = loadOptimizationPreferences();
       expect(prefs).toEqual(DEFAULT_OPTIMIZATION_PREFERENCES);
+
+      consoleErrorSpy.mockRestore();
     });
 
     it('should merge partial preferences with defaults', () => {
-      if (typeof window === 'undefined' || !window.localStorage) {
-        // Skip in Node.js environment
-        return;
-      }
-
       const partialPrefs = {
         lastMode: 'deep',
       };
@@ -147,11 +141,6 @@ describe('Optimization Preferences (localStorage)', () => {
 
   describe('saveOptimizationPreferences', () => {
     it('should save preferences to localStorage', () => {
-      if (typeof window === 'undefined' || !window.localStorage) {
-        // Skip in Node.js environment
-        return;
-      }
-
       const prefsToSave = {
         lastMode: 'deep' as const,
       };
@@ -166,11 +155,6 @@ describe('Optimization Preferences (localStorage)', () => {
     });
 
     it('should handle save errors gracefully', () => {
-      if (typeof window === 'undefined' || !window.localStorage) {
-        // Skip in Node.js environment
-        return;
-      }
-
       // Mock localStorage.setItem to throw error
       const originalSetItem = localStorage.setItem;
       localStorage.setItem = () => {
