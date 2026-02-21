@@ -439,6 +439,24 @@ export default function AnalysisPage() {
     }
   }, [analysisState.id]);
 
+  const handleSaveTemplate = useCallback(async (payload: {
+    analysisResultId: number;
+    title?: string;
+    description?: string;
+    tags?: string[];
+  }): Promise<void> => {
+    const response = await fetch('/api/templates', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+
+    const result = await response.json();
+    if (!response.ok || !result.success) {
+      throw new Error(result.error || '保存模版失败');
+    }
+  }, []);
+
   const handleAgreeTerms = async () => {
     const res = await fetch('/api/user/agree-terms', {
       method: 'POST',
@@ -539,12 +557,14 @@ export default function AnalysisPage() {
           <RightColumn
             status={analysisState.status}
             analysisData={analysisState.data}
+            analysisResultId={analysisState.id}
             templateContent={templateState.content}
             renderedTemplate={renderedTemplate}
             copied={templateState.copied}
             variables={templateState.variables}
             isMobileLayout={isMobileLayout}
             onCopyTemplate={handleCopyTemplate}
+            onSaveTemplate={handleSaveTemplate}
             onVariableChange={(key, value) => {
               setTemplateState((prev) => ({
                 ...prev,
