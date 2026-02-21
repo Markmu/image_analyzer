@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
 import {
   Alert,
   Menu,
@@ -134,6 +135,17 @@ export function UserMenu() {
 
       <Divider sx={{ borderColor: 'var(--glass-border)' }} />
 
+      <MenuItem
+        component={Link}
+        href="/analytics"
+        onClick={handleClose}
+        data-testid="user-menu-analytics-dashboard"
+      >
+        历史分析仪表板
+      </MenuItem>
+
+      <Divider sx={{ borderColor: 'var(--glass-border)' }} />
+
       <MenuItem onClick={handleOpenDeleteDialog} data-testid="user-menu-delete-account">
         <Typography sx={{ color: 'var(--error)' }}>删除账户</Typography>
       </MenuItem>
@@ -202,6 +214,17 @@ export function UserMenu() {
             border: '1px solid var(--glass-border-blue-medium)',
           }}
         />
+      </MenuItem>
+
+      <Divider sx={{ borderColor: 'var(--glass-border)' }} />
+
+      <MenuItem
+        component={Link}
+        href="/analytics"
+        onClick={handleClose}
+        data-testid="user-menu-analytics-dashboard"
+      >
+        历史分析仪表板
       </MenuItem>
 
       <Divider sx={{ borderColor: 'var(--glass-border)' }} />

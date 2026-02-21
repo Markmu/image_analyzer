@@ -74,16 +74,6 @@ export function Header() {
         >
           图片历史
         </Link>
-        <Link
-          href="/analytics"
-          className="transition-colors duration-200 hover:opacity-100"
-          style={{
-            color: 'var(--glass-text-white-medium)',
-            fontWeight: 500,
-          }}
-        >
-          历史分析
-        </Link>
       </nav>
 
       <div className="flex items-center gap-4">
