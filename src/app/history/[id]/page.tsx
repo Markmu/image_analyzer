@@ -28,6 +28,18 @@ import { useQuery } from '@tanstack/react-query';
 import { formatDistanceToNow, isValid, parseISO } from 'date-fns';
 import { zhCN } from 'date-fns/locale';
 
+const EMPTY_TEMPLATE_SNAPSHOT = {
+  variableFormat: '',
+  jsonFormat: {
+    subject: '',
+    style: '',
+    composition: '',
+    colors: '',
+    lighting: '',
+    additional: '',
+  },
+} as const;
+
 function formatRelativeTimeSafe(value: unknown): string {
   if (value instanceof Date) {
     return isValid(value) ? formatDistanceToNow(value, { addSuffix: true, locale: zhCN }) : '时间未知';
@@ -37,6 +49,30 @@ function formatRelativeTimeSafe(value: unknown): string {
     return isValid(parsed) ? formatDistanceToNow(parsed, { addSuffix: true, locale: zhCN }) : '时间未知';
   }
   return '时间未知';
+}
+
+function normalizeTemplateSnapshot(value: unknown) {
+  if (!value || typeof value !== 'object') {
+    return EMPTY_TEMPLATE_SNAPSHOT;
+  }
+
+  const snapshot = value as {
+    variableFormat?: unknown;
+    jsonFormat?: Record<string, unknown>;
+  };
+  const jsonFormat = snapshot.jsonFormat ?? {};
+
+  return {
+    variableFormat: typeof snapshot.variableFormat === 'string' ? snapshot.variableFormat : '',
+    jsonFormat: {
+      subject: typeof jsonFormat.subject === 'string' ? jsonFormat.subject : '',
+      style: typeof jsonFormat.style === 'string' ? jsonFormat.style : '',
+      composition: typeof jsonFormat.composition === 'string' ? jsonFormat.composition : '',
+      colors: typeof jsonFormat.colors === 'string' ? jsonFormat.colors : '',
+      lighting: typeof jsonFormat.lighting === 'string' ? jsonFormat.lighting : '',
+      additional: typeof jsonFormat.additional === 'string' ? jsonFormat.additional : '',
+    },
+  };
 }
 
 export default function AnalysisHistoryDetailPage() {
@@ -90,7 +126,7 @@ export default function AnalysisHistoryDetailPage() {
   const handleCopyTemplate = async () => {
     if (!data) return;
 
-    const templateText = data.templateSnapshot.variableFormat;
+    const templateText = normalizeTemplateSnapshot(data.templateSnapshot).variableFormat;
     try {
       await navigator.clipboard.writeText(templateText);
       setCopied(true);
@@ -142,6 +178,8 @@ export default function AnalysisHistoryDetailPage() {
       </Container>
     );
   }
+
+  const templateSnapshot = normalizeTemplateSnapshot(data.templateSnapshot);
 
   return (
     <Container maxWidth="xl" sx={{ py: 4 }} data-testid="history-detail-page">
@@ -239,7 +277,7 @@ export default function AnalysisHistoryDetailPage() {
                   borderRadius: 1,
                 }}
               >
-                {data.templateSnapshot.variableFormat}
+                {templateSnapshot.variableFormat || '暂无模版内容'}
               </Typography>
             </CardContent>
           </Card>
@@ -265,7 +303,7 @@ export default function AnalysisHistoryDetailPage() {
                   m: 0,
                 }}
               >
-                {JSON.stringify(data.templateSnapshot.jsonFormat, null, 2)}
+                {JSON.stringify(templateSnapshot.jsonFormat, null, 2)}
               </Typography>
             </CardContent>
           </Card>

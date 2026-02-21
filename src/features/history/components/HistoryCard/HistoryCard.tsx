@@ -95,7 +95,7 @@ export function HistoryCard({ record, onViewDetail, onReuse, onDelete }: History
           }}
           data-testid="history-summary"
         >
-          {record.templateSnapshot.variableFormat || '暂无模版内容'}
+          {record.templateSnapshot?.variableFormat || '暂无模版内容'}
         </Typography>
 
         {/* 时间 */}
