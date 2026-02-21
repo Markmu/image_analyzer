@@ -8,7 +8,7 @@
 
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import {
   Box,
@@ -20,6 +20,7 @@ import {
   Divider,
   Grid,
   Card,
+  CardActionArea,
   CardMedia,
   Chip,
   IconButton,
@@ -63,7 +64,7 @@ export function TemplateLibraryDetail() {
   });
 
   // 获取模版详情
-  const fetchTemplateDetail = async () => {
+  const fetchTemplateDetail = useCallback(async () => {
     setLoading(true);
     setError(null);
 
@@ -77,10 +78,14 @@ export function TemplateLibraryDetail() {
       const result = await response.json();
 
       if (result.success) {
-        setTemplate(result.data);
+        const templateData = result.data?.template ?? result.data;
+        if (!templateData) {
+          throw new Error('模版数据格式错误');
+        }
+        setTemplate(templateData);
         setEditForm({
-          title: result.data.title || '',
-          description: result.data.description || '',
+          title: templateData.title || '',
+          description: templateData.description || '',
         });
       } else {
         throw new Error(result.error || '获取模版详情失败');
@@ -90,13 +95,13 @@ export function TemplateLibraryDetail() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [templateId]);
 
   useEffect(() => {
     if (templateId) {
-      fetchTemplateDetail();
+      void fetchTemplateDetail();
     }
-  }, [templateId]);
+  }, [templateId, fetchTemplateDetail]);
 
   // 处理返回列表
   const handleBack = () => {
@@ -237,7 +242,15 @@ export function TemplateLibraryDetail() {
     );
   }
 
-  const previewImageUrl = template.templateSnapshot.analysisData?.imageUrl;
+  const previewImageUrl = template.templateSnapshot?.analysisData?.imageUrl;
+  const glassCardSx = {
+    background: 'var(--glass-bg-dark)',
+    backgroundImage: 'none',
+    border: '1px solid var(--glass-border)',
+    backdropFilter: 'blur(var(--glass-blur))',
+    WebkitBackdropFilter: 'blur(var(--glass-blur))',
+    boxShadow: 'var(--glass-shadow)',
+  } as const;
 
   return (
     <Container maxWidth="xl" sx={{ py: 4 }} data-testid="template-detail">
@@ -269,49 +282,47 @@ export function TemplateLibraryDetail() {
         <Grid item xs={12} md={5}>
           {/* 预览图 */}
           <Card
-            className="ia-glass-card"
+            className="ia-glass-card ia-glass-card--static"
             sx={{
+              ...glassCardSx,
               mb: 3,
               overflow: 'hidden',
             }}
             data-testid="template-preview-card"
           >
-            <CardMedia
-              component="div"
-              sx={{
-                height: 300,
-                backgroundColor: 'rgba(255, 255, 255, 0.05)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                backgroundImage: previewImageUrl
-                  ? `url(${previewImageUrl})`
-                  : undefined,
-                backgroundSize: 'cover',
-                backgroundPosition: 'center',
-              }}
-            >
-              {!previewImageUrl && (
-                <Box
-                  sx={{
-                    color: 'var(--glass-text-gray-medium)',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    gap: 1,
-                  }}
-                >
-                  <CheckCircle size={48} opacity={0.5} />
-                  <Typography variant="caption" sx={{ color: 'var(--glass-text-gray-medium)' }}>
-                    暂无预览图
-                  </Typography>
-                </Box>
-              )}
-            </CardMedia>
+            {previewImageUrl ? (
+              <CardMedia
+                component="img"
+                image={previewImageUrl}
+                alt="模版预览图"
+                sx={{
+                  height: 300,
+                  objectFit: 'cover',
+                }}
+              />
+            ) : (
+              <Box
+                sx={{
+                  height: 300,
+                  backgroundColor: 'var(--glass-bg-light)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: 'var(--glass-text-gray-medium)',
+                  flexDirection: 'column',
+                  gap: 1,
+                }}
+              >
+                <CheckCircle size={48} opacity={0.5} />
+                <Typography variant="caption" sx={{ color: 'var(--glass-text-gray-medium)' }}>
+                  暂无预览图
+                </Typography>
+              </Box>
+            )}
           </Card>
 
           {/* 统计信息 */}
-          <Card className="ia-glass-card" sx={{ p: 3 }}>
+          <Card className="ia-glass-card ia-glass-card--static" sx={{ ...glassCardSx, p: 3 }}>
             <Typography
               variant="h6"
               sx={{
@@ -339,7 +350,7 @@ export function TemplateLibraryDetail() {
                 }}
                 data-testid="template-usage-count"
               >
-                <TrendingUp size={20} sx={{ color: 'var(--glass-text-blue-light)' }} />
+                <TrendingUp size={20} style={{ color: 'var(--glass-text-primary)' }} />
                 <Box>
                   <Typography
                     variant="body2"
@@ -367,7 +378,7 @@ export function TemplateLibraryDetail() {
                 }}
                 data-testid="template-created-at"
               >
-                <Calendar size={20} sx={{ color: 'var(--glass-text-green-light)' }} />
+                <Calendar size={20} style={{ color: 'var(--glass-text-accent)' }} />
                 <Box>
                   <Typography
                     variant="body2"
@@ -398,7 +409,7 @@ export function TemplateLibraryDetail() {
                 }}
                 data-testid="template-generations-count"
               >
-                <CheckCircle size={20} sx={{ color: 'var(--glass-text-purple-light)' }} />
+                <CheckCircle size={20} style={{ color: 'var(--glass-text-primary)' }} />
                 <Box>
                   <Typography
                     variant="body2"
@@ -421,7 +432,7 @@ export function TemplateLibraryDetail() {
         {/* 右侧：详细信息 */}
         <Grid item xs={12} md={7}>
           {/* 标题和操作 */}
-          <Card className="ia-glass-card" sx={{ p: 3, mb: 3 }}>
+          <Card className="ia-glass-card ia-glass-card--static" sx={{ ...glassCardSx, p: 3, mb: 3 }}>
             <Box
               sx={{
                 display: 'flex',
@@ -457,13 +468,14 @@ export function TemplateLibraryDetail() {
               {/* 收藏按钮 */}
               <IconButton
                 onClick={handleToggleFavorite}
-                sx={{ ml: 2 }}
+                sx={{ ml: 2, width: 44, height: 44 }}
                 data-testid="toggle-favorite-button"
+                aria-label={template.isFavorite ? '取消收藏模版' : '收藏模版'}
               >
                 {template.isFavorite ? (
                   <Star size={24} className="text-yellow-500" fill="currentColor" />
                 ) : (
-                  <StarOff size={24} sx={{ color: 'var(--glass-text-gray-medium)' }} />
+                  <StarOff size={24} style={{ color: 'var(--glass-text-gray-medium)' }} />
                 )}
               </IconButton>
             </Box>
@@ -511,7 +523,7 @@ export function TemplateLibraryDetail() {
           </Card>
 
           {/* 标签和分类 */}
-          <Card className="ia-glass-card" sx={{ p: 3, mb: 3 }}>
+          <Card className="ia-glass-card ia-glass-card--static" sx={{ ...glassCardSx, p: 3, mb: 3 }}>
             {/* 标签 */}
             {template.tags && template.tags.length > 0 && (
               <Box sx={{ mb: 2 }} data-testid="template-tags">
@@ -523,7 +535,7 @@ export function TemplateLibraryDetail() {
                     mb: 1.5,
                   }}
                 >
-                  <Tag size={18} sx={{ color: 'var(--glass-text-blue-light)' }} />
+                  <Tag size={18} style={{ color: 'var(--glass-text-primary)' }} />
                   <Typography
                     variant="subtitle1"
                     sx={{
@@ -546,7 +558,7 @@ export function TemplateLibraryDetail() {
                       key={index}
                       label={tag}
                       sx={{
-                        backgroundColor: 'rgba(59, 130, 246, 0.2)',
+                        backgroundColor: 'var(--glass-bg-blue-medium)',
                         color: 'var(--glass-text-white-medium)',
                       }}
                     />
@@ -566,7 +578,7 @@ export function TemplateLibraryDetail() {
                     mb: 1.5,
                   }}
                 >
-                  <FolderTree size={18} sx={{ color: 'var(--glass-text-green-light)' }} />
+                  <FolderTree size={18} style={{ color: 'var(--glass-text-accent)' }} />
                   <Typography
                     variant="subtitle1"
                     sx={{
@@ -594,8 +606,8 @@ export function TemplateLibraryDetail() {
                       }
                       variant="outlined"
                       sx={{
-                        borderColor: 'rgba(59, 130, 246, 0.3)',
-                        color: 'var(--glass-text-blue-light)',
+                        borderColor: 'var(--glass-border-active)',
+                        color: 'var(--glass-text-primary)',
                       }}
                     />
                   ))}
@@ -605,7 +617,7 @@ export function TemplateLibraryDetail() {
           </Card>
 
           {/* 模版快照数据 */}
-          <Card className="ia-glass-card" sx={{ p: 3, mb: 3 }}>
+          <Card className="ia-glass-card ia-glass-card--static" sx={{ ...glassCardSx, p: 3, mb: 3 }}>
             <Typography
               variant="h6"
               sx={{
@@ -619,11 +631,12 @@ export function TemplateLibraryDetail() {
 
             <Box
               sx={{
-                backgroundColor: 'rgba(0, 0, 0, 0.2)',
+                backgroundColor: 'var(--glass-bg-dark-light)',
                 p: 2,
                 borderRadius: 1,
                 maxHeight: 300,
                 overflow: 'auto',
+                border: '1px solid var(--glass-border-white-light)',
               }}
               data-testid="template-snapshot"
             >
@@ -657,7 +670,7 @@ export function TemplateLibraryDetail() {
 
           {/* 生成历史 */}
           {template.generations && template.generations.length > 0 && (
-            <Card className="ia-glass-card" sx={{ p: 3 }}>
+            <Card className="ia-glass-card ia-glass-card--static" sx={{ ...glassCardSx, p: 3 }}>
               <Typography
                 variant="h6"
                 sx={{
@@ -673,43 +686,64 @@ export function TemplateLibraryDetail() {
                 {template.generations.map((generation) => (
                   <Grid item xs={6} sm={4} md={3} key={generation.id}>
                     <Card
+                      className="ia-glass-card ia-glass-card--static"
                       sx={{
+                        ...glassCardSx,
                         overflow: 'hidden',
-                        cursor: 'pointer',
-                        transition: 'transform 0.2s',
+                        transition: 'var(--glass-transition)',
                         '&:hover': {
-                          transform: 'scale(1.05)',
+                          transform: 'translateY(-2px)',
                         },
                       }}
-                      onClick={() => window.open(generation.imageUrl, '_blank')}
                     >
-                      <CardMedia
-                        component="div"
-                        sx={{
-                          height: 120,
-                          backgroundImage: generation.imageUrl
-                            ? `url(${generation.imageUrl})`
-                            : undefined,
-                          backgroundSize: 'cover',
-                          backgroundPosition: 'center',
-                          backgroundColor: 'rgba(255, 255, 255, 0.05)',
-                        }}
-                      />
-                      <Box sx={{ p: 1 }}>
-                        <Typography
-                          variant="caption"
-                          sx={{
-                            display: 'block',
-                            color: 'var(--glass-text-gray-medium)',
-                            fontSize: '0.7rem',
-                          }}
-                        >
-                          {formatDistanceToNow(new Date(generation.createdAt), {
-                            addSuffix: true,
-                            locale: zhCN,
-                          })}
-                        </Typography>
-                      </Box>
+                      <CardActionArea
+                        onClick={() =>
+                          window.open(generation.imageUrl, '_blank', 'noopener,noreferrer')
+                        }
+                        aria-label={`查看生成历史图片 ${generation.id}`}
+                        sx={{ minHeight: 44 }}
+                      >
+                        {generation.imageUrl ? (
+                          <CardMedia
+                            component="img"
+                            image={generation.imageUrl}
+                            alt={`生成历史图片 ${generation.id}`}
+                            sx={{
+                              height: 120,
+                              objectFit: 'cover',
+                              backgroundColor: 'var(--glass-bg-light)',
+                            }}
+                          />
+                        ) : (
+                          <Box
+                            sx={{
+                              height: 120,
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              backgroundColor: 'var(--glass-bg-light)',
+                              color: 'var(--glass-text-gray-medium)',
+                            }}
+                          >
+                            <Typography variant="caption">暂无图片</Typography>
+                          </Box>
+                        )}
+                        <Box sx={{ p: 1 }}>
+                          <Typography
+                            variant="caption"
+                            sx={{
+                              display: 'block',
+                              color: 'var(--glass-text-gray-medium)',
+                              fontSize: '0.7rem',
+                            }}
+                          >
+                            {formatDistanceToNow(new Date(generation.createdAt), {
+                              addSuffix: true,
+                              locale: zhCN,
+                            })}
+                          </Typography>
+                        </Box>
+                      </CardActionArea>
                     </Card>
                   </Grid>
                 ))}
@@ -731,18 +765,22 @@ export function TemplateLibraryDetail() {
       <Dialog
         open={editDialog}
         onClose={() => setEditDialog(false)}
+        aria-labelledby="template-edit-dialog-title"
         maxWidth="sm"
         fullWidth
         PaperProps={{
+          className: 'ia-glass-card ia-glass-card--heavy ia-glass-card--lg ia-glass-card--static',
           sx: {
-            backgroundColor: 'var(--glass-bg-dark-heavy)',
-            border: '1px solid var(--glass-border-white-light)',
-            borderRadius: 2,
+            backgroundColor: 'rgba(15, 23, 42, 0.92)',
+            backgroundImage: 'linear-gradient(180deg, rgba(30,41,59,0.92) 0%, rgba(15,23,42,0.94) 100%)',
+            border: '1px solid var(--glass-border-white-heavy)',
+            boxShadow: '0 14px 48px rgba(2, 6, 23, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.08)',
           },
         }}
         data-testid="edit-dialog"
       >
         <DialogTitle
+          id="template-edit-dialog-title"
           sx={{
             color: 'var(--glass-text-white-heavy)',
             fontWeight: 600,

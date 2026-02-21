@@ -252,6 +252,8 @@ export default function AnalysisPage() {
           }
 
           const { status, progress, result } = data.data;
+          const analysisResultId =
+            typeof data.data.analysisResultId === 'number' ? data.data.analysisResultId : null;
 
           setAnalysisProgress(progress || 0);
           setAnalysisStage(status === 'generating' ? 'generating' : 'analyzing');
@@ -261,6 +263,7 @@ export default function AnalysisPage() {
               ...prev,
               status: 'completed',
               data: result,
+              id: analysisResultId ?? prev.id,
             }));
             setAnalysisStage('completed');
             return;

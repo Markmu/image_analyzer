@@ -39,6 +39,14 @@ interface TemplateLibraryProps {
 
 export function TemplateLibrary({ userId }: TemplateLibraryProps) {
   const router = useRouter();
+  const glassCardSx = {
+    background: 'var(--glass-bg-dark)',
+    backgroundImage: 'none',
+    border: '1px solid var(--glass-border)',
+    backdropFilter: 'blur(var(--glass-blur))',
+    WebkitBackdropFilter: 'blur(var(--glass-blur))',
+    boxShadow: 'var(--glass-shadow)',
+  } as const;
   const [templates, setTemplates] = useState<SavedTemplate[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -257,8 +265,9 @@ export function TemplateLibrary({ userId }: TemplateLibraryProps) {
     <Container maxWidth="xl" sx={{ py: 4 }} data-testid="template-library">
       {/* 页面标题 */}
       <Box
-        className="ia-glass-card"
+        className="ia-glass-card ia-glass-card--static"
         sx={{
+          ...glassCardSx,
           p: 4,
           mb: 4,
           display: 'flex',

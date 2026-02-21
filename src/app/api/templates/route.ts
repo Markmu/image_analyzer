@@ -89,11 +89,12 @@ export async function POST(request: NextRequest) {
     }
 
     const body: SaveToLibraryInput = await request.json();
+    const normalizedAnalysisResultId = Number(body.analysisResultId);
 
     // Validate required fields
-    if (!body.analysisResultId) {
+    if (!Number.isInteger(normalizedAnalysisResultId) || normalizedAnalysisResultId <= 0) {
       return NextResponse.json(
-        { success: false, error: 'analysisResultId is required' },
+        { success: false, error: 'analysisResultId must be a positive integer' },
         { status: 400 }
       );
     }
@@ -188,7 +189,10 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    const template = await saveToLibrary(session.user.id, body);
+    const template = await saveToLibrary(session.user.id, {
+      ...body,
+      analysisResultId: normalizedAnalysisResultId,
+    });
 
     return NextResponse.json({
       success: true,

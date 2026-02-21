@@ -8,8 +8,8 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getDb } from '@/lib/db';
-import { analysisResults, batchAnalysisResults, images } from '@/lib/db/schema';
-import { eq, and, desc } from 'drizzle-orm';
+import { analysisResults, batchAnalysisResults, batchAnalysisImages, images } from '@/lib/db/schema';
+import { eq, and, desc, isNotNull } from 'drizzle-orm';
 import { auth } from '@/lib/auth';
 import type { AnalysisStage } from '@/lib/utils/time-estimation';
 
@@ -60,18 +60,48 @@ export async function GET(
 
         // 如果是已完成的任务，尝试获取分析结果
         if (batch.status === 'completed' || batch.status === 'partial') {
-          const analysisResultList = await db
+          const batchImageList = await db
             .select()
-            .from(analysisResults)
-            .orderBy(desc(analysisResults.createdAt))
+            .from(batchAnalysisImages)
+            .where(
+              and(
+                eq(batchAnalysisImages.batchId, batch.id),
+                isNotNull(batchAnalysisImages.analysisResultId)
+              )
+            )
+            .orderBy(desc(batchAnalysisImages.completedAt))
             .limit(1);
 
-          if (analysisResultList.length > 0) {
-            const result = analysisResultList[0];
+          if (batchImageList.length > 0 && batchImageList[0].analysisResultId) {
+            const [result] = await db
+              .select()
+              .from(analysisResults)
+              .where(
+                and(
+                  eq(analysisResults.id, batchImageList[0].analysisResultId),
+                  eq(analysisResults.userId, batch.userId)
+                )
+              )
+              .limit(1);
+
+            if (!result) {
+              return NextResponse.json(
+                {
+                  success: false,
+                  error: {
+                    code: 'NOT_FOUND',
+                    message: '分析结果不存在',
+                  },
+                },
+                { status: 404 }
+              );
+            }
+
             return NextResponse.json({
               success: true,
               data: {
                 id: batch.id,
+                analysisResultId: result.id,
                 status: batch.status,
                 progress: {
                   completed: batch.completedImages,
@@ -124,6 +154,7 @@ export async function GET(
           success: true,
           data: {
             id: result.id,
+            analysisResultId: result.id,
             status: 'completed',
             progress: {
               completed: 1,
@@ -228,4 +259,3 @@ export const updateAnalysisTask = (
 
 // 导出用于测试
 export { analysisTasks };
-

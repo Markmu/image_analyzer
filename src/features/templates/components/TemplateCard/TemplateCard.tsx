@@ -23,7 +23,6 @@ import {
 } from '@mui/material';
 import {
   Eye,
-  Trash2,
   RefreshCw,
   Star,
   StarOff,
@@ -68,18 +67,29 @@ export function TemplateCard({
 
   // 获取预览图URL（从快照数据中提取）
   const previewImageUrl = template.templateSnapshot.analysisData?.imageUrl;
+  const glassCardSx = {
+    background: 'var(--glass-bg-dark)',
+    backgroundImage: 'none',
+    border: '1px solid var(--glass-border)',
+    backdropFilter: 'blur(var(--glass-blur))',
+    WebkitBackdropFilter: 'blur(var(--glass-blur))',
+    boxShadow: 'var(--glass-shadow)',
+  } as const;
 
   return (
     <Card
-      className="ia-glass-card"
+      className="ia-glass-card ia-glass-card--static"
       sx={{
+        ...glassCardSx,
         height: '100%',
         display: 'flex',
         flexDirection: 'column',
         transition: 'transform 0.2s, box-shadow 0.2s',
         '&:hover': {
           transform: 'translateY(-4px)',
-          boxShadow: '0 8px 16px rgba(0, 0, 0, 0.2)',
+          background: 'var(--glass-bg-dark-hover)',
+          borderColor: 'var(--glass-border-hover)',
+          boxShadow: 'var(--glass-shadow-hover)',
         },
       }}
       data-testid="template-card"
@@ -89,7 +99,7 @@ export function TemplateCard({
         component="div"
         sx={{
           height: 180,
-          backgroundColor: 'rgba(255, 255, 255, 0.05)',
+          backgroundColor: 'var(--glass-bg-light)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
@@ -190,7 +200,7 @@ export function TemplateCard({
                 label={tag}
                 size="small"
                 sx={{
-                  backgroundColor: 'rgba(59, 130, 246, 0.2)',
+                  backgroundColor: 'var(--glass-bg-blue-medium)',
                   color: 'var(--glass-text-white-medium)',
                   fontSize: '0.75rem',
                   height: 24,
@@ -202,7 +212,7 @@ export function TemplateCard({
                 label={`+${template.tags.length - 3}`}
                 size="small"
                 sx={{
-                  backgroundColor: 'rgba(148, 163, 184, 0.2)',
+                  backgroundColor: 'var(--glass-bg-light)',
                   color: 'var(--glass-text-gray-medium)',
                   fontSize: '0.75rem',
                   height: 24,
@@ -222,8 +232,8 @@ export function TemplateCard({
                 size="small"
                 variant="outlined"
                 sx={{
-                  borderColor: 'rgba(59, 130, 246, 0.3)',
-                  color: 'var(--glass-text-blue-light)',
+                  borderColor: 'var(--glass-border-active)',
+                  color: 'var(--glass-text-primary)',
                   fontSize: '0.75rem',
                   height: 24,
                 }}
@@ -250,7 +260,7 @@ export function TemplateCard({
             }}
             data-testid="template-usage-count"
           >
-            <TrendingUp size={14} sx={{ color: 'var(--glass-text-gray-heavy)' }} />
+            <TrendingUp size={14} style={{ color: 'var(--glass-text-gray-heavy)' }} />
             <Typography
               variant="caption"
               sx={{ color: 'var(--glass-text-gray-medium)' }}
@@ -268,7 +278,7 @@ export function TemplateCard({
             }}
             data-testid="template-created-at"
           >
-            <Calendar size={14} sx={{ color: 'var(--glass-text-gray-heavy)' }} />
+            <Calendar size={14} style={{ color: 'var(--glass-text-gray-heavy)' }} />
             <Typography
               variant="caption"
               sx={{ color: 'var(--glass-text-gray-medium)' }}
@@ -293,7 +303,7 @@ export function TemplateCard({
             {template.isFavorite ? (
               <Star size={18} className="text-yellow-500" fill="currentColor" />
             ) : (
-              <StarOff size={18} sx={{ color: 'var(--glass-text-gray-medium)' }} />
+              <StarOff size={18} style={{ color: 'var(--glass-text-gray-medium)' }} />
             )}
           </IconButton>
         </Tooltip>
@@ -304,7 +314,7 @@ export function TemplateCard({
             onClick={() => onViewDetail(template.id)}
             data-testid="template-view-detail"
           >
-            <Eye size={18} sx={{ color: 'var(--glass-text-white-medium)' }} />
+            <Eye size={18} style={{ color: 'var(--glass-text-white-medium)' }} />
           </IconButton>
         </Tooltip>
 
@@ -325,7 +335,7 @@ export function TemplateCard({
             onClick={handleMenuOpen}
             data-testid="template-more-menu"
           >
-            <MoreVertical size={18} sx={{ color: 'var(--glass-text-gray-medium)' }} />
+            <MoreVertical size={18} style={{ color: 'var(--glass-text-gray-medium)' }} />
           </IconButton>
         </Tooltip>
 
@@ -347,7 +357,7 @@ export function TemplateCard({
             sx={{
               color: 'var(--glass-text-white-medium)',
               '&:hover': {
-                backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                backgroundColor: 'var(--glass-bg-blue-light)',
               },
             }}
           >
@@ -358,7 +368,7 @@ export function TemplateCard({
             sx={{
               color: 'var(--glass-text-white-medium)',
               '&:hover': {
-                backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                backgroundColor: 'var(--glass-bg-blue-light)',
               },
             }}
           >

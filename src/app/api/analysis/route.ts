@@ -1,6 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getDb } from '@/lib/db';
-import { user, images, analysisResults, batchAnalysisResults, confidenceLogs } from '@/lib/db/schema';
+import {
+  user,
+  images,
+  analysisResults,
+  batchAnalysisResults,
+  batchAnalysisImages,
+  confidenceLogs,
+} from '@/lib/db/schema';
 import { eq, and } from 'drizzle-orm';
 import { auth } from '@/lib/auth';
 import { canUserUseModel, recordModelUsage, getDefaultModel, modelRegistry } from '@/lib/analysis/models';
@@ -226,6 +233,12 @@ export async function POST(request: NextRequest) {
       .returning();
 
     const batchId = batchRecord.id;
+    await db.insert(batchAnalysisImages).values({
+      batchId,
+      imageId,
+      imageOrder: 0,
+      status: 'pending',
+    });
 
     // 8. 队列已满，返回 503（AC-5: 高并发场景处理）
     if (!concurrencyCheck.canProcess) {
@@ -337,6 +350,10 @@ async function executeAnalysisAsync(
       .update(batchAnalysisResults)
       .set({ status: 'processing' })
       .where(eq(batchAnalysisResults.id, batchId));
+    await db
+      .update(batchAnalysisImages)
+      .set({ status: 'processing' })
+      .where(and(eq(batchAnalysisImages.batchId, batchId), eq(batchAnalysisImages.imageId, imageId)));
 
     // 从 R2 下载图片用于阿里云 Provider
     let imageBuffer: Buffer | undefined;
@@ -413,6 +430,14 @@ async function executeAnalysisAsync(
         completedAt: new Date(),
       })
       .where(eq(batchAnalysisResults.id, batchId));
+    await db
+      .update(batchAnalysisImages)
+      .set({
+        status: 'completed',
+        analysisResultId: insertedResult.id,
+        completedAt: new Date(),
+      })
+      .where(and(eq(batchAnalysisImages.batchId, batchId), eq(batchAnalysisImages.imageId, imageId)));
 
     // 记录模型使用统计
     await recordModelUsage(modelId, userId, true, analysisData.analysisDuration);
@@ -446,6 +471,14 @@ async function executeAnalysisAsync(
         completedAt: new Date(),
       })
       .where(eq(batchAnalysisResults.id, batchId));
+    await db
+      .update(batchAnalysisImages)
+      .set({
+        status: 'failed',
+        errorMessage: error instanceof Error ? error.message : 'Analysis failed',
+        completedAt: new Date(),
+      })
+      .where(and(eq(batchAnalysisImages.batchId, batchId), eq(batchAnalysisImages.imageId, imageId)));
 
     // 退还 credit
     const userList = await db.select().from(user).where(eq(user.id, userId)).limit(1);
