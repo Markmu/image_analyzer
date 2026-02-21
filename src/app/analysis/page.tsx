@@ -463,7 +463,17 @@ export default function AnalysisPage() {
 
   return (
     <Fragment>
-      <Container maxWidth="xl" sx={{ py: 4 }}>
+      <Container
+        maxWidth={false}
+        disableGutters
+        sx={{
+          py: 4,
+          px: {
+            xs: 2,
+            md: 3,
+          },
+        }}
+      >
         {analysisState.error && (
           <Alert
             severity="error"
@@ -501,13 +511,13 @@ export default function AnalysisPage() {
             onUploadSuccess={handleUploadSuccess}
             onUploadError={handleUploadError}
             onAutoStartAnalysis={handleAutoStartAnalysis}
+            onResetWorkspace={handleResetWorkspace}
           />
 
           <MiddleColumn
             status={analysisState.status}
             analysisData={analysisState.data}
             onCancelAnalysis={handleCancelAnalysis}
-            onResetWorkspace={handleResetWorkspace}
             onFeedback={handleFeedback}
           />
 

@@ -28,6 +28,7 @@ interface LeftColumnProps {
   onUploadSuccess: (imageData: ImageData) => void;
   onUploadError: (error: string, errorCode?: string) => void;
   onAutoStartAnalysis: (imageData: ImageData) => void;
+  onResetWorkspace: () => void;
 }
 
 export default function LeftColumn({
@@ -40,19 +41,12 @@ export default function LeftColumn({
   onUploadSuccess,
   onUploadError,
   onAutoStartAnalysis,
+  onResetWorkspace,
 }: LeftColumnProps) {
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-      <Box className="ia-glass-card ia-glass-card--static" sx={{ p: 2 }}>
-        <ImageUploader
-          onUploadSuccess={onUploadSuccess}
-          onUploadError={onUploadError}
-          onAutoStartAnalysis={onAutoStartAnalysis}
-        />
-      </Box>
-
       {imageData ? (
-        <ImagePreview imageData={imageData} />
+        <ImagePreview imageData={imageData} onResetWorkspace={onResetWorkspace} />
       ) : (
         <EmptyState
           title="等待参考图"
@@ -61,6 +55,14 @@ export default function LeftColumn({
           testId="left-column-empty"
         />
       )}
+
+      <Box className="ia-glass-card ia-glass-card--static" sx={{ p: 2 }}>
+        <ImageUploader
+          onUploadSuccess={onUploadSuccess}
+          onUploadError={onUploadError}
+          onAutoStartAnalysis={onAutoStartAnalysis}
+        />
+      </Box>
 
       <Box className="ia-glass-card ia-glass-card--static" sx={{ p: 2 }}>
         <Typography variant="subtitle1" sx={{ color: 'var(--glass-text-white-heavy)', mb: 1, fontWeight: 700 }}>

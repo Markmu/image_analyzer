@@ -41,7 +41,6 @@ export function ImageUploader({ onUploadSuccess, onUploadError, onAutoStartAnaly
   const [uploadStatus, setUploadStatus] = useState<UploadStatus>('idle');
   const [uploadProgress, setUploadProgress] = useState(0);
   const [validationResult, setValidationResult] = useState<ValidationResult | null>(null);
-  const [imageData, setImageData] = useState<ImageData | null>(null);
   const [cancelTokenSource, setCancelTokenSource] = useState<CancelTokenSource | null>(null);
   const [pendingFile, setPendingFile] = useState<File | null>(null);
 
@@ -78,7 +77,6 @@ export function ImageUploader({ onUploadSuccess, onUploadError, onAutoStartAnaly
         });
 
         if (response.data.success) {
-          setImageData(response.data.data);
           setUploadStatus('success');
           setPendingFile(null);
           onUploadSuccess?.(response.data.data);
@@ -254,16 +252,6 @@ export function ImageUploader({ onUploadSuccess, onUploadError, onAutoStartAnaly
           result={validationResult}
           onContinueAnyway={handleContinueAnyway}
           onChangeImage={handleChangeImage}
-        />
-      )}
-
-      {uploadStatus === 'success' && imageData && (
-        <ValidationStatus
-          result={{
-            valid: true,
-            errors: [],
-            warnings: [],
-          }}
         />
       )}
     </Box>

@@ -13,7 +13,6 @@ interface MiddleColumnProps {
   status: AnalysisStatus;
   analysisData: AnalysisData | null;
   onCancelAnalysis: () => void;
-  onResetWorkspace: () => void;
   onFeedback: (feedback: 'accurate' | 'inaccurate') => Promise<void>;
 }
 
@@ -21,7 +20,6 @@ export default function MiddleColumn({
   status,
   analysisData,
   onCancelAnalysis,
-  onResetWorkspace,
   onFeedback,
 }: MiddleColumnProps) {
   return (
@@ -90,25 +88,6 @@ export default function MiddleColumn({
 
       {status === 'completed' && analysisData && (
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }} data-testid="analysis-result">
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 2, flexWrap: 'wrap' }}>
-            <Typography variant="h6" sx={{ fontWeight: 700, color: 'var(--glass-text-white-heavy)' }}>
-              分析完成
-            </Typography>
-            <Button
-              variant="outlined"
-              onClick={onResetWorkspace}
-              sx={{
-                borderColor: 'var(--glass-border)',
-                color: 'var(--glass-text-white-heavy)',
-                '&:hover': {
-                  borderColor: 'var(--glass-border-active)',
-                  backgroundColor: 'var(--glass-bg-active)',
-                },
-              }}
-            >
-              更换图片
-            </Button>
-          </Box>
           <AnalysisCard analysisData={analysisData} />
           <Box className="ia-glass-card ia-glass-card--static" sx={{ p: 2 }}>
             <Typography variant="body1" sx={{ color: 'var(--glass-text-white-heavy)', mb: 1, fontWeight: 700 }}>

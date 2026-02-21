@@ -1,14 +1,15 @@
 'use client';
 
 import Image from 'next/image';
-import { Box, Typography } from '@mui/material';
+import { Box, Button, Typography } from '@mui/material';
 import type { ImageData } from '@/features/analysis/components/ImageUploader/types';
 
 interface ImagePreviewProps {
   imageData: ImageData;
+  onResetWorkspace?: () => void;
 }
 
-export default function ImagePreview({ imageData }: ImagePreviewProps) {
+export default function ImagePreview({ imageData, onResetWorkspace }: ImagePreviewProps) {
   const fileName = imageData.filePath?.split('/').pop() || 'uploaded-image';
   const sizeInMb = (imageData.fileSize / 1024 / 1024).toFixed(2);
 
@@ -30,6 +31,24 @@ export default function ImagePreview({ imageData }: ImagePreviewProps) {
       <Typography variant="body2" sx={{ color: 'var(--glass-text-gray-heavy)' }}>
         {sizeInMb} MB · {imageData.width}x{imageData.height} · {imageData.fileFormat}
       </Typography>
+      {onResetWorkspace && (
+        <Box sx={{ mt: 2, display: 'flex', justifyContent: 'flex-end' }}>
+          <Button
+            variant="outlined"
+            onClick={onResetWorkspace}
+            sx={{
+              borderColor: 'var(--glass-border)',
+              color: 'var(--glass-text-white-heavy)',
+              '&:hover': {
+                borderColor: 'var(--glass-border-active)',
+                backgroundColor: 'var(--glass-bg-active)',
+              },
+            }}
+          >
+            更换图片
+          </Button>
+        </Box>
+      )}
     </Box>
   );
 }
