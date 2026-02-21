@@ -24,6 +24,10 @@ import { parseAnalysisResponse, normalizeProviderResponse } from '@/lib/analysis
 export class ReplicateVisionProvider implements VisionAnalysisProvider {
   readonly providerId = 'replicate' as const;
 
+  private logApiJson(operation: 'analyzeImageStyle' | 'validateImageComplexity', json: string): void {
+    console.info(`[ReplicateVisionProvider] ${operation} API JSON response:`, json);
+  }
+
   /**
    * Analyze image style using Replicate vision model
    */
@@ -36,6 +40,7 @@ export class ReplicateVisionProvider implements VisionAnalysisProvider {
     // Normalize and parse response
     const outputStr = typeof output === 'string' ? output : JSON.stringify(output);
     const cleanedJson = normalizeProviderResponse(outputStr, 'replicate');
+    this.logApiJson('analyzeImageStyle', cleanedJson);
     const analysisData = parseAnalysisResponse(cleanedJson);
 
     return analysisData;
@@ -69,7 +74,10 @@ Guidelines:
       const response = await this.runModelWithVersionFallback(imageUrl, finalPrompt, 300);
 
       // Parse response
-      const respObj = typeof response === 'string' ? JSON.parse(response) : response;
+      const responseStr = typeof response === 'string' ? response : JSON.stringify(response);
+      const cleanedJson = normalizeProviderResponse(responseStr, 'replicate');
+      this.logApiJson('validateImageComplexity', cleanedJson);
+      const respObj = JSON.parse(cleanedJson);
 
       // Parse and validate response
       const subjectCount = (respObj as { subjectCount?: number }).subjectCount ?? 1;

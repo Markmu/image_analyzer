@@ -23,11 +23,7 @@ import type {
   ComplexityAnalysisResult,
 } from './interface';
 import type { AnalysisData } from '@/types/analysis';
-import {
-  extractJsonFromResponse,
-  parseAnalysisResponse,
-  normalizeProviderResponse,
-} from '@/lib/analysis/parser';
+import { parseAnalysisResponse, normalizeProviderResponse } from '@/lib/analysis/parser';
 
 /**
  * 将文件转换为 Base64 编码
@@ -73,6 +69,10 @@ export class AliyunBailianProvider implements VisionAnalysisProvider {
    * 复用连接，避免重复创建
    */
   private client: OpenAI;
+
+  private logApiJson(operation: 'analyzeImageStyle' | 'validateImageComplexity', json: string): void {
+    console.info(`[AliyunBailianProvider] ${operation} API JSON response:`, json);
+  }
 
   /**
    * Default model to use for analysis
@@ -162,7 +162,7 @@ Return the result in JSON format:
     const finalPrompt = prompt || defaultPrompt;
 
     // 准备图片内容:优先使用 Base64,其次使用 URL
-    let imageContent: { type: string; image_url: { url: string } };
+    let imageContent: { type: 'image_url'; image_url: { url: string } };
 
     if (imageFile) {
       // 使用 Base64 编码的图片(更可靠)
@@ -199,6 +199,7 @@ Return the result in JSON format:
 
     // Normalize and parse response (handles Chinese punctuation, markdown blocks, etc.)
     const cleanedJson = normalizeProviderResponse(output, 'aliyun');
+    this.logApiJson('analyzeImageStyle', cleanedJson);
     const analysisData = parseAnalysisResponse(cleanedJson);
 
     return analysisData;
@@ -229,7 +230,7 @@ Guidelines:
     const finalPrompt = prompt || defaultPrompt;
 
     // 准备图片内容:优先使用 Base64,其次使用 URL
-    let imageContent: { type: string; image_url: { url: string } };
+    let imageContent: { type: 'image_url'; image_url: { url: string } };
 
     if (imageFile) {
       // 使用 Base64 编码的图片(更可靠)
@@ -258,13 +259,13 @@ Guidelines:
             content: [{ type: 'text', text: finalPrompt }, imageContent],
           },
         ],
-        max_tokens: 300,
       });
 
       const output = response.choices[0]?.message?.content || '';
 
       // Parse response
       const cleanedJson = normalizeProviderResponse(output, 'aliyun');
+      this.logApiJson('validateImageComplexity', cleanedJson);
       const respObj = JSON.parse(cleanedJson);
 
       // Parse and validate response
