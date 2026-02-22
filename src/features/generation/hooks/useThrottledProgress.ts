@@ -6,8 +6,8 @@
  */
 
 import { useState, useEffect, useRef } from 'react';
-import type { GenerationProgress, BatchGenerationProgress } from '../../types/progress';
-import { PROGRESS_UPDATE_THROTTLE } from '../../lib/progress-constants';
+import type { GenerationProgress, BatchGenerationProgress } from '@/features/generation/types/progress';
+import { PROGRESS_UPDATE_THROTTLE } from '@/features/generation/lib/progress-constants';
 
 type ProgressData = GenerationProgress | BatchGenerationProgress;
 

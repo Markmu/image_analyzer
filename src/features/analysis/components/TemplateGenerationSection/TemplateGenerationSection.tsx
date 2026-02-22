@@ -4,7 +4,8 @@ import React, { useMemo, useState } from 'react';
 import { Box, Paper, Typography, Button, Collapse } from '@mui/material';
 import { Sparkles, ChevronDown, ChevronUp } from 'lucide-react';
 import type { AnalysisData } from '@/types/analysis';
-import { TemplateEditor, useTemplateGeneration } from '@/features/templates';
+import { EnhancedTemplateEditor } from '@/features/templates/components/TemplateEditor/EnhancedTemplateEditor';
+import { useTemplateGeneration } from '@/features/templates/hooks/useTemplateGeneration';
 
 interface TemplateGenerationSectionProps {
   /** Analysis data to generate template from */
@@ -25,6 +26,7 @@ interface TemplateGenerationSectionProps {
  * - Edit template in place
  * - Copy template to clipboard
  * - Save to template library
+ * - **Generate images from template** (Story 6.1)
  * - Expandable/collapsible (300ms animation)
  */
 export function TemplateGenerationSection({
@@ -100,11 +102,12 @@ export function TemplateGenerationSection({
         </Button>
       </Box>
 
-      {/* Template Editor (expandable, 300ms animation) */}
+      {/* Template Editor with Image Generation (expandable, 300ms animation) */}
       <Collapse in={expanded} timeout={300}>
-        <TemplateEditor
-          template={template}
+        <EnhancedTemplateEditor
+          initialFields={template.jsonFormat}
           showSaveButton={false}
+          enableGeneration={true}
           data-testid="template-editor-in-analysis"
         />
       </Collapse>

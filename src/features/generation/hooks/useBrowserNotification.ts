@@ -6,7 +6,7 @@
  */
 
 import { useState, useEffect, useCallback } from 'react';
-import type { NotificationPermission } from '../../types/progress';
+import type { NotificationPermission } from '@/features/generation/types/progress';
 import {
   requestNotificationPermission,
   getNotificationPermission,
@@ -16,8 +16,8 @@ import {
   showFailedNotification,
   showTimeoutNotification,
   NOTIFICATION_PERMISSION_EDUCATION,
-} from '../../lib/notification-handler';
-import type { GenerationProgress } from '../../types/progress';
+} from '@/features/generation/lib/notification-handler';
+import type { GenerationProgress } from '@/features/generation/types/progress';
 
 /**
  * Hook for browser notification management

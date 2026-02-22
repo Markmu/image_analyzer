@@ -28,11 +28,11 @@ import {
   Copy,
   AlertCircle,
 } from 'lucide-react';
-import { SocialPlatform, ShareOptions, PlatformConfig } from '../types/social-share';
-import { SOCIAL_PLATFORMS, DEFAULT_HASHTAGS } from '../lib/platform-configs';
-import { shareToSocialPlatform, generateShareText, nativeShare, supportsWebShareAPI } from '../lib/social-share';
+import { SocialPlatform, ShareOptions, PlatformConfig } from '../../types/social-share';
+import { SOCIAL_PLATFORMS, DEFAULT_HASHTAGS } from '../../lib/platform-configs';
+import { shareToSocialPlatform, generateShareText, nativeShare, supportsWebShareAPI } from '../../lib/social-share';
 import { RewardNotification } from '../RewardNotification';
-import { useRewardsStore } from '../stores/rewards.store';
+import { useRewardsStore } from '../../stores/rewards.store';
 
 interface ShareDialogProps {
   open: boolean;

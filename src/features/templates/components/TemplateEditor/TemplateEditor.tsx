@@ -11,7 +11,7 @@ import { ExportButton } from '../ExportButton';
 import { OptimizeButton } from '../OptimizeButton';
 import { OptimizationOptionsPanel } from '../OptimizeButton/OptimizationOptionsPanel';
 import { OptimizationPreviewDialog } from '../OptimizationPreviewDialog';
-import { optimizePrompt, buildFullPrompt } from '../../lib/optimize-prompt';
+import { optimizePrompt } from '../../lib/optimize-prompt';
 import { parseOptimizedPromptToTemplate } from '../../lib/parse-optimized-prompt';
 import {
   loadOptimizationPreferences,

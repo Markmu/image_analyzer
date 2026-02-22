@@ -1,8 +1,8 @@
 /**
- * Prompt Optimization API
+ * Prompt Optimization API client
  *
  * Epic 5 - Story 5.4: Prompt Optimization
- * Client-side API for optimizing prompts using text models via Replicate
+ * Browser-safe client utilities for optimization.
  */
 
 import type { TemplateJSONFormat } from '../types/template';
@@ -11,124 +11,7 @@ import type {
   PromptOptimizationResult,
   OptimizationLanguage,
 } from '../types/optimization';
-import { replicate } from '@/lib/replicate';
-import { detectLanguage } from './language-detector';
-import { buildOptimizationSystemPrompt, getCreditCost } from './optimization-presets';
-import { generateDiff } from './diff-generator';
-
-// TODO: Import content moderation from Story 4.1 when available
-// import { checkContentSafety } from '@/lib/content-moderation';
-
-/**
- * Content safety check result
- *
- * TODO: Replace with actual implementation from Story 4.1
- * This is a placeholder for future integration
- */
-interface ContentSafetyResult {
-  isSafe: boolean;
-  reason?: string;
-}
-
-/**
- * Enhanced content safety check with pattern matching
- *
- * This implementation uses multiple strategies to detect potentially unsafe content:
- * 1. Keyword matching for explicit content
- * 2. Pattern matching for suspicious structures
- * 3. Contextual analysis for nuanced cases
- *
- * TODO: Integrate with Story 4.1 content moderation for production use
- * This function should call the actual content safety check
- * and return detailed results
- *
- * @param content - Content to check
- * @returns Safety check result
- */
-async function checkContentSafetyPlaceholder(content: string): Promise<ContentSafetyResult> {
-  // Placeholder implementation with enhanced safety checks
-  console.warn('[checkContentSafety] Using enhanced placeholder - integrate Story 4.1 logic');
-
-  const lowerContent = content.toLowerCase();
-
-  // Level 1: Explicit unsafe patterns (immediate rejection)
-  const explicitUnsafePatterns = [
-    // Violence and gore
-    'violence', 'gore', 'blood', 'torture', 'murder', 'kill', 'assault',
-    '暴力', '血腥', '酷刑', '谋杀', '杀害', '袭击',
-
-    // Sexual content
-    'pornography', 'explicit', 'nude', 'sexual',
-    '色情', '露骨', '裸体', '性',
-
-    // Illegal activities
-    'illegal', 'drug', 'terrorism', 'extremism',
-    '非法', '毒品', '恐怖主义', '极端主义',
-
-    // Hate speech
-    'hate speech', 'discrimination', 'racist',
-    '仇恨言论', '歧视', '种族主义',
-  ];
-
-  const hasExplicitUnsafe = explicitUnsafePatterns.some((pattern) =>
-    lowerContent.includes(pattern.toLowerCase())
-  );
-
-  if (hasExplicitUnsafe) {
-    return {
-      isSafe: false,
-      reason: '检测到明显的不安全内容,包含暴力、色情或非法相关词汇',
-    };
-  }
-
-  // Level 2: Suspicious patterns (warning level)
-  const suspiciousPatterns = [
-    // Potentially problematic combinations
-    /\b(weapon|gun|knife|bomb)\b/i,
-    /\b(武器|枪|刀|炸弹)\b/i,
-
-    // Age-restricted content indicators
-    /\b(adult|18\+|mature)\b/i,
-    /\b(成人|18\+|成熟)\b/i,
-  ];
-
-  const hasSuspiciousPattern = suspiciousPatterns.some((pattern) =>
-    pattern.test(content)
-  );
-
-  if (hasSuspiciousPattern) {
-    return {
-      isSafe: false,
-      reason: '检测到潜在的不安全内容,可能包含不当元素',
-    };
-  }
-
-  // Level 3: Contextual analysis
-  // Check for excessive repetition (might indicate spam or low-quality content)
-  const words = content.split(/\s+/);
-  const uniqueWords = new Set(words);
-  const repetitionRatio = uniqueWords.size / Math.max(words.length, 1);
-
-  if (repetitionRatio < 0.3 && words.length > 20) {
-    return {
-      isSafe: false,
-      reason: '提示词质量可能较低,包含过多重复内容',
-    };
-  }
-
-  // Check for reasonable length
-  if (content.length > 5000) {
-    return {
-      isSafe: false,
-      reason: '提示词过长,可能包含不必要的内容',
-    };
-  }
-
-  // Passed all checks
-  return {
-    isSafe: true,
-  };
-}
+import { getCreditCost } from './optimization-presets';
 
 /**
  * Build full prompt from template fields
@@ -150,117 +33,28 @@ export function buildFullPrompt(template: TemplateJSONFormat): string {
 }
 
 /**
- * Parse optimization result from LLM response
- *
- * @param response - LLM response
- * @returns Parsed optimized prompt
- */
-function parseOptimizationResult(response: unknown): string {
-  // Handle string response
-  if (typeof response === 'string') {
-    return response.trim();
-  }
-
-  // Handle object response
-  if (typeof response === 'object' && response !== null) {
-    // Try to extract text from common response formats
-    if ('output' in response) {
-      return String(response.output).trim();
-    }
-    if ('text' in response) {
-      return String(response.text).trim();
-    }
-    if ('result' in response) {
-      return String(response.result).trim();
-    }
-
-    // Fallback to JSON stringification
-    return JSON.stringify(response).trim();
-  }
-
-  // Fallback
-  return String(response).trim();
-}
-
-/**
- * Optimize prompt using text model
- *
- * @param template - Template to optimize
- * @param options - Optimization options
- * @returns Optimization result
+ * Optimize prompt via server API
  */
 export async function optimizePrompt(
   template: TemplateJSONFormat,
   options: PromptOptimizationOptions
 ): Promise<PromptOptimizationResult> {
-  // 1. Detect language
-  const language: 'zh' | 'en' = options.language === 'auto'
-    ? detectLanguage(template)
-    : options.language;
+  const response = await fetch('/api/templates/optimize', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ template, options }),
+  });
 
-  // 2. Build full prompt
-  const fullPrompt = buildFullPrompt(template);
+  const payload = await response.json().catch(() => null);
 
-  // 3. Build optimization system prompt
-  const systemPrompt = buildOptimizationSystemPrompt(options, language);
-
-  // 4. Get credit cost
-  const creditsConsumed = getCreditCost(options.mode);
-
-  // 5. Call Replicate API
-  // Use a text model for optimization
-  // Default to meta-llama-3.1-8b-instruct or similar
-  const model = process.env.REPLICATE_TEXT_MODEL_ID || 'meta/meta-llama-3.1-8b-instruct';
-
-  try {
-    const response = await replicate.run(model as `${string}/${string}`, {
-      input: {
-        prompt: `${systemPrompt}\n\n请优化以下提示词:\n\n${fullPrompt}`,
-        max_tokens: 1000,
-        temperature: 0.7,
-      },
-    });
-
-    // 6. Parse optimization result
-    const optimized = parseOptimizationResult(response);
-
-    // 6.5. Content safety check (AC5)
-    // TODO: Integrate with Story 4.1 content moderation
-    const safetyCheck = await checkContentSafetyPlaceholder(optimized);
-    if (!safetyCheck.isSafe) {
-      console.warn('[optimizePrompt] Optimization result failed safety check:', {
-        reason: safetyCheck.reason,
-        optimized,
-      });
-      throw new Error(
-        `优化结果未通过内容安全检查: ${safetyCheck.reason || '未知原因'}`
-      );
-    }
-
-    // 7. Generate diff
-    const diff = generateDiff(fullPrompt, optimized);
-
-    // 8. Return result
-    return {
-      original: fullPrompt,
-      optimized,
-      diff,
-      language,
-      mode: options.mode,
-      creditsConsumed,
-    };
-  } catch (error) {
-    // Log error and rethrow with more context
-    console.error('[optimizePrompt] Optimization failed:', {
-      error: error instanceof Error ? error.message : String(error),
-      template,
-      options,
-    });
-
-    throw new Error(
-      `提示词优化失败: ${error instanceof Error ? error.message : '未知错误'}`
-    );
+  if (!response.ok || !payload?.success || !payload?.data) {
+    const message = payload?.error?.message || payload?.error || '提示词优化失败';
+    throw new Error(message);
   }
+
+  return payload.data as PromptOptimizationResult;
 }
 
 /**
@@ -297,8 +91,6 @@ export function getModeDisplayName(
     },
   };
 
-  // If language is auto, default to zh for display
   const displayLang: 'zh' | 'en' = language === 'auto' ? 'zh' : language;
-
   return names[mode][displayLang];
 }

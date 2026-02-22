@@ -20,8 +20,8 @@ import {
   useTheme,
 } from '@mui/material';
 import { Download, Save, X } from 'lucide-react';
-import { ImageFormat, ImageResolutionOption, ImageSaveOptions } from '../types/save';
-import { SUPPORTED_FORMATS, RESOLUTION_OPTIONS, DEFAULT_QUALITY } from '../lib/save-constants';
+import { ImageFormat, ImageResolutionOption, ImageSaveOptions } from '../../types/save';
+import { SUPPORTED_FORMATS, RESOLUTION_OPTIONS, DEFAULT_QUALITY } from '../../lib/save-constants';
 
 interface SaveOptionsDialogProps {
   open: boolean;

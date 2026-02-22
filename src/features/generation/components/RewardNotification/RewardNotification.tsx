@@ -19,7 +19,7 @@ import {
   Award,
   TrendingUp,
 } from 'lucide-react';
-import { ShareReward } from '../types/rewards';
+import { ShareReward } from '../../types/rewards';
 
 interface RewardNotificationProps {
   open: boolean;

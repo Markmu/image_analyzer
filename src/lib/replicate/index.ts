@@ -13,8 +13,5 @@ export const replicate = new Replicate({
 // Export Replicate instance for use throughout the application
 export { Replicate };
 
-// Export webhook functions
+// Export webhook functions (server-side only)
 export * from './webhook';
-
-// Export async functions
-export * from './async';

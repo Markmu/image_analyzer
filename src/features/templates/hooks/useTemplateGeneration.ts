@@ -3,7 +3,7 @@
 import { useMemo } from 'react';
 import type { AnalysisData } from '@/types/analysis';
 import type { Template, TemplateGenerationOptions } from '../types';
-import { generateTemplate } from '../lib';
+import { generateTemplate } from '../lib/template-generator';
 
 interface UseTemplateGenerationOptions extends TemplateGenerationOptions {
   /** Analysis result ID */

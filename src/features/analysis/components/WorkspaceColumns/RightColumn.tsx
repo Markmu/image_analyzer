@@ -16,6 +16,7 @@ import EmptyState from '@/components/shared/EmptyState';
 import { CollapsibleSection } from '@/components/shared/CollapsibleSection';
 import TemplatePreview from '@/features/analysis/components/TemplatePreview';
 import VariableReplacer from '@/features/analysis/components/VariableReplacer';
+import { TemplateGenerationSection } from '@/features/analysis/components/TemplateGenerationSection';
 import type { AnalysisData } from '@/types/analysis';
 
 type AnalysisStatus = 'idle' | 'analyzing' | 'completed' | 'error';
@@ -24,6 +25,7 @@ interface RightColumnProps {
   status: AnalysisStatus;
   analysisData: AnalysisData | null;
   analysisResultId: number | null;
+  userId?: string | null;
   templateContent: string;
   renderedTemplate: string;
   copied: boolean;
@@ -42,6 +44,7 @@ export default function RightColumn({
   status,
   analysisData,
   analysisResultId,
+  userId,
   templateContent,
   renderedTemplate,
   copied,
@@ -165,6 +168,15 @@ export default function RightColumn({
             />
           )}
         </CollapsibleSection>
+
+        {/* Template Generation Section with Image Generation (Story 6.1) */}
+        {status === 'completed' && analysisData && analysisResultId && (
+          <TemplateGenerationSection
+            analysisData={analysisData}
+            analysisResultId={String(analysisResultId)}
+            userId={userId || 'current-user'}
+          />
+        )}
 
       </Box>
 

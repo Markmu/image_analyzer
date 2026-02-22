@@ -2,7 +2,7 @@
  * Generation Library Export
  */
 
-export * from './image-generation';
+export * from './image-generation-client';  // Client-side API calls
 export * from './generation-presets';
 export * from './resolution-config';
 export * from './share-handler';

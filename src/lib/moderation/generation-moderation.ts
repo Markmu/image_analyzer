@@ -9,8 +9,22 @@
 
 import { moderateText } from './text-moderation';
 import { moderateImage } from './image-moderation';
-import { logModeration } from './log-moderation';
 import type { ModerationResult, ModerationCategories } from './types';
+
+// Dynamic import for server-only logModeration
+const logModeration = async (args: any) => {
+  if (typeof window !== 'undefined') {
+    // Client-side: skip logging
+    return;
+  }
+  // Server-side: dynamically import and call
+  try {
+    const mod = await import('./log-moderation');
+    await mod.logModeration(args);
+  } catch (error) {
+    console.error('[GenerationModeration] Failed to log moderation:', error);
+  }
+};
 
 /**
  * 生成专用审核阈值（比普通审核更严格）
