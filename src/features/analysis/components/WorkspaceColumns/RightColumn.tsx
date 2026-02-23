@@ -117,30 +117,39 @@ export default function RightColumn({
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }} data-testid="workspace-right-column">
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
         <Box className="ia-glass-card ia-glass-card--static" sx={{ p: 2.5 }}>
-          <Box className="ia-glass-card ia-glass-card--active" sx={{ p: 1.5, borderRadius: 2, mb: 2 }}>
-            <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1 }}>
-              <Button
-                fullWidth
-                variant="contained"
-                onClick={() => void onCopyTemplate()}
-                startIcon={copied ? <Check size={18} /> : <Clipboard size={18} />}
-                data-testid="copy-template-button"
-                sx={{ bgcolor: 'var(--glass-text-primary)', color: 'var(--glass-text-white-heavy)', '&:hover': { bgcolor: 'var(--primary-active)' } }}
-              >
-                {copied ? '已复制！' : '一键复制'}
-              </Button>
-              <Button
-                fullWidth
-                variant="outlined"
-                onClick={handleOpenSaveDialog}
-                startIcon={<Save size={18} />}
-                data-testid="open-save-template-dialog"
-                disabled={!analysisResultId}
-                sx={{ borderColor: 'var(--glass-border-active)', color: 'var(--glass-text-white-heavy)' }}
-              >
-                保存模版
-              </Button>
-            </Box>
+          <Box
+            sx={{
+              display: 'grid',
+              gridTemplateColumns: isMobileLayout ? '1fr' : 'minmax(0, 1.5fr) minmax(0, 1fr)',
+              gap: 1,
+              mb: 2,
+            }}
+          >
+            <Button
+              fullWidth
+              variant="contained"
+              onClick={() => void onCopyTemplate()}
+              startIcon={copied ? <Check size={18} /> : <Clipboard size={18} />}
+              data-testid="copy-template-button"
+              sx={{
+                bgcolor: 'var(--glass-text-primary)',
+                color: 'var(--glass-text-white-heavy)',
+                '&:hover': { bgcolor: 'var(--primary-active)' },
+              }}
+            >
+              {copied ? '已复制！' : '一键复制'}
+            </Button>
+            <Button
+              fullWidth
+              variant="outlined"
+              onClick={handleOpenSaveDialog}
+              startIcon={<Save size={18} />}
+              data-testid="open-save-template-dialog"
+              disabled={!analysisResultId}
+              sx={{ borderColor: 'var(--glass-border-active)', color: 'var(--glass-text-white-heavy)' }}
+            >
+              保存模版
+            </Button>
           </Box>
           {saveSuccess && (
             <Alert
@@ -152,10 +161,13 @@ export default function RightColumn({
               {saveSuccess}
             </Alert>
           )}
-          <TemplatePreview content={renderedTemplate} />
+          <TemplatePreview content={renderedTemplate} showLabel={false} />
         </Box>
 
-        <CollapsibleSection title="变量替换" defaultExpanded storageKey="template-variables">
+        <CollapsibleSection
+          title="自定义内容"
+          defaultExpanded={true}
+        >
           {isMobileLayout ? (
             <Typography variant="body2" sx={{ color: 'var(--glass-text-gray-heavy)' }}>
               移动端已隐藏高级变量替换，桌面端可编辑变量并实时预览。
