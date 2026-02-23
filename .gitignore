@@ -43,6 +43,7 @@ next-env.d.ts
 _bmad
 .claude
 .codex
+.agents
 test-results
 playwright-report
 
