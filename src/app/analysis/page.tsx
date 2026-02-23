@@ -577,6 +577,12 @@ export default function AnalysisPage() {
                 },
               }));
             }}
+            onResetVariables={() => {
+              setTemplateState((prev) => ({
+                ...prev,
+                variables: {},
+              }));
+            }}
           />
         </Box>
       </Container>

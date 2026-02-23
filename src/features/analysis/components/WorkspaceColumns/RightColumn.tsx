@@ -13,9 +13,7 @@ import {
 } from '@mui/material';
 import { Check, Clipboard, Save, Sparkles, SquarePen } from 'lucide-react';
 import EmptyState from '@/components/shared/EmptyState';
-import { CollapsibleSection } from '@/components/shared/CollapsibleSection';
-import TemplatePreview from '@/features/analysis/components/TemplatePreview';
-import VariableReplacer from '@/features/analysis/components/VariableReplacer';
+import TemplateEditor from '@/features/analysis/components/TemplateEditor';
 import { TemplateGenerationSection } from '@/features/analysis/components/TemplateGenerationSection';
 import type { AnalysisData } from '@/types/analysis';
 
@@ -38,6 +36,7 @@ interface RightColumnProps {
     description?: string;
   }) => Promise<void>;
   onVariableChange: (key: string, value: string) => void;
+  onResetVariables: () => void;
 }
 
 export default function RightColumn({
@@ -53,6 +52,7 @@ export default function RightColumn({
   onCopyTemplate,
   onSaveTemplate,
   onVariableChange,
+  onResetVariables,
 }: RightColumnProps) {
   const [saveDialogOpen, setSaveDialogOpen] = useState(false);
   const [saveTitle, setSaveTitle] = useState('');
@@ -161,25 +161,36 @@ export default function RightColumn({
               {saveSuccess}
             </Alert>
           )}
-          <TemplatePreview content={renderedTemplate} showLabel={false} />
-        </Box>
-
-        <CollapsibleSection
-          title="自定义内容"
-          defaultExpanded={true}
-        >
-          {isMobileLayout ? (
-            <Typography variant="body2" sx={{ color: 'var(--glass-text-gray-heavy)' }}>
-              移动端已隐藏高级变量替换，桌面端可编辑变量并实时预览。
-            </Typography>
-          ) : (
-            <VariableReplacer
-              template={templateContent}
-              values={variables}
-              onValueChange={onVariableChange}
+          {!isMobileLayout && (
+            <TemplateEditor
+              templateContent={templateContent}
+              renderedTemplate={renderedTemplate}
+              variables={variables}
+              onVariableChange={onVariableChange}
+              onResetVariables={onResetVariables}
             />
           )}
-        </CollapsibleSection>
+          {isMobileLayout && (
+            <Box
+              component="pre"
+              sx={{
+                m: 0,
+                p: 1.75,
+                borderRadius: 2,
+                border: '1px solid rgba(148, 163, 184, 0.22)',
+                background: 'rgba(15, 23, 42, 0.35)',
+                color: 'var(--glass-text-white-medium)',
+                whiteSpace: 'pre-wrap',
+                wordBreak: 'break-word',
+                fontFamily: 'var(--font-geist-mono), ui-monospace, monospace',
+                fontSize: '0.8125rem',
+                lineHeight: 1.5,
+              }}
+            >
+              {renderedTemplate}
+            </Box>
+          )}
+        </Box>
 
         {/* Template Generation Section with Image Generation (Story 6.1) */}
         {status === 'completed' && analysisData && analysisResultId && (
