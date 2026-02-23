@@ -11,10 +11,9 @@ import {
   DialogTitle,
   TextField,
 } from '@mui/material';
-import { Check, Clipboard, Save, Sparkles, SquarePen } from 'lucide-react';
+import { Check, Save, Sparkles, SquarePen } from 'lucide-react';
 import EmptyState from '@/components/shared/EmptyState';
-import TemplateEditor from '@/features/analysis/components/TemplateEditor';
-import { TemplateGenerationSection } from '@/features/analysis/components/TemplateGenerationSection';
+import { UnifiedTemplateEditor } from '@/features/analysis/components/UnifiedTemplateEditor';
 import type { AnalysisData } from '@/types/analysis';
 
 type AnalysisStatus = 'idle' | 'analyzing' | 'completed' | 'error';
@@ -25,34 +24,32 @@ interface RightColumnProps {
   analysisResultId: number | null;
   userId?: string | null;
   templateContent: string;
-  renderedTemplate: string;
-  copied: boolean;
-  variables: Record<string, string>;
   isMobileLayout: boolean;
-  onCopyTemplate: () => Promise<void>;
   onSaveTemplate: (payload: {
     analysisResultId: number;
     title?: string;
     description?: string;
   }) => Promise<void>;
-  onVariableChange: (key: string, value: string) => void;
-  onResetVariables: () => void;
 }
 
+/**
+ * Right column component with unified template editor
+ *
+ * Features:
+ * - Single unified card replacing the old two-card design
+ * - Integrated template editing, quick variable editing, and preview
+ * - Copy, export, and image generation functionality
+ * - Removed expand/collapse - everything is directly displayed
+ * - Responsive layout optimization
+ */
 export default function RightColumn({
   status,
   analysisData,
   analysisResultId,
   userId,
   templateContent,
-  renderedTemplate,
-  copied,
-  variables,
   isMobileLayout,
-  onCopyTemplate,
   onSaveTemplate,
-  onVariableChange,
-  onResetVariables,
 }: RightColumnProps) {
   const [saveDialogOpen, setSaveDialogOpen] = useState(false);
   const [saveTitle, setSaveTitle] = useState('');
@@ -62,6 +59,7 @@ export default function RightColumn({
   const [isSaving, setIsSaving] = useState(false);
 
   const hasTemplateContent = templateContent.trim().length > 0;
+  const showTemplateEditor = status === 'completed' && hasTemplateContent;
 
   const handleOpenSaveDialog = useCallback(() => {
     setSaveError(null);
@@ -100,7 +98,8 @@ export default function RightColumn({
     }
   }, [analysisResultId, onSaveTemplate, saveDescription, saveTitle]);
 
-  if (!hasTemplateContent && (status !== 'completed' || !analysisData)) {
+  // Show empty state when no content
+  if (!showTemplateEditor) {
     return (
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }} data-testid="workspace-right-column">
         <EmptyState
@@ -116,94 +115,43 @@ export default function RightColumn({
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }} data-testid="workspace-right-column">
-      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-        <Box className="ia-glass-card ia-glass-card--static" sx={{ p: 2.5 }}>
-          <Box
-            sx={{
-              display: 'grid',
-              gridTemplateColumns: isMobileLayout ? '1fr' : 'minmax(0, 1.5fr) minmax(0, 1fr)',
-              gap: 1,
-              mb: 2,
-            }}
-          >
-            <Button
-              fullWidth
-              variant="contained"
-              onClick={() => void onCopyTemplate()}
-              startIcon={copied ? <Check size={18} /> : <Clipboard size={18} />}
-              data-testid="copy-template-button"
-              sx={{
-                bgcolor: 'var(--glass-text-primary)',
-                color: 'var(--glass-text-white-heavy)',
-                '&:hover': { bgcolor: 'var(--primary-active)' },
-              }}
-            >
-              {copied ? '已复制！' : '一键复制'}
-            </Button>
-            <Button
-              fullWidth
-              variant="outlined"
-              onClick={handleOpenSaveDialog}
-              startIcon={<Save size={18} />}
-              data-testid="open-save-template-dialog"
-              disabled={!analysisResultId}
-              sx={{ borderColor: 'var(--glass-border-active)', color: 'var(--glass-text-white-heavy)' }}
-            >
-              保存模版
-            </Button>
-          </Box>
-          {saveSuccess && (
-            <Alert
-              severity="success"
-              onClose={() => setSaveSuccess(null)}
-              sx={{ mb: 2 }}
-              data-testid="save-template-success"
-            >
-              {saveSuccess}
-            </Alert>
-          )}
-          {!isMobileLayout && (
-            <TemplateEditor
-              templateContent={templateContent}
-              renderedTemplate={renderedTemplate}
-              variables={variables}
-              onVariableChange={onVariableChange}
-              onResetVariables={onResetVariables}
-            />
-          )}
-          {isMobileLayout && (
-            <Box
-              component="pre"
-              sx={{
-                m: 0,
-                p: 1.75,
-                borderRadius: 2,
-                border: '1px solid rgba(148, 163, 184, 0.22)',
-                background: 'rgba(15, 23, 42, 0.35)',
-                color: 'var(--glass-text-white-medium)',
-                whiteSpace: 'pre-wrap',
-                wordBreak: 'break-word',
-                fontFamily: 'var(--font-geist-mono), ui-monospace, monospace',
-                fontSize: '0.8125rem',
-                lineHeight: 1.5,
-              }}
-            >
-              {renderedTemplate}
-            </Box>
-          )}
-        </Box>
+      {/* Unified Template Editor Card */}
+      <UnifiedTemplateEditor
+        templateContent={templateContent}
+        analysisData={analysisData}
+        analysisResultId={analysisResultId ? String(analysisResultId) : null}
+        userId={userId || null}
+      />
 
-        {/* Template Generation Section with Image Generation (Story 6.1) */}
-        {status === 'completed' && analysisData && analysisResultId && (
-          <TemplateGenerationSection
-            analysisData={analysisData}
-            analysisResultId={String(analysisResultId)}
-            userId={userId || 'current-user'}
-          />
-        )}
+      {/* Save Template Button */}
+      {saveSuccess && (
+        <Alert
+          severity="success"
+          onClose={() => setSaveSuccess(null)}
+          sx={{ mt: 1 }}
+          data-testid="save-template-success"
+        >
+          {saveSuccess}
+        </Alert>
+      )}
 
-      </Box>
+      <Button
+        fullWidth
+        variant="outlined"
+        onClick={handleOpenSaveDialog}
+        startIcon={<Save size={18} />}
+        data-testid="open-save-template-dialog"
+        disabled={!analysisResultId}
+        sx={{
+          borderColor: 'var(--glass-border-active)',
+          color: 'var(--glass-text-white-heavy)',
+          py: 1.5,
+        }}
+      >
+        保存到模版库
+      </Button>
 
+      {/* Save Dialog */}
       <Dialog
         open={saveDialogOpen}
         onClose={handleCloseSaveDialog}

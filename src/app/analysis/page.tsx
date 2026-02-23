@@ -562,27 +562,8 @@ export default function AnalysisPage() {
             analysisData={analysisState.data}
             analysisResultId={analysisState.id}
             templateContent={templateState.content}
-            renderedTemplate={renderedTemplate}
-            copied={templateState.copied}
-            variables={templateState.variables}
             isMobileLayout={isMobileLayout}
-            onCopyTemplate={handleCopyTemplate}
             onSaveTemplate={handleSaveTemplate}
-            onVariableChange={(key, value) => {
-              setTemplateState((prev) => ({
-                ...prev,
-                variables: {
-                  ...prev.variables,
-                  [key]: value,
-                },
-              }));
-            }}
-            onResetVariables={() => {
-              setTemplateState((prev) => ({
-                ...prev,
-                variables: {},
-              }));
-            }}
           />
         </Box>
       </Container>
