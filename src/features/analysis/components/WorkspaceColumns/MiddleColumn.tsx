@@ -31,6 +31,7 @@ export default function MiddleColumn({
           icon={<Brain size={34} />}
           testId="middle-column-empty"
           descriptionMaxWidth={560}
+          minHeight={232}
         />
       )}
 

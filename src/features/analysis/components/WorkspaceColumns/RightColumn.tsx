@@ -108,6 +108,7 @@ export default function RightColumn({
           description="分析结果完成后，系统会在右侧自动生成可直接复用的模版内容。"
           icon={<SquarePen size={34} />}
           testId="right-column-empty"
+          minHeight={232}
         />
       </Box>
     );

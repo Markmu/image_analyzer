@@ -1,8 +1,6 @@
 'use client';
 
 import { Box, Chip, FormControl, InputLabel, MenuItem, Select, Typography } from '@mui/material';
-import { ImageIcon } from 'lucide-react';
-import EmptyState from '@/components/shared/EmptyState';
 import { ImageUploader } from '@/features/analysis/components/ImageUploader';
 import ImagePreview from '@/features/analysis/components/ImagePreview';
 import type { ImageData } from '@/features/analysis/components/ImageUploader/types';
@@ -45,16 +43,7 @@ export default function LeftColumn({
 }: LeftColumnProps) {
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-      {imageData ? (
-        <ImagePreview imageData={imageData} onResetWorkspace={onResetWorkspace} />
-      ) : (
-        <EmptyState
-          title="等待参考图"
-          description="拖拽或选择图片后，左侧会持续保留预览，方便你与分析结果对照。"
-          icon={<ImageIcon size={34} />}
-          testId="left-column-empty"
-        />
-      )}
+      {imageData ? <ImagePreview imageData={imageData} onResetWorkspace={onResetWorkspace} /> : null}
 
       <Box className="ia-glass-card ia-glass-card--static" sx={{ p: 2 }}>
         <ImageUploader

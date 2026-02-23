@@ -10,6 +10,7 @@ interface EmptyStateProps {
   hint?: string;
   testId?: string;
   descriptionMaxWidth?: number | string;
+  minHeight?: number | string;
 }
 
 export default function EmptyState({
@@ -19,6 +20,7 @@ export default function EmptyState({
   hint,
   testId,
   descriptionMaxWidth = 320,
+  minHeight = 200,
 }: EmptyStateProps) {
   return (
     <Box
@@ -26,7 +28,7 @@ export default function EmptyState({
       data-testid={testId}
       sx={{
         p: 4,
-        minHeight: 200,
+        minHeight,
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',

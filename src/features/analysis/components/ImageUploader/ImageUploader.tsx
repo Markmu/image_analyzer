@@ -179,7 +179,15 @@ export function ImageUploader({ onUploadSuccess, onUploadError, onAutoStartAnaly
           border: '2px dashed',
           borderColor: isDragActive ? '#3B82F6' : '#cbd5e1',
           borderRadius: '12px',
-          padding: '48px 24px',
+          // Left column uploader is wrapped by an outer card with p:2 (32px total vertical padding).
+          // To match workspace empty cards at 232px total height, keep the inner drop-zone at 200px.
+          minHeight: 200,
+          boxSizing: 'border-box',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: '24px 20px',
           textAlign: 'center',
           cursor: uploadStatus === 'uploading' ? 'not-allowed' : 'pointer',
           transition: 'var(--glass-transition)',
@@ -194,10 +202,10 @@ export function ImageUploader({ onUploadSuccess, onUploadError, onAutoStartAnaly
       >
         <input {...getInputProps()} data-testid="image-upload-input" />
         <Upload
-          size={48}
+          size={40}
           color={isDragActive ? '#3B82F6' : '#94a3b8'}
           aria-hidden="true"
-          style={{ marginBottom: 16 }}
+          style={{ marginBottom: 12 }}
         />
         <Typography variant="h6" sx={{ mb: 1, color: 'var(--glass-text-white-heavy)' }}>
           {isDragActive ? '将图片拖放到这里' : '拖拽图片到此处'}
