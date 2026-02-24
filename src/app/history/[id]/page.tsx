@@ -20,7 +20,6 @@ import {
   Card,
   CardContent,
   Chip,
-  Grid,
   IconButton,
 } from '@mui/material';
 import { ArrowLeft, RefreshCw, Calendar, Copy, CheckCircle } from 'lucide-react';
@@ -80,7 +79,7 @@ export default function AnalysisHistoryDetailPage() {
   const router = useRouter();
   const params = useParams();
   const historyId = parseInt(params.id as string, 10);
-  const [copied, setCopied] = useState(false);
+  const [copiedTarget, setCopiedTarget] = useState<'variable' | 'json' | null>(null);
 
   // 获取历史记录详情
   const { data, isLoading, error } = useQuery({
@@ -122,18 +121,28 @@ export default function AnalysisHistoryDetailPage() {
     }
   };
 
-  // 处制模版
-  const handleCopyTemplate = async () => {
-    if (!data) return;
-
-    const templateText = normalizeTemplateSnapshot(data.templateSnapshot).variableFormat;
+  const handleCopyText = async (text: string, target: 'variable' | 'json') => {
     try {
-      await navigator.clipboard.writeText(templateText);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
+      await navigator.clipboard.writeText(text);
+      setCopiedTarget(target);
+      setTimeout(() => setCopiedTarget((prev) => (prev === target ? null : prev)), 2000);
     } catch (error) {
       console.error('Error copying template:', error);
     }
+  };
+
+  // 复制变量模版
+  const handleCopyTemplate = async () => {
+    if (!data) return;
+    const templateText = normalizeTemplateSnapshot(data.templateSnapshot).variableFormat;
+    await handleCopyText(templateText, 'variable');
+  };
+
+  // 复制 JSON 模版
+  const handleCopyJson = async () => {
+    if (!data) return;
+    const jsonText = JSON.stringify(normalizeTemplateSnapshot(data.templateSnapshot).jsonFormat, null, 2);
+    await handleCopyText(jsonText, 'json');
   };
 
   // 加载中状态
@@ -253,9 +262,9 @@ export default function AnalysisHistoryDetailPage() {
       </Box>
 
       {/* 模版内容 */}
-      <Grid container spacing={3}>
+      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
         {/* 变量模版 */}
-        <Grid item xs={12} md={6}>
+        <Box>
           <Card
             className="ia-glass-card"
             sx={{
@@ -282,9 +291,9 @@ export default function AnalysisHistoryDetailPage() {
                 <IconButton
                   size="small"
                   onClick={handleCopyTemplate}
-                  sx={{ color: copied ? 'var(--icon-success)' : 'var(--icon-secondary)' }}
+                  sx={{ color: copiedTarget === 'variable' ? 'var(--icon-success)' : 'var(--icon-secondary)' }}
                 >
-                  {copied ? <CheckCircle size={18} /> : <Copy size={18} />}
+                  {copiedTarget === 'variable' ? <CheckCircle size={18} /> : <Copy size={18} />}
                 </IconButton>
               </Box>
               <Typography
@@ -301,10 +310,10 @@ export default function AnalysisHistoryDetailPage() {
               </Typography>
             </CardContent>
           </Card>
-        </Grid>
+        </Box>
 
         {/* JSON 模版 */}
-        <Grid item xs={12} md={6}>
+        <Box>
           <Card
             className="ia-glass-card"
             sx={{
@@ -317,9 +326,25 @@ export default function AnalysisHistoryDetailPage() {
             }}
           >
             <CardContent>
-              <Typography variant="h6" sx={{ mb: 2, color: 'var(--glass-text-white-heavy)' }}>
-                JSON 格式
-              </Typography>
+              <Box
+                sx={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  mb: 2,
+                }}
+              >
+                <Typography variant="h6" sx={{ color: 'var(--glass-text-white-heavy)' }}>
+                  JSON 格式
+                </Typography>
+                <IconButton
+                  size="small"
+                  onClick={handleCopyJson}
+                  sx={{ color: copiedTarget === 'json' ? 'var(--icon-success)' : 'var(--icon-secondary)' }}
+                >
+                  {copiedTarget === 'json' ? <CheckCircle size={18} /> : <Copy size={18} />}
+                </IconButton>
+              </Box>
               <Typography
                 component="pre"
                 sx={{
@@ -337,8 +362,8 @@ export default function AnalysisHistoryDetailPage() {
               </Typography>
             </CardContent>
           </Card>
-        </Grid>
-      </Grid>
+        </Box>
+      </Box>
     </Container>
   );
 }
