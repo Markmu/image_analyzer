@@ -1,14 +1,12 @@
 'use client';
 
-import React, { useState, useRef, useEffect, useMemo, useCallback } from 'react';
+import { useState, useRef, useEffect, useMemo, useCallback } from 'react';
 import { Box, TextField, Typography } from '@mui/material';
 import { useMediaQuery, useTheme } from '@mui/material';
 import { CopyButton } from '@/features/templates/components/CopyButton/CopyButton';
-import { ExportButton } from '@/features/templates/components/ExportButton/ExportButton';
 import { GenerateButton } from '@/features/generation/components/GenerateButton/GenerateButton';
 import type { Template } from '@/features/templates/types/template';
 import type { AnalysisData } from '@/types/analysis';
-import { TemplatePreview } from './TemplatePreview';
 import { QuickVariableEditor } from './QuickVariableEditor';
 
 export interface UnifiedTemplateEditorProps {
@@ -26,11 +24,10 @@ export interface UnifiedTemplateEditorProps {
  * Unified template editor component
  *
  * Features:
- * - Template editing area (TextArea direct editing)
+ * - Single editable preview area (direct editing in one TextArea)
  * - Quick variable editing area (extracts variables from template, allows quick value editing)
- * - Template preview area (with variable highlighting)
  * - Action bar (copy/export/generate)
- * - Responsive layout (three columns/two columns/single column)
+ * - Responsive layout (two columns/single column)
  * - Anti-loop mechanism: uses useRef to mark update source
  * - External props handling: monitors templateContent changes and syncs
  *
@@ -46,7 +43,6 @@ export interface UnifiedTemplateEditorProps {
  */
 export function UnifiedTemplateEditor({
   templateContent,
-  analysisData,
   analysisResultId,
   userId,
 }: UnifiedTemplateEditorProps) {
@@ -124,7 +120,7 @@ export function UnifiedTemplateEditor({
     };
 
     return {
-      id: `temp-${Date.now()}`,
+      id: `temp-${analysisResultId}`,
       userId,
       analysisResultId,
       variableFormat: internalTemplate,
@@ -155,7 +151,7 @@ export function UnifiedTemplateEditor({
     }
     return {
       display: 'grid' as const,
-      gridTemplateColumns: 'minmax(0, 1.5fr) minmax(0, 1fr) minmax(0, 1.5fr)',
+      gridTemplateColumns: 'minmax(0, 1.8fr) minmax(0, 1fr)',
       gap: 2,
     };
   }, [isMobile, isTablet]);
@@ -163,45 +159,79 @@ export function UnifiedTemplateEditor({
   return (
     <Box
       className="ia-glass-card ia-glass-card--static"
-      sx={{ p: 2.5 }}
+      sx={{
+        p: 2.5,
+        display: 'flex',
+        flexDirection: 'column',
+        height: {
+          xs: 'auto',
+          md: 'calc(100svh - 220px)',
+        },
+        minHeight: {
+          md: 560,
+        },
+      }}
       data-testid="unified-template-editor"
     >
       {/* Header */}
-      <Typography
-        variant="h6"
+      <Box
         sx={{
           mb: 2,
-          fontWeight: 700,
-          color: 'var(--glass-text-white-heavy)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          gap: 1.5,
         }}
       >
-        模板编辑器
-      </Typography>
+        <Typography
+          variant="h6"
+          sx={{
+            fontWeight: 700,
+            color: 'var(--glass-text-white-heavy)',
+          }}
+        >
+          模板编辑器
+        </Typography>
+        <CopyButton
+          text={copyText}
+          data-testid="unified-copy-button"
+          className="ia-glass-card"
+          tooltipText="复制替换后的内容"
+        />
+      </Box>
 
       {/* Main Layout */}
-      <Box sx={layoutSx}>
-        {/* Template Edit Area */}
+      <Box
+        sx={{
+          ...layoutSx,
+          flex: 1,
+          minHeight: 0,
+          alignItems: 'stretch',
+        }}
+      >
+        {/* Unified Preview/Edit Area */}
         <Box
           sx={{
             display: 'flex',
             flexDirection: 'column',
             gap: 1.5,
+            minHeight: 0,
           }}
         >
           <Typography
             variant="caption"
             sx={{ color: 'var(--glass-text-gray-heavy)', display: 'block' }}
           >
-            模板编辑
+            预览（可直接编辑）
           </Typography>
           <TextField
             multiline
             fullWidth
-            minRows={isMobile ? 6 : 8}
+            minRows={isMobile ? 10 : 14}
             maxRows={20}
             value={internalTemplate}
             onChange={(e) => handleTemplateChange(e.target.value)}
-            placeholder="输入模板内容，使用 [变量名] 创建变量..."
+            placeholder="在此预览框中直接编辑模板内容，使用 [变量名] 创建变量..."
             slotProps={{
               inputLabel: {
                 sx: { color: 'var(--glass-text-gray-heavy)' },
@@ -220,11 +250,19 @@ export function UnifiedTemplateEditor({
               },
             }}
             sx={{
+              flex: 1,
+              minHeight: 0,
               '& .MuiOutlinedInput-root': {
                 backgroundColor: 'var(--glass-bg-dark-medium)',
+                height: '100%',
+                alignItems: 'flex-start',
                 '& fieldset': { borderColor: 'rgba(148, 163, 184, 0.35)' },
                 '&:hover fieldset': { borderColor: 'var(--glass-border-active)' },
                 '&.Mui-focused fieldset': { borderColor: 'var(--glass-text-primary)' },
+              },
+              '& .MuiInputBase-inputMultiline': {
+                height: '100% !important',
+                overflowY: 'auto !important',
               },
             }}
             data-testid="template-textarea"
@@ -237,6 +275,7 @@ export function UnifiedTemplateEditor({
             display: 'flex',
             flexDirection: 'column',
             gap: 1.5,
+            minHeight: 0,
           }}
         >
           <Typography
@@ -245,71 +284,47 @@ export function UnifiedTemplateEditor({
           >
             快速变量编辑
           </Typography>
-          <QuickVariableEditor
-            templateContent={internalTemplate}
-            onVariableChange={handleVariableChange}
-          />
+          <Box sx={{ flex: 1, minHeight: 0 }}>
+            <QuickVariableEditor
+              templateContent={internalTemplate}
+              onVariableChange={handleVariableChange}
+            />
+          </Box>
         </Box>
 
-        {/* Preview + Actions */}
+      </Box>
+
+      {preparedTemplate && (
         <Box
           sx={{
-            display: 'flex',
-            flexDirection: 'column',
-            gap: 1.5,
+            mt: 2,
+            display: 'grid',
+            gridTemplateColumns: isMobile
+              ? '1fr'
+              : isTablet
+                ? '1fr 1fr'
+                : 'minmax(0, 1.8fr) minmax(0, 1fr)',
+            gap: 2,
           }}
         >
-          {/* Action Bar */}
           <Box
             sx={{
-              display: 'flex',
-              flexWrap: 'wrap',
-              gap: 1,
-              mb: 0.5,
+              gridColumn: isMobile ? '1' : '2',
+              '& .MuiButton-root': {
+                width: '100%',
+                minWidth: 0,
+                px: 2.5,
+              },
             }}
           >
-            <CopyButton
-              text={copyText}
-              data-testid="unified-copy-button"
+            <GenerateButton
+              template={preparedTemplate}
+              data-testid="unified-generate-button"
               className="ia-glass-card"
-              tooltipText="复制替换后的内容"
-            />
-            {preparedTemplate && (
-              <ExportButton
-                template={preparedTemplate}
-                data-testid="unified-export-button"
-                className="ia-glass-card"
-              />
-            )}
-            {preparedTemplate && (
-              <GenerateButton
-                template={preparedTemplate}
-                data-testid="unified-generate-button"
-                className="ia-glass-card"
-              />
-            )}
-          </Box>
-
-          {/* Preview Area */}
-          <Typography
-            variant="caption"
-            sx={{ color: 'var(--glass-text-gray-heavy)', display: 'block' }}
-          >
-            预览
-          </Typography>
-          <Box
-            sx={{
-              flex: 1,
-              minHeight: isMobile ? 200 : 250,
-            }}
-          >
-            <TemplatePreview
-              templateContent={internalTemplate}
-              variables={variables}
             />
           </Box>
         </Box>
-      </Box>
+      )}
     </Box>
   );
 }

@@ -58,7 +58,7 @@ const applyVariableValues = (template: string, values: Record<string, string>): 
 
 export default function AnalysisPage() {
   const searchParams = useSearchParams();
-  const { isLoading, isAuthenticated } = useRequireAuth();
+  const { session, isLoading, isAuthenticated } = useRequireAuth();
   const theme = useTheme();
   const isMobileLayout = useMediaQuery(theme.breakpoints.down('md'));
 
@@ -532,7 +532,7 @@ export default function AnalysisPage() {
             gap: 3,
             gridTemplateColumns: {
               xs: '1fr',
-              md: '0.5fr 2fr 1fr',
+              md: '1fr 4fr 4fr',
             },
             alignItems: 'start',
           }}
@@ -561,6 +561,7 @@ export default function AnalysisPage() {
             status={analysisState.status}
             analysisData={analysisState.data}
             analysisResultId={analysisState.id}
+            userId={session?.user?.id ?? null}
             templateContent={templateState.content}
             isMobileLayout={isMobileLayout}
             onSaveTemplate={handleSaveTemplate}

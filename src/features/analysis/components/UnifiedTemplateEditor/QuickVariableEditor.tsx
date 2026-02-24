@@ -113,7 +113,7 @@ export function QuickVariableEditor({
         display: 'flex',
         flexDirection: 'column',
         gap: 1.5,
-        maxHeight: isMobile ? 'none' : '400px',
+        maxHeight: isMobile ? 'none' : '100%',
         overflowY: 'auto',
         pr: 1,
         // Custom scrollbar styling
