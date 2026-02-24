@@ -64,16 +64,6 @@ export function Header() {
         >
           模版库
         </Link>
-        <Link
-          href="/history"
-          className="transition-colors duration-200 hover:opacity-100"
-          style={{
-            color: 'var(--glass-text-white-medium)',
-            fontWeight: 500,
-          }}
-        >
-          图片历史
-        </Link>
       </nav>
 
       <div className="flex items-center gap-4">

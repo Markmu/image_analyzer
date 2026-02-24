@@ -137,11 +137,11 @@ export function UserMenu() {
 
       <MenuItem
         component={Link}
-        href="/analytics"
+        href="/history"
         onClick={handleClose}
-        data-testid="user-menu-analytics-dashboard"
+        data-testid="user-menu-analysis-history"
       >
-        历史分析仪表板
+        分析历史
       </MenuItem>
 
       <Divider sx={{ borderColor: 'var(--glass-border)' }} />
@@ -220,11 +220,11 @@ export function UserMenu() {
 
       <MenuItem
         component={Link}
-        href="/analytics"
+        href="/history"
         onClick={handleClose}
-        data-testid="user-menu-analytics-dashboard"
+        data-testid="user-menu-analysis-history"
       >
-        历史分析仪表板
+        分析历史
       </MenuItem>
 
       <Divider sx={{ borderColor: 'var(--glass-border)' }} />
