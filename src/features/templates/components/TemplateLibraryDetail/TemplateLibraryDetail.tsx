@@ -17,7 +17,6 @@ import {
   CircularProgress,
   Alert,
   Button,
-  Divider,
   Grid,
   Card,
   CardActionArea,
@@ -37,8 +36,6 @@ import {
   Trash2,
   RefreshCw,
   Edit,
-  Calendar,
-  TrendingUp,
   Tag,
   FolderTree,
   CheckCircle,
@@ -253,7 +250,7 @@ export function TemplateLibraryDetail() {
   } as const;
 
   return (
-    <Container maxWidth="xl" sx={{ py: 4 }} data-testid="template-detail">
+    <Container maxWidth={false} sx={{ py: 4, px: { xs: 2, sm: 3, md: 4 } }} data-testid="template-detail">
       {/* 错误提示 */}
       {error && (
         <Alert
@@ -277,344 +274,281 @@ export function TemplateLibraryDetail() {
       </Button>
 
       {/* 主要内容 */}
-      <Grid container spacing={3}>
-        {/* 左侧：预览图和基本信息 */}
-        <Grid item xs={12} md={5}>
-          {/* 预览图 */}
+      <Grid container spacing={3} sx={{ width: '100%', m: 0 }}>
+        {/* 顶部：标题卡片 + 预览图（同一行） */}
+        <Grid item xs={12} sx={{ width: '100%', pl: '0 !important', pt: '0 !important' }}>
           <Card
             className="ia-glass-card ia-glass-card--static"
             sx={{
               ...glassCardSx,
-              mb: 3,
-              overflow: 'hidden',
+              p: 3,
             }}
-            data-testid="template-preview-card"
           >
-            {previewImageUrl ? (
-              <CardMedia
-                component="img"
-                image={previewImageUrl}
-                alt="模版预览图"
-                sx={{
-                  height: 300,
-                  objectFit: 'cover',
-                }}
-              />
-            ) : (
-              <Box
-                sx={{
-                  height: 300,
-                  backgroundColor: 'var(--glass-bg-light)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  color: 'var(--glass-text-gray-medium)',
-                  flexDirection: 'column',
-                  gap: 1,
-                }}
-              >
-                <CheckCircle size={48} opacity={0.5} />
-                <Typography variant="caption" sx={{ color: 'var(--glass-text-gray-medium)' }}>
-                  暂无预览图
-                </Typography>
-              </Box>
-            )}
-          </Card>
-
-          {/* 统计信息 */}
-          <Card className="ia-glass-card ia-glass-card--static" sx={{ ...glassCardSx, p: 3 }}>
-            <Typography
-              variant="h6"
-              sx={{
-                mb: 2,
-                color: 'var(--glass-text-white-heavy)',
-                fontWeight: 600,
-              }}
-            >
-              统计信息
-            </Typography>
-
             <Box
               sx={{
                 display: 'flex',
-                flexDirection: 'column',
-                gap: 2,
+                flexDirection: { xs: 'column', md: 'row' },
+                alignItems: 'stretch',
+                gap: 3,
               }}
             >
-              {/* 使用次数 */}
               <Box
                 sx={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 1.5,
+                  width: { xs: '100%', md: 'fit-content' },
+                  maxWidth: { xs: '100%', md: 'clamp(240px, 28vw, 360px)' },
+                  flexShrink: 0,
+                  alignSelf: { xs: 'stretch', md: 'flex-start' },
                 }}
-                data-testid="template-usage-count"
+                data-testid="template-preview-card"
               >
-                <TrendingUp size={20} style={{ color: 'var(--glass-text-primary)' }} />
-                <Box>
-                  <Typography
-                    variant="body2"
-                    sx={{ color: 'var(--glass-text-gray-medium)' }}
+                {previewImageUrl ? (
+                  <Box
+                    sx={{
+                      width: { xs: '100%', md: 'fit-content' },
+                      minHeight: { xs: 180, sm: 200, md: 180 },
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: { xs: 'center', md: 'flex-end' },
+                      borderRadius: 1,
+                      overflow: 'hidden',
+                      backgroundColor: 'var(--glass-bg-light)',
+                      p: 0,
+                    }}
                   >
-                    使用次数
-                  </Typography>
-                  <Typography
-                    variant="h6"
-                    sx={{ color: 'var(--glass-text-white-heavy)', fontWeight: 600 }}
+                    <Box
+                      component="img"
+                      src={previewImageUrl}
+                      alt="模版预览图"
+                      sx={{
+                        width: 'auto',
+                        height: 'auto',
+                        maxWidth: { xs: '100%', md: 'clamp(240px, 28vw, 360px)' },
+                        maxHeight: { xs: 140, sm: 160, md: 180 },
+                        objectFit: 'contain',
+                        display: 'block',
+                      }}
+                    />
+                  </Box>
+                ) : (
+                  <Box
+                    sx={{
+                      minHeight: { xs: 180, sm: 200, md: 180 },
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      borderRadius: 1,
+                      backgroundColor: 'var(--glass-bg-light)',
+                      color: 'var(--glass-text-gray-medium)',
+                      flexDirection: 'column',
+                      gap: 1,
+                    }}
                   >
-                    {template.usageCount} 次
-                  </Typography>
-                </Box>
+                    <CheckCircle size={48} opacity={0.5} />
+                    <Typography variant="caption" sx={{ color: 'var(--glass-text-gray-medium)' }}>
+                      暂无预览图
+                    </Typography>
+                  </Box>
+                )}
               </Box>
 
-              <Divider sx={{ borderColor: 'var(--glass-border-white-light)' }} />
-
-              {/* 创建时间 */}
               <Box
                 sx={{
+                  flex: 1,
+                  minWidth: 0,
                   display: 'flex',
-                  alignItems: 'center',
-                  gap: 1.5,
+                  flexDirection: 'column',
+                  minHeight: { md: 180 },
                 }}
-                data-testid="template-created-at"
               >
-                <Calendar size={20} style={{ color: 'var(--glass-text-accent)' }} />
-                <Box>
-                  <Typography
-                    variant="body2"
-                    sx={{ color: 'var(--glass-text-gray-medium)' }}
+                <Box
+                  sx={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'flex-start',
+                    mb: 2,
+                  }}
+                >
+                  <Box sx={{ flexGrow: 1, minWidth: 0 }}>
+                    <Typography
+                      variant="h4"
+                      sx={{
+                        color: 'var(--glass-text-white-heavy)',
+                        fontWeight: 600,
+                        mb: 1,
+                      }}
+                      data-testid="template-title"
+                    >
+                      {template.title || '未命名模版'}
+                    </Typography>
+                    <Typography
+                      variant="body1"
+                      sx={{
+                        color: 'var(--glass-text-gray-medium)',
+                        whiteSpace: 'pre-wrap',
+                      }}
+                      data-testid="template-description"
+                    >
+                      {template.description || '暂无描述'}
+                    </Typography>
+                  </Box>
+
+                  <IconButton
+                    onClick={handleToggleFavorite}
+                    sx={{ ml: 2, width: 44, height: 44, flexShrink: 0 }}
+                    data-testid="toggle-favorite-button"
+                    aria-label={template.isFavorite ? '取消收藏模版' : '收藏模版'}
                   >
-                    创建时间
-                  </Typography>
-                  <Typography
-                    variant="body1"
-                    sx={{ color: 'var(--glass-text-white-heavy)' }}
-                  >
-                    {formatDistanceToNow(new Date(template.createdAt), {
-                      addSuffix: true,
-                      locale: zhCN,
-                    })}
-                  </Typography>
+                    {template.isFavorite ? (
+                      <Star size={24} className="text-yellow-500" fill="currentColor" />
+                    ) : (
+                      <StarOff size={24} style={{ color: 'var(--glass-text-gray-medium)' }} />
+                    )}
+                  </IconButton>
                 </Box>
-              </Box>
 
-              <Divider sx={{ borderColor: 'var(--glass-border-white-light)' }} />
-
-              {/* 生成历史数 */}
-              <Box
-                sx={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 1.5,
-                }}
-                data-testid="template-generations-count"
-              >
-                <CheckCircle size={20} style={{ color: 'var(--glass-text-primary)' }} />
-                <Box>
-                  <Typography
-                    variant="body2"
-                    sx={{ color: 'var(--glass-text-gray-medium)' }}
+                <Box
+                  sx={{
+                    display: 'flex',
+                    gap: 1,
+                    flexWrap: 'wrap',
+                    mt: 'auto',
+                  }}
+                >
+                  <Button
+                    variant="outlined"
+                    startIcon={<Edit size={18} />}
+                    onClick={() => setEditDialog(true)}
+                    data-testid="edit-button"
                   >
-                    生成历史
-                  </Typography>
-                  <Typography
-                    variant="h6"
-                    sx={{ color: 'var(--glass-text-white-heavy)', fontWeight: 600 }}
+                    编辑
+                  </Button>
+                  <Button
+                    variant="contained"
+                    startIcon={<RefreshCw size={18} />}
+                    onClick={handleRegenerate}
+                    sx={{
+                      background: 'linear-gradient(135deg, #3b82f6, #8b5cf6)',
+                      '&:hover': {
+                        background: 'linear-gradient(135deg, #2563eb, #7c3aed)',
+                      },
+                    }}
+                    data-testid="regenerate-button"
                   >
-                    {template.generations?.length || 0} 次
-                  </Typography>
+                    重新生成
+                  </Button>
+                  <Button
+                    variant="outlined"
+                    color="error"
+                    startIcon={<Trash2 size={18} />}
+                    onClick={() => setDeleteDialog(true)}
+                    data-testid="delete-button"
+                  >
+                    删除
+                  </Button>
                 </Box>
               </Box>
             </Box>
           </Card>
         </Grid>
 
-        {/* 右侧：详细信息 */}
-        <Grid item xs={12} md={7}>
-          {/* 标题和操作 */}
-          <Card className="ia-glass-card ia-glass-card--static" sx={{ ...glassCardSx, p: 3, mb: 3 }}>
-            <Box
-              sx={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'flex-start',
-                mb: 2,
-              }}
-            >
-              <Box sx={{ flexGrow: 1 }}>
-                <Typography
-                  variant="h4"
-                  sx={{
-                    color: 'var(--glass-text-white-heavy)',
-                    fontWeight: 600,
-                    mb: 1,
-                  }}
-                  data-testid="template-title"
-                >
-                  {template.title || '未命名模版'}
-                </Typography>
-                <Typography
-                  variant="body1"
-                  sx={{
-                    color: 'var(--glass-text-gray-medium)',
-                    whiteSpace: 'pre-wrap',
-                  }}
-                  data-testid="template-description"
-                >
-                  {template.description || '暂无描述'}
-                </Typography>
-              </Box>
-
-              {/* 收藏按钮 */}
-              <IconButton
-                onClick={handleToggleFavorite}
-                sx={{ ml: 2, width: 44, height: 44 }}
-                data-testid="toggle-favorite-button"
-                aria-label={template.isFavorite ? '取消收藏模版' : '收藏模版'}
-              >
-                {template.isFavorite ? (
-                  <Star size={24} className="text-yellow-500" fill="currentColor" />
-                ) : (
-                  <StarOff size={24} style={{ color: 'var(--glass-text-gray-medium)' }} />
-                )}
-              </IconButton>
-            </Box>
-
-            {/* 操作按钮 */}
-            <Box
-              sx={{
-                display: 'flex',
-                gap: 1,
-                flexWrap: 'wrap',
-              }}
-            >
-              <Button
-                variant="outlined"
-                startIcon={<Edit size={18} />}
-                onClick={() => setEditDialog(true)}
-                data-testid="edit-button"
-              >
-                编辑
-              </Button>
-              <Button
-                variant="contained"
-                startIcon={<RefreshCw size={18} />}
-                onClick={handleRegenerate}
-                sx={{
-                  background: 'linear-gradient(135deg, #3b82f6, #8b5cf6)',
-                  '&:hover': {
-                    background: 'linear-gradient(135deg, #2563eb, #7c3aed)',
-                  },
-                }}
-                data-testid="regenerate-button"
-              >
-                重新生成
-              </Button>
-              <Button
-                variant="outlined"
-                color="error"
-                startIcon={<Trash2 size={18} />}
-                onClick={() => setDeleteDialog(true)}
-                data-testid="delete-button"
-              >
-                删除
-              </Button>
-            </Box>
-          </Card>
-
+        {/* 详情内容 */}
+        <Grid item xs={12} sx={{ width: '100%', pl: '0 !important' }}>
           {/* 标签和分类 */}
-          <Card className="ia-glass-card ia-glass-card--static" sx={{ ...glassCardSx, p: 3, mb: 3 }}>
-            {/* 标签 */}
-            {template.tags && template.tags.length > 0 && (
-              <Box sx={{ mb: 2 }} data-testid="template-tags">
-                <Box
-                  sx={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 1,
-                    mb: 1.5,
-                  }}
-                >
-                  <Tag size={18} style={{ color: 'var(--glass-text-primary)' }} />
-                  <Typography
-                    variant="subtitle1"
+          {((template.tags && template.tags.length > 0) ||
+            (template.categories && template.categories.length > 0)) && (
+            <Card className="ia-glass-card ia-glass-card--static" sx={{ ...glassCardSx, p: 3, mb: 3 }}>
+              {/* 标签 */}
+              {template.tags && template.tags.length > 0 && (
+                <Box sx={{ mb: 2 }} data-testid="template-tags">
+                  <Box
                     sx={{
-                      color: 'var(--glass-text-white-heavy)',
-                      fontWeight: 600,
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 1,
+                      mb: 1.5,
                     }}
                   >
-                    标签
-                  </Typography>
-                </Box>
-                <Box
-                  sx={{
-                    display: 'flex',
-                    flexWrap: 'wrap',
-                    gap: 1,
-                  }}
-                >
-                  {template.tags.map((tag, index) => (
-                    <Chip
-                      key={index}
-                      label={tag}
+                    <Tag size={18} style={{ color: 'var(--glass-text-primary)' }} />
+                    <Typography
+                      variant="subtitle1"
                       sx={{
-                        backgroundColor: 'var(--glass-bg-blue-medium)',
-                        color: 'var(--glass-text-white-medium)',
+                        color: 'var(--glass-text-white-heavy)',
+                        fontWeight: 600,
                       }}
-                    />
-                  ))}
+                    >
+                      标签
+                    </Typography>
+                  </Box>
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      flexWrap: 'wrap',
+                      gap: 1,
+                    }}
+                  >
+                    {template.tags.map((tag, index) => (
+                      <Chip
+                        key={index}
+                        label={tag}
+                        sx={{
+                          backgroundColor: 'var(--glass-bg-blue-medium)',
+                          color: 'var(--glass-text-white-medium)',
+                        }}
+                      />
+                    ))}
+                  </Box>
                 </Box>
-              </Box>
-            )}
+              )}
 
-            {/* 分类 */}
-            {template.categories && template.categories.length > 0 && (
-              <Box data-testid="template-categories">
-                <Box
-                  sx={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 1,
-                    mb: 1.5,
-                  }}
-                >
-                  <FolderTree size={18} style={{ color: 'var(--glass-text-accent)' }} />
-                  <Typography
-                    variant="subtitle1"
+              {/* 分类 */}
+              {template.categories && template.categories.length > 0 && (
+                <Box data-testid="template-categories">
+                  <Box
                     sx={{
-                      color: 'var(--glass-text-white-heavy)',
-                      fontWeight: 600,
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 1,
+                      mb: 1.5,
                     }}
                   >
-                    分类
-                  </Typography>
-                </Box>
-                <Box
-                  sx={{
-                    display: 'flex',
-                    flexWrap: 'wrap',
-                    gap: 1,
-                  }}
-                >
-                  {template.categories.map((category, index) => (
-                    <Chip
-                      key={index}
-                      label={
-                        category.child
-                          ? `${category.parent} / ${category.child}`
-                          : category.parent
-                      }
-                      variant="outlined"
+                    <FolderTree size={18} style={{ color: 'var(--glass-text-accent)' }} />
+                    <Typography
+                      variant="subtitle1"
                       sx={{
-                        borderColor: 'var(--glass-border-active)',
-                        color: 'var(--glass-text-primary)',
+                        color: 'var(--glass-text-white-heavy)',
+                        fontWeight: 600,
                       }}
-                    />
-                  ))}
+                    >
+                      分类
+                    </Typography>
+                  </Box>
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      flexWrap: 'wrap',
+                      gap: 1,
+                    }}
+                  >
+                    {template.categories.map((category, index) => (
+                      <Chip
+                        key={index}
+                        label={
+                          category.child
+                            ? `${category.parent} / ${category.child}`
+                            : category.parent
+                        }
+                        variant="outlined"
+                        sx={{
+                          borderColor: 'var(--glass-border-active)',
+                          color: 'var(--glass-text-primary)',
+                        }}
+                      />
+                    ))}
+                  </Box>
                 </Box>
-              </Box>
-            )}
-          </Card>
+              )}
+            </Card>
+          )}
 
           {/* 模版快照数据 */}
           <Card className="ia-glass-card ia-glass-card--static" sx={{ ...glassCardSx, p: 3, mb: 3 }}>

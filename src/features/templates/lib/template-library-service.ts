@@ -14,6 +14,7 @@ import {
   templateGenerations,
   generations,
   analysisResults,
+  images,
 } from '@/lib/db/schema';
 import { generateImageAsync } from '@/lib/replicate/async';
 import type {
@@ -37,6 +38,78 @@ function isValidTemplateSnapshot(data: any): data is SavedTemplate['templateSnap
     'confidenceScore' in data &&
     'createdAt' in data
   );
+}
+
+function resolveImageUrl(filePath: string | null | undefined): string | undefined {
+  if (!filePath) return undefined;
+
+  if (filePath.startsWith('http://') || filePath.startsWith('https://')) {
+    return filePath;
+  }
+
+  const publicDomain = process.env.R2_PUBLIC_DOMAIN;
+  if (publicDomain) {
+    return `https://${publicDomain}/${filePath}`;
+  }
+
+  const accountId = process.env.R2_ACCOUNT_ID;
+  const bucketName = process.env.R2_BUCKET_NAME;
+  if (accountId && bucketName) {
+    return `https://${accountId}.r2.dev/${bucketName}/${filePath}`;
+  }
+
+  return filePath;
+}
+
+function normalizeTemplateSnapshot(
+  snapshot: unknown,
+  fallbackCreatedAt: Date
+): SavedTemplate['templateSnapshot'] {
+  return isValidTemplateSnapshot(snapshot)
+    ? snapshot
+    : {
+        analysisData: {},
+        confidenceScore: 0,
+        createdAt: fallbackCreatedAt,
+      };
+}
+
+function withPreviewImage(
+  snapshot: SavedTemplate['templateSnapshot'],
+  previewImageUrl?: string
+): SavedTemplate['templateSnapshot'] {
+  if (!previewImageUrl) {
+    return snapshot;
+  }
+
+  const analysisData =
+    snapshot.analysisData && typeof snapshot.analysisData === 'object' && !Array.isArray(snapshot.analysisData)
+      ? (snapshot.analysisData as Record<string, unknown>)
+      : {};
+
+  return {
+    ...snapshot,
+    analysisData: {
+      ...analysisData,
+      imageUrl: previewImageUrl,
+    },
+  };
+}
+
+async function getUploadedImageUrlByAnalysisResultId(
+  tx: typeof db,
+  analysisResultId: number
+): Promise<string | undefined> {
+  const [record] = await tx
+    .select({
+      filePath: images.filePath,
+    })
+    .from(analysisResults)
+    .innerJoin(images, eq(analysisResults.imageId, images.id))
+    .where(eq(analysisResults.id, analysisResultId))
+    .limit(1);
+
+  return resolveImageUrl(record?.filePath);
 }
 
 /**
@@ -302,15 +375,12 @@ export async function getTemplateLibrary(
           .where(eq(templateCategories.templateId, template.id)),
       ]);
 
+      const previewImageUrl = await getUploadedImageUrlByAnalysisResultId(db, template.analysisResultId);
+      const normalizedSnapshot = normalizeTemplateSnapshot(template.templateSnapshot, template.createdAt);
+
       return {
         ...template,
-        templateSnapshot: isValidTemplateSnapshot(template.templateSnapshot)
-          ? template.templateSnapshot
-          : {
-              analysisData: {},
-              confidenceScore: 0,
-              createdAt: template.createdAt,
-            },
+        templateSnapshot: withPreviewImage(normalizedSnapshot, previewImageUrl),
         tags: tagList.map((t) => t.tag),
         categories: categoryList.map((c) => ({
           parent: c.parent,
@@ -576,15 +646,12 @@ async function getTemplateById(
       .where(eq(templateCategories.templateId, templateId)),
   ]);
 
+  const previewImageUrl = await getUploadedImageUrlByAnalysisResultId(tx, template.analysisResultId);
+  const normalizedSnapshot = normalizeTemplateSnapshot(template.templateSnapshot, template.createdAt);
+
   return {
     ...template,
-    templateSnapshot: isValidTemplateSnapshot(template.templateSnapshot)
-      ? template.templateSnapshot
-      : {
-          analysisData: {},
-          confidenceScore: 0,
-          createdAt: template.createdAt,
-        },
+    templateSnapshot: withPreviewImage(normalizedSnapshot, previewImageUrl),
     tags: tagList.map((t) => t.tag),
     categories: categoryList.map((c) => ({
       parent: c.parent,

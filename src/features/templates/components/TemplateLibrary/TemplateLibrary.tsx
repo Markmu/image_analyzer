@@ -270,77 +270,93 @@ export function TemplateLibrary({ userId }: TemplateLibraryProps) {
           ...glassCardSx,
           p: 4,
           mb: 4,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          flexWrap: 'wrap',
-          gap: 2,
         }}
       >
-        <Box>
-          <Typography
-            variant="h4"
-            sx={{ mb: 0.5, fontWeight: 600, color: 'var(--glass-text-white-heavy)' }}
-          >
-            模版库
-          </Typography>
-          <Typography
-            variant="body2"
-            sx={{ color: 'var(--glass-text-gray-medium)' }}
-          >
-            管理和重复使用您保存的模版
-          </Typography>
-        </Box>
-
         <Box
           sx={{
             display: 'flex',
-            alignItems: 'center',
+            alignItems: { xs: 'flex-start', sm: 'center' },
+            justifyContent: 'space-between',
+            flexWrap: 'wrap',
             gap: 2,
+            mb: 3,
           }}
         >
-          {/* 视图切换 */}
-          <ToggleButtonGroup
-            value={viewMode}
-            exclusive
-            onChange={(_, mode) => mode && setViewMode(mode)}
-            size="small"
-            sx={{
-              backgroundColor: 'rgba(255, 255, 255, 0.05)',
-              '& .MuiToggleButton-root': {
-                color: 'var(--glass-text-gray-medium)',
-                '&.Mui-selected': {
-                  backgroundColor: 'rgba(59, 130, 246, 0.2)',
-                  color: 'var(--glass-text-blue-light)',
-                },
-              },
-            }}
-            data-testid="view-mode-toggle"
-          >
-            <ToggleButton value="grid" aria-label="网格视图">
-              <LayoutGrid size={18} />
-            </ToggleButton>
-            <ToggleButton value="list" aria-label="列表视图">
-              <List size={18} />
-            </ToggleButton>
-          </ToggleButtonGroup>
+          <Box>
+            <Typography
+              variant="h4"
+              sx={{ mb: 0.5, fontWeight: 600, color: 'var(--glass-text-white-heavy)' }}
+            >
+              模版库
+            </Typography>
+            <Typography
+              variant="body2"
+              sx={{ color: 'var(--glass-text-gray-medium)' }}
+            >
+              管理和重复使用您保存的模版
+            </Typography>
+          </Box>
 
-          {/* 创建新模版按钮 */}
-          <Button
-            variant="contained"
-            startIcon={<Plus size={18} />}
-            onClick={() => router.push('/analysis')}
+          {/* 视图切换 */}
+          <Box
             sx={{
-              background: 'linear-gradient(135deg, #3b82f6, #8b5cf6)',
-              '&:hover': {
-                background: 'linear-gradient(135deg, #2563eb, #7c3aed)',
-              },
+              display: 'flex',
+              alignItems: 'center',
+              gap: 2,
+              flexWrap: 'wrap',
+              width: { xs: '100%', sm: 'auto' },
+              justifyContent: { xs: 'space-between', sm: 'flex-start' },
             }}
-            data-testid="create-template-button"
           >
-            创建新模版
-          </Button>
+            <ToggleButtonGroup
+              value={viewMode}
+              exclusive
+              onChange={(_, mode) => mode && setViewMode(mode)}
+              size="small"
+              sx={{
+                backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                '& .MuiToggleButton-root': {
+                  color: 'var(--glass-text-gray-medium)',
+                  '&.Mui-selected': {
+                    backgroundColor: 'rgba(59, 130, 246, 0.2)',
+                    color: 'var(--glass-text-blue-light)',
+                  },
+                },
+              }}
+              data-testid="view-mode-toggle"
+            >
+              <ToggleButton value="grid" aria-label="网格视图">
+                <LayoutGrid size={18} />
+              </ToggleButton>
+              <ToggleButton value="list" aria-label="列表视图">
+                <List size={18} />
+              </ToggleButton>
+            </ToggleButtonGroup>
+
+            {/* 创建新模版按钮 */}
+            <Button
+              variant="contained"
+              startIcon={<Plus size={18} />}
+              onClick={() => router.push('/analysis')}
+              sx={{
+                background: 'linear-gradient(135deg, #3b82f6, #8b5cf6)',
+                '&:hover': {
+                  background: 'linear-gradient(135deg, #2563eb, #7c3aed)',
+                },
+              }}
+              data-testid="create-template-button"
+            >
+              创建新模版
+            </Button>
+          </Box>
         </Box>
+
+        <TemplateFilterPanel
+          filters={filters}
+          onFiltersChange={handleFiltersChange}
+          totalResults={total}
+          embedded
+        />
       </Box>
 
       {/* 错误提示 */}
@@ -354,13 +370,6 @@ export function TemplateLibrary({ userId }: TemplateLibraryProps) {
           {error}
         </Alert>
       )}
-
-      {/* 过滤面板 */}
-      <TemplateFilterPanel
-        filters={filters}
-        onFiltersChange={handleFiltersChange}
-        totalResults={total}
-      />
 
       {/* 模版列表 */}
       {templates.length === 0 ? (

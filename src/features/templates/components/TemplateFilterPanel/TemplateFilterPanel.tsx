@@ -43,6 +43,7 @@ interface TemplateFilterPanelProps {
   onFiltersChange: (filters: FilterState) => void;
   availableTags?: string[];
   totalResults?: number;
+  embedded?: boolean;
 }
 
 export function TemplateFilterPanel({
@@ -50,6 +51,7 @@ export function TemplateFilterPanel({
   onFiltersChange,
   availableTags = [],
   totalResults,
+  embedded = false,
 }: TemplateFilterPanelProps) {
   const [expanded, setExpanded] = React.useState(false);
   const [tagInput, setTagInput] = React.useState('');
@@ -103,10 +105,10 @@ export function TemplateFilterPanel({
 
   return (
     <Box
-      className="ia-glass-card"
+      className={embedded ? undefined : 'ia-glass-card'}
       sx={{
-        p: 3,
-        mb: 3,
+        p: embedded ? 0 : 3,
+        mb: embedded ? 0 : 3,
       }}
       data-testid="template-filter-panel"
     >
