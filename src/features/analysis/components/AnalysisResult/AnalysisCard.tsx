@@ -72,7 +72,7 @@ export function AnalysisCard({ analysisData }: AnalysisCardProps) {
           borderBottom: '1px solid var(--glass-border-white-light)',
         }}
       >
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, flexWrap: 'wrap' }}>
           <Box
             sx={{
               display: 'flex',
@@ -90,60 +90,43 @@ export function AnalysisCard({ analysisData }: AnalysisCardProps) {
           <Typography variant="h5" sx={{ fontWeight: 700, color: 'var(--glass-text-white-heavy)' }}>
             风格分析结果
           </Typography>
+          <Box
+            sx={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 1,
+              px: 1.25,
+              py: 0.75,
+              borderRadius: '999px',
+              border: `1px solid ${confidenceLevel.color}40`,
+              backgroundColor:
+                confidenceLevel.color === 'var(--success)'
+                  ? 'var(--glass-bg-blue-medium)'
+                  : confidenceLevel.color === 'var(--warning)'
+                    ? 'var(--glass-bg-highlight)'
+                    : 'var(--error-bg)',
+            }}
+          >
+            <Typography variant="caption" sx={{ color: 'var(--glass-text-gray-medium)' }}>
+              整体置信度
+            </Typography>
+            <Typography
+              variant="body2"
+              sx={{ color: confidenceLevel.color, fontWeight: 800, lineHeight: 1 }}
+            >
+              {(overallConfidence * 100).toFixed(0)}%
+            </Typography>
+            <Typography
+              variant="caption"
+              sx={{ color: confidenceLevel.color, fontWeight: 700, lineHeight: 1 }}
+            >
+              {confidenceLevel.label}
+            </Typography>
+          </Box>
         </Box>
 
         <Box data-testid="ai-result-badge">
           <AITransparencyBadge size="small" />
-        </Box>
-      </Box>
-
-      {/* 整体置信度 */}
-      <Box
-        sx={{
-          mb: 3,
-          p: 2.5,
-          borderRadius: 'var(--glass-radius)',
-          background: confidenceLevel.color === 'var(--success)'
-            ? 'var(--glass-bg-blue-medium)'
-            : confidenceLevel.color === 'var(--warning)'
-              ? 'var(--glass-bg-highlight)'
-              : 'var(--error-bg)',
-          border: '1px solid ' + confidenceLevel.color + '40',
-          boxShadow: confidenceLevel.color === 'var(--success)'
-            ? 'var(--glass-shadow-blue)'
-            : 'var(--glass-shadow)',
-        }}
-      >
-        <Typography
-          variant="body2"
-          sx={{
-            color: 'var(--glass-text-gray-medium)',
-            mb: 1,
-          }}
-        >
-          整体置信度
-        </Typography>
-        <Box sx={{ display: 'flex', alignItems: 'baseline', gap: 1.5 }}>
-          <Typography
-            variant="h3"
-            sx={{
-              fontWeight: 800,
-              color: confidenceLevel.color,
-              fontSize: '2.5rem',
-              lineHeight: 1,
-            }}
-          >
-            {(overallConfidence * 100).toFixed(0)}%
-          </Typography>
-          <Typography
-            variant="body1"
-            sx={{
-              color: confidenceLevel.color,
-              fontWeight: 600,
-            }}
-          >
-            {confidenceLevel.label}
-          </Typography>
         </Box>
       </Box>
 
@@ -176,7 +159,7 @@ export function AnalysisCard({ analysisData }: AnalysisCardProps) {
         <Box
           sx={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(4, minmax(0, 1fr))',
+            gridTemplateColumns: '1fr',
             gap: 2,
             minWidth: 0,
           }}

@@ -32,57 +32,65 @@ export function DimensionCard({ dimensionType, dimension }: DimensionCardProps) 
         sx={{
           display: 'flex',
           alignItems: 'center',
+          justifyContent: 'space-between',
+          flexWrap: 'wrap',
           gap: 1.5,
           mb: 2.5,
         }}
       >
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, minWidth: 0 }}>
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              width: 40,
+              height: 40,
+              borderRadius: '10px',
+              background: 'var(--glass-bg-blue-medium)',
+              border: '1px solid var(--glass-border-white-medium)',
+              flexShrink: 0,
+            }}
+          >
+            <Icon size={20} color="#3B82F6" aria-hidden="true" />
+          </Box>
+          <Typography variant="h6" sx={{ fontWeight: 700, color: 'var(--glass-text-white-heavy)' }}>
+            {dimension.name}
+          </Typography>
+        </Box>
         <Box
           sx={{
-            display: 'flex',
+            display: 'inline-flex',
             alignItems: 'center',
-            justifyContent: 'center',
-            width: 40,
-            height: 40,
-            borderRadius: '10px',
-            background: 'var(--glass-bg-blue-medium)',
-            border: '1px solid var(--glass-border-white-medium)',
+            gap: 0.75,
+            px: 1.25,
+            py: 0.5,
+            borderRadius: '999px',
+            border: '1px solid var(--glass-border-white-light)',
+            backgroundColor: 'rgba(15, 23, 42, 0.45)',
           }}
         >
-          <Icon size={20} color="#3B82F6" aria-hidden="true" />
+          <Typography
+            variant="caption"
+            sx={{
+              color: 'var(--glass-text-gray-medium)',
+              lineHeight: 1,
+            }}
+          >
+            置信度
+          </Typography>
+          <Typography
+            variant="caption"
+            sx={{
+              fontWeight: 700,
+              color: 'var(--glass-text-primary)',
+              fontSize: '0.85rem',
+              lineHeight: 1,
+            }}
+          >
+            {(dimension.confidence * 100).toFixed(0)}%
+          </Typography>
         </Box>
-        <Typography variant="h6" sx={{ fontWeight: 700, color: 'var(--glass-text-white-heavy)' }}>
-          {dimension.name}
-        </Typography>
-      </Box>
-
-      {/* 维度置信度 */}
-      <Box
-        sx={{
-          mb: 2.5,
-          pb: 2,
-          borderBottom: '1px solid var(--glass-border-white-light)',
-        }}
-      >
-        <Typography
-          variant="caption"
-          sx={{
-            color: 'var(--glass-text-gray-medium)',
-            display: 'block',
-            mb: 0.5,
-          }}
-        >
-          置信度
-        </Typography>
-        <Typography
-          variant="body2"
-          sx={{
-            fontWeight: 600,
-            color: 'var(--glass-text-primary)',
-            fontSize: '1.1rem',
-          }}
-        >
-          {(dimension.confidence * 100).toFixed(0)}%
-        </Typography>
       </Box>
 
       {/* 特征标签列表 */}
