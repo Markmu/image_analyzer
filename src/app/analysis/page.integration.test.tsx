@@ -18,6 +18,7 @@ vi.mock('next/navigation', () => ({
 
 vi.mock('@/features/auth/hooks/useRequireAuth', () => ({
   useRequireAuth: () => ({
+    session: { user: { id: 'user-1' } },
     isLoading: false,
     isAuthenticated: true,
   }),
@@ -64,6 +65,30 @@ describe('AnalysisPage Integration', () => {
           json: async () => ({
             success: true,
             data: { models: [] },
+          }),
+        } as Response;
+      }
+
+      if (url.includes('/api/history/') && !url.includes('/reuse')) {
+        return {
+          ok: true,
+          json: async () => ({
+            success: true,
+            data: {
+              analysisResultId: 456,
+              templateSnapshot: {
+                variableFormat: '请创作一张[沙发]图片。\n风格方向：现代简约。',
+                jsonFormat: {
+                  subject: '[沙发]',
+                  style: '现代简约',
+                  composition: '中心构图',
+                  colors: '米白灰',
+                  lighting: '自然侧光',
+                  additional: '',
+                },
+              },
+              analysisResult: null,
+            },
           }),
         } as Response;
       }
@@ -118,5 +143,22 @@ describe('AnalysisPage Integration', () => {
     });
 
     consoleErrorSpy.mockRestore();
+  });
+
+  it('should prefill content from historyId query param by fetching history detail', async () => {
+    mockUseSearchParams.mockReturnValue(
+      new URLSearchParams({
+        historyId: '123',
+      })
+    );
+
+    render(<AnalysisPage />);
+
+    await waitFor(() => {
+      expect(global.fetch).toHaveBeenCalledWith('/api/history/123');
+      const content = screen.getByTestId('right-template-content');
+      expect(content.textContent).toContain('请创作一张[沙发]图片。');
+      expect(content.textContent).toContain('风格方向：现代简约。');
+    });
   });
 });

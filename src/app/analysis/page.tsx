@@ -56,6 +56,39 @@ const applyVariableValues = (template: string, values: Record<string, string>): 
   });
 };
 
+const buildPrefillImageDataFromHistory = (historyRecord: {
+  id?: unknown;
+  imageUrl?: unknown;
+  analysisResult?: { imageUrl?: unknown } | null;
+}): ImageData | null => {
+  const rawUrl =
+    typeof historyRecord.analysisResult?.imageUrl === 'string'
+      ? historyRecord.analysisResult.imageUrl
+      : typeof historyRecord.imageUrl === 'string'
+        ? historyRecord.imageUrl
+        : '';
+
+  if (!rawUrl) return null;
+
+  const filePath = rawUrl.split('?')[0] || rawUrl;
+  const extension = filePath.split('.').pop()?.toLowerCase();
+  const fileFormat = extension ? extension.toUpperCase() : '未知格式';
+  const fallbackId =
+    typeof historyRecord.id === 'number' || typeof historyRecord.id === 'string'
+      ? String(historyRecord.id)
+      : `history-${Date.now()}`;
+
+  return {
+    imageId: `history-${fallbackId}`,
+    filePath,
+    fileSize: 0,
+    fileFormat,
+    width: 0,
+    height: 0,
+    url: rawUrl,
+  };
+};
+
 export default function AnalysisPage() {
   const searchParams = useSearchParams();
   const { session, isLoading, isAuthenticated } = useRequireAuth();
@@ -87,6 +120,7 @@ export default function AnalysisPage() {
   const autoStartTimerRef = useRef<number | null>(null);
   const copyResetTimerRef = useRef<number | null>(null);
   const appliedTemplateParamRef = useRef<string | null>(null);
+  const appliedHistoryIdParamRef = useRef<string | null>(null);
 
   const { setAnalysisStage, setAnalysisProgress, resetAnalysis } = useProgressStore();
 
@@ -165,6 +199,88 @@ export default function AnalysisPage() {
       variables: {},
     });
   }, [analysisState.data, analysisState.status]);
+
+  useEffect(() => {
+    if (!isAuthenticated) return;
+
+    const historyIdParam = searchParams.get('historyId');
+    if (!historyIdParam || appliedHistoryIdParamRef.current === historyIdParam) {
+      return;
+    }
+    const parsedHistoryId = Number(historyIdParam);
+    if (!Number.isInteger(parsedHistoryId) || parsedHistoryId <= 0) {
+      appliedHistoryIdParamRef.current = historyIdParam;
+      console.error('Invalid historyId query param:', historyIdParam);
+      return;
+    }
+
+    let cancelled = false;
+
+    void (async () => {
+      try {
+        const response = await fetch(`/api/history/${parsedHistoryId}`);
+        const result = await response.json();
+
+        if (!response.ok || !result.success) {
+          throw new Error(result.error?.message || '获取历史记录详情失败');
+        }
+
+        if (cancelled) return;
+        appliedHistoryIdParamRef.current = historyIdParam;
+
+        const historyRecord = result.data as {
+          id?: unknown;
+          imageUrl?: unknown;
+          analysisResultId?: unknown;
+          templateSnapshot?: unknown;
+          analysisResult?: { analysisData?: unknown; imageUrl?: unknown } | null;
+        };
+
+        const normalizedTemplate = normalizeTemplateSnapshot(historyRecord.templateSnapshot);
+        const restoredAnalysisData = historyRecord.analysisResult?.analysisData as AnalysisData | null;
+        const restoredAnalysisResultId =
+          typeof historyRecord.analysisResultId === 'number' ? historyRecord.analysisResultId : null;
+        const restoredImageData = buildPrefillImageDataFromHistory(historyRecord);
+
+        if (restoredImageData) {
+          setImageState({
+            status: 'ready',
+            data: restoredImageData,
+          });
+        }
+
+        if (restoredAnalysisData) {
+          stopPollingRef.current = true;
+          setAnalysisState({
+            status: 'completed',
+            data: restoredAnalysisData,
+            id: restoredAnalysisResultId,
+            error: null,
+          });
+          setAnalysisStage('completed');
+          setAnalysisProgress(100);
+        } else {
+          setAnalysisState((prev) => ({
+            ...prev,
+            id: restoredAnalysisResultId ?? prev.id,
+            error: null,
+          }));
+        }
+
+        setTemplateState({
+          content: normalizedTemplate.variableFormat,
+          copied: false,
+          variables: {},
+        });
+      } catch (error) {
+        console.error('Failed to prefill analysis page from historyId:', error);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [isAuthenticated, searchParams, setAnalysisProgress, setAnalysisStage]);
 
   useEffect(() => {
     if (!isAuthenticated) return;

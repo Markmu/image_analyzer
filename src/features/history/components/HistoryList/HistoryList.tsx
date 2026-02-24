@@ -62,10 +62,10 @@ export function HistoryList({ userId }: HistoryListProps) {
       if (!response.ok) {
         throw new Error('Failed to reuse template');
       }
-      const result = await response.json();
+      await response.json();
 
-      // 导航到分析页面并传递模版数据
-      router.push(`/analysis?template=${encodeURIComponent(JSON.stringify(result.data.template))}`);
+      // 跳转后由分析页根据 historyId 拉取并回填历史分析内容
+      router.push(`/analysis?historyId=${id}`);
     } catch (error) {
       console.error('Error reusing template:', error);
       // TODO: 显示错误提示

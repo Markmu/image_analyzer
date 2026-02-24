@@ -11,7 +11,11 @@ interface ImagePreviewProps {
 
 export default function ImagePreview({ imageData, onResetWorkspace }: ImagePreviewProps) {
   const fileName = imageData.filePath?.split('/').pop() || 'uploaded-image';
-  const sizeInMb = (imageData.fileSize / 1024 / 1024).toFixed(2);
+  const metadataParts = [
+    imageData.fileSize > 0 ? `${(imageData.fileSize / 1024 / 1024).toFixed(2)} MB` : '',
+    imageData.width > 0 && imageData.height > 0 ? `${imageData.width}x${imageData.height}` : '',
+    imageData.fileFormat || '',
+  ].filter(Boolean);
 
   return (
     <Box className="ia-glass-card" sx={{ p: 2 }}>
@@ -28,9 +32,11 @@ export default function ImagePreview({ imageData, onResetWorkspace }: ImagePrevi
       <Typography variant="body1" sx={{ color: 'var(--glass-text-white-heavy)', fontWeight: 600 }}>
         {fileName}
       </Typography>
-      <Typography variant="body2" sx={{ color: 'var(--glass-text-gray-heavy)' }}>
-        {sizeInMb} MB · {imageData.width}x{imageData.height} · {imageData.fileFormat}
-      </Typography>
+      {metadataParts.length > 0 && (
+        <Typography variant="body2" sx={{ color: 'var(--glass-text-gray-heavy)' }}>
+          {metadataParts.join(' · ')}
+        </Typography>
+      )}
       {onResetWorkspace && (
         <Box sx={{ mt: 2, display: 'flex', justifyContent: 'flex-end' }}>
           <Button
