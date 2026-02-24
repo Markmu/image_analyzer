@@ -128,30 +128,6 @@ export function TemplateLibrary({ userId }: TemplateLibraryProps) {
     router.push(`/library/${templateId}`);
   };
 
-  // 处理重新生成
-  const handleRegenerate = async (templateId: number) => {
-    try {
-      const response = await fetch(`/api/templates/${templateId}/regenerate`, {
-        method: 'POST',
-      });
-
-      if (!response.ok) {
-        throw new Error('重新生成失败');
-      }
-
-      const result = await response.json();
-
-      if (result.success) {
-        // 跳转到生成页面或显示成功消息
-        router.push(`/analysis?templateId=${templateId}`);
-      } else {
-        throw new Error(result.error || '重新生成失败');
-      }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : '重新生成失败');
-    }
-  };
-
   // 处理删除
   const handleDeleteClick = (templateId: number, templateTitle: string) => {
     setDeleteDialog({
@@ -422,7 +398,6 @@ export function TemplateLibrary({ userId }: TemplateLibraryProps) {
                   <TemplateCard
                     template={template}
                     onViewDetail={handleViewDetail}
-                    onRegenerate={handleRegenerate}
                     onDelete={(id) =>
                       handleDeleteClick(id, template.title || '未命名模版')
                     }
@@ -446,7 +421,6 @@ export function TemplateLibrary({ userId }: TemplateLibraryProps) {
                   key={template.id}
                   template={template}
                   onViewDetail={handleViewDetail}
-                  onRegenerate={handleRegenerate}
                   onDelete={(id) =>
                     handleDeleteClick(id, template.title || '未命名模版')
                   }

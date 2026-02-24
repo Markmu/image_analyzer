@@ -23,7 +23,6 @@ import {
 } from '@mui/material';
 import {
   Eye,
-  RefreshCw,
   Star,
   StarOff,
   MoreVertical,
@@ -37,7 +36,6 @@ import type { SavedTemplate } from '../../types/library';
 interface TemplateCardProps {
   template: SavedTemplate;
   onViewDetail: (id: number) => void;
-  onRegenerate: (id: number) => void;
   onDelete: (id: number) => void;
   onToggleFavorite: (id: number) => void;
 }
@@ -45,7 +43,6 @@ interface TemplateCardProps {
 export function TemplateCard({
   template,
   onViewDetail,
-  onRegenerate,
   onDelete,
   onToggleFavorite,
 }: TemplateCardProps) {
@@ -318,17 +315,6 @@ export function TemplateCard({
           </IconButton>
         </Tooltip>
 
-        <Tooltip title="重新生成">
-          <IconButton
-            size="small"
-            color="primary"
-            onClick={() => onRegenerate(template.id)}
-            data-testid="template-regenerate"
-          >
-            <RefreshCw size={18} />
-          </IconButton>
-        </Tooltip>
-
         <Tooltip title="更多操作">
           <IconButton
             size="small"
@@ -362,17 +348,6 @@ export function TemplateCard({
             }}
           >
             查看详情
-          </MenuItem>
-          <MenuItem
-            onClick={() => onRegenerate(template.id)}
-            sx={{
-              color: 'var(--glass-text-white-medium)',
-              '&:hover': {
-                backgroundColor: 'var(--glass-bg-blue-light)',
-              },
-            }}
-          >
-            重新生成
           </MenuItem>
           <MenuItem
             onClick={handleDelete}

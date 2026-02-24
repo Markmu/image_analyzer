@@ -34,7 +34,6 @@ import {
   Star,
   StarOff,
   Trash2,
-  RefreshCw,
   Edit,
   Tag,
   FolderTree,
@@ -103,29 +102,6 @@ export function TemplateLibraryDetail() {
   // 处理返回列表
   const handleBack = () => {
     router.push('/library');
-  };
-
-  // 处理重新生成
-  const handleRegenerate = async () => {
-    try {
-      const response = await fetch(`/api/templates/${templateId}/regenerate`, {
-        method: 'POST',
-      });
-
-      if (!response.ok) {
-        throw new Error('重新生成失败');
-      }
-
-      const result = await response.json();
-
-      if (result.success) {
-        router.push(`/analysis?templateId=${templateId}`);
-      } else {
-        throw new Error(result.error || '重新生成失败');
-      }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : '重新生成失败');
-    }
   };
 
   // 处理收藏切换
@@ -421,20 +397,6 @@ export function TemplateLibraryDetail() {
                     data-testid="edit-button"
                   >
                     编辑
-                  </Button>
-                  <Button
-                    variant="contained"
-                    startIcon={<RefreshCw size={18} />}
-                    onClick={handleRegenerate}
-                    sx={{
-                      background: 'linear-gradient(135deg, #3b82f6, #8b5cf6)',
-                      '&:hover': {
-                        background: 'linear-gradient(135deg, #2563eb, #7c3aed)',
-                      },
-                    }}
-                    data-testid="regenerate-button"
-                  >
-                    重新生成
                   </Button>
                   <Button
                     variant="outlined"

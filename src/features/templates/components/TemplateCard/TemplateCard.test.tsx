@@ -36,7 +36,6 @@ const mockTemplate: SavedTemplate = {
 describe('TemplateCard', () => {
   const mockHandlers = {
     onViewDetail: vi.fn(),
-    onRegenerate: vi.fn(),
     onDelete: vi.fn(),
     onToggleFavorite: vi.fn(),
   };
@@ -113,13 +112,6 @@ describe('TemplateCard', () => {
 
       fireEvent.click(screen.getByTestId('template-view-detail'));
       expect(mockHandlers.onViewDetail).toHaveBeenCalledWith(1);
-    });
-
-    it('should call onRegenerate when regenerate button is clicked', () => {
-      render(<TemplateCard template={mockTemplate} {...mockHandlers} />);
-
-      fireEvent.click(screen.getByTestId('template-regenerate'));
-      expect(mockHandlers.onRegenerate).toHaveBeenCalledWith(1);
     });
 
     it('should call onToggleFavorite when favorite button is clicked', () => {
