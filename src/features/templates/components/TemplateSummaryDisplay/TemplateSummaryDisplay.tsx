@@ -15,6 +15,7 @@ import React, { useMemo } from 'react';
 import { Box, Typography, Card, Grid, Chip } from '@mui/material';
 import type { TemplateJSONFormat, TemplateFieldKey } from '../../types/template';
 import { FIELD_CONFIGS } from '../../lib/field-configs';
+import { GLASS_CARD_SX, GLASS_TEXT_COLORS, GLASS_BORDER_COLORS } from '../../styles';
 
 export interface TemplateSummaryDisplayProps {
   /** Template JSON format data */
@@ -51,7 +52,7 @@ function FieldSummaryItem({ label, value, color }: FieldSummaryItemProps) {
       <Typography
         variant="caption"
         sx={{
-          color: 'var(--glass-text-gray-medium)',
+          color: GLASS_TEXT_COLORS.grayMedium,
           fontWeight: 500,
           display: 'block',
           mb: 0.5,
@@ -65,7 +66,7 @@ function FieldSummaryItem({ label, value, color }: FieldSummaryItemProps) {
       <Typography
         variant="body2"
         sx={{
-          color: 'var(--glass-text-white-medium)',
+          color: GLASS_TEXT_COLORS.whiteMedium,
           lineHeight: 1.6,
           wordBreak: 'break-word',
         }}
@@ -138,7 +139,7 @@ export function TemplateSummaryDisplay({
           <Typography
             variant="body2"
             sx={{
-              color: 'var(--glass-text-gray-medium)',
+              color: GLASS_TEXT_COLORS.grayMedium,
               fontStyle: 'italic',
             }}
           >
@@ -178,7 +179,7 @@ export function TemplateSummaryDisplay({
           <Typography
             variant="body2"
             sx={{
-              color: 'var(--glass-text-gray-medium)',
+              color: GLASS_TEXT_COLORS.grayMedium,
               fontStyle: 'italic',
             }}
           >
@@ -211,13 +212,13 @@ export function TemplateSummaryDisplay({
           justifyContent: 'space-between',
           mb: 2,
           pb: 1.5,
-          borderBottom: '1px solid var(--glass-border-white-light)',
+          borderBottom: `1px solid ${GLASS_BORDER_COLORS.whiteLight}`,
         }}
       >
         <Typography
           variant="h6"
           sx={{
-            color: 'var(--glass-text-white-heavy)',
+            color: GLASS_TEXT_COLORS.whiteHeavy,
             fontWeight: 600,
             fontSize: { xs: '1.1rem', md: '1.25rem' },
           }}
@@ -229,7 +230,7 @@ export function TemplateSummaryDisplay({
           size="small"
           sx={{
             backgroundColor: 'var(--glass-bg-blue-medium)',
-            color: 'var(--glass-text-white-medium)',
+            color: GLASS_TEXT_COLORS.whiteMedium,
             fontSize: '0.75rem',
             height: 24,
           }}
@@ -270,13 +271,13 @@ export function TemplateSummaryDisplay({
           sx={{
             mt: 2,
             pt: 1.5,
-            borderTop: '1px solid var(--glass-border-white-light)',
+            borderTop: `1px solid ${GLASS_BORDER_COLORS.whiteLight}`,
           }}
         >
           <Typography
             variant="caption"
             sx={{
-              color: 'var(--glass-text-gray-light)',
+              color: GLASS_TEXT_COLORS.grayLight,
               fontStyle: 'italic',
             }}
           >

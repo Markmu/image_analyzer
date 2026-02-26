@@ -58,6 +58,7 @@ import { DeleteConfirmDialog } from '../DeleteConfirmDialog';
 import { TemplateSummaryDisplay } from '../TemplateSummaryDisplay';
 import { templateSnapshotToTemplate } from '../../lib/template-snapshot-converter';
 import { useEditorStateMachine, type EditorEvent } from '../../lib/use-editor-state-machine';
+import { GLASS_CARD_SX, GLASS_TEXT_COLORS, GLASS_BORDER_COLORS } from '../../styles';
 
 export function TemplateLibraryDetail() {
   const router = useRouter();
@@ -379,14 +380,6 @@ export function TemplateLibraryDetail() {
   }
 
   const previewImageUrl = template.templateSnapshot?.analysisData?.imageUrl;
-  const glassCardSx = {
-    background: 'var(--glass-bg-dark)',
-    backgroundImage: 'none',
-    border: '1px solid var(--glass-border)',
-    backdropFilter: 'blur(var(--glass-blur))',
-    WebkitBackdropFilter: 'blur(var(--glass-blur))',
-    boxShadow: 'var(--glass-shadow)',
-  } as const;
 
   return (
     <Container maxWidth={false} sx={{ py: 4, px: { xs: 2, sm: 3, md: 4 } }} data-testid="template-detail">
@@ -419,7 +412,7 @@ export function TemplateLibraryDetail() {
           <Card
             className="ia-glass-card ia-glass-card--static"
             sx={{
-              ...glassCardSx,
+              ...GLASS_CARD_SX,
               p: 3,
             }}
           >
@@ -666,7 +659,7 @@ export function TemplateLibraryDetail() {
             <Card
               className="ia-glass-card ia-glass-card--static"
               sx={{
-                ...glassCardSx,
+                ...GLASS_CARD_SX,
                 p: 3,
               }}
               data-testid="advanced-editor"
@@ -736,7 +729,7 @@ export function TemplateLibraryDetail() {
           {/* 标签和分类 */}
           {((template.tags && template.tags.length > 0) ||
             (template.categories && template.categories.length > 0)) && (
-            <Card className="ia-glass-card ia-glass-card--static" sx={{ ...glassCardSx, p: 3, mb: 3 }}>
+            <Card className="ia-glass-card ia-glass-card--static" sx={{ ...GLASS_CARD_SX, p: 3, mb: 3 }}>
               {/* 标签 */}
               {template.tags && template.tags.length > 0 && (
                 <Box sx={{ mb: 2 }} data-testid="template-tags">
@@ -832,7 +825,7 @@ export function TemplateLibraryDetail() {
 
           {/* 生成历史 */}
           {template.generations && template.generations.length > 0 && (
-            <Card className="ia-glass-card ia-glass-card--static" sx={{ ...glassCardSx, p: 3 }}>
+            <Card className="ia-glass-card ia-glass-card--static" sx={{ ...GLASS_CARD_SX, p: 3 }}>
               <Typography
                 variant="h6"
                 sx={{
@@ -850,7 +843,7 @@ export function TemplateLibraryDetail() {
                     <Card
                       className="ia-glass-card ia-glass-card--static"
                       sx={{
-                        ...glassCardSx,
+                        ...GLASS_CARD_SX,
                         overflow: 'hidden',
                         transition: 'var(--glass-transition)',
                         '&:hover': {
