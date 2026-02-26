@@ -8,7 +8,7 @@
 
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import {
   Box,
@@ -28,6 +28,13 @@ import {
   DialogContent,
   DialogActions,
   TextField,
+  Collapse,
+  Stack,
+  Tooltip,
+  Menu,
+  MenuItem,
+  useMediaQuery,
+  useTheme,
 } from '@mui/material';
 import {
   ArrowLeft,
@@ -38,16 +45,26 @@ import {
   Tag,
   FolderTree,
   CheckCircle,
+  Sparkles,
+  ChevronDown,
+  Ban,
+  MoreVertical,
 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { zhCN } from 'date-fns/locale';
 import type { TemplateWithHistory } from '../../types/library';
+import type { Template } from '../../types/template';
 import { DeleteConfirmDialog } from '../DeleteConfirmDialog';
+import { TemplateSummaryDisplay } from '../TemplateSummaryDisplay';
+import { templateSnapshotToTemplate } from '../../lib/template-snapshot-converter';
+import { useEditorStateMachine, type EditorEvent } from '../../lib/use-editor-state-machine';
 
 export function TemplateLibraryDetail() {
   const router = useRouter();
   const params = useParams();
   const templateId = parseInt(params.id as string);
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
 
   const [template, setTemplate] = useState<TemplateWithHistory | null>(null);
   const [loading, setLoading] = useState(true);
@@ -58,6 +75,26 @@ export function TemplateLibraryDetail() {
     title: '',
     description: '',
   });
+
+  // State machine for editor state management
+  const {
+    state: editorState,
+    transition: editorTransition,
+    isEditorExpanded,
+    isGenerating,
+    isError: isEditorError,
+    error: editorError,
+  } = useEditorStateMachine();
+
+  // Generation status message
+  const [generationStatus, setGenerationStatus] = useState<string | null>(null);
+
+  // Editable template data
+  const [editableTemplate, setEditableTemplate] = useState<Template | null>(null);
+
+  // More menu state
+  const [moreMenuAnchor, setMoreMenuAnchor] = useState<null | HTMLElement>(null);
+  const moreMenuOpen = Boolean(moreMenuAnchor);
 
   // 获取模版详情
   const fetchTemplateDetail = useCallback(async () => {
@@ -83,6 +120,13 @@ export function TemplateLibraryDetail() {
           title: templateData.title || '',
           description: templateData.description || '',
         });
+
+        // Convert template snapshot to editable Template format
+        const converted = templateSnapshotToTemplate(
+          templateData,
+          String(templateId)
+        );
+        setEditableTemplate(converted);
       } else {
         throw new Error(result.error || '获取模版详情失败');
       }
@@ -183,6 +227,125 @@ export function TemplateLibraryDetail() {
       setError(err instanceof Error ? err.message : '更新模版失败');
     }
   };
+
+  // Handle generate image with timeout and retry logic
+  const handleGenerateImage = useCallback(async () => {
+    if (isGenerating || !template) return;
+
+    editorTransition({ type: 'START_GENERATE' });
+    setGenerationStatus('正在生成图片...');
+    setError(null);
+
+    const API_TIMEOUT = 30000; // 30 seconds
+    const MAX_RETRIES = 1;
+
+    const attemptGenerate = async (attempt: number): Promise<boolean> => {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), API_TIMEOUT);
+
+      try {
+        const response = await fetch(`/api/templates/${templateId}/regenerate`, {
+          method: 'POST',
+          signal: controller.signal,
+        });
+
+        clearTimeout(timeoutId);
+
+        if (!response.ok) {
+          if (response.status === 401) {
+            throw new Error('请先登录');
+          } else if (response.status === 404) {
+            throw new Error('模板不存在');
+          } else if (response.status === 429) {
+            throw new Error('生成次数已达上限');
+          } else if (response.status >= 500 && attempt < MAX_RETRIES) {
+            // Server error - retry
+            console.warn(`Server error, retrying... (attempt ${attempt + 1})`);
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            return attemptGenerate(attempt + 1);
+          } else {
+            throw new Error('生成图片失败');
+          }
+        }
+
+        const result = await response.json();
+
+        if (result.success) {
+          setGenerationStatus('图片生成已开始，请稍候...');
+          // Refresh after delay to allow webhook to process
+          setTimeout(() => {
+            void fetchTemplateDetail();
+            setGenerationStatus(null);
+            editorTransition({ type: 'GENERATE_SUCCESS' });
+          }, 5000);
+          return true;
+        } else {
+          throw new Error(result.error || '生成图片失败');
+        }
+      } catch (err) {
+        clearTimeout(timeoutId);
+
+        if (err instanceof Error && err.name === 'AbortError') {
+          throw new Error('请求超时，请稍后重试');
+        }
+
+        // Retry on network errors
+        if (err instanceof TypeError && attempt < MAX_RETRIES) {
+          console.warn(`Network error, retrying... (attempt ${attempt + 1})`);
+          await new Promise(resolve => setTimeout(resolve, 1000));
+          return attemptGenerate(attempt + 1);
+        }
+
+        throw err;
+      }
+    };
+
+    try {
+      await attemptGenerate(0);
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : '生成图片失败';
+      setError(errorMessage);
+      setGenerationStatus(null);
+      editorTransition({ type: 'GENERATE_ERROR', error: errorMessage });
+    }
+  }, [templateId, isGenerating, template, fetchTemplateDetail, editorTransition]);
+
+  // Handle toggle editor
+  const handleToggleEditor = useCallback(() => {
+    editorTransition({ type: 'OPEN_EDITOR' });
+  }, [editorTransition]);
+
+  // Handle cancel edit (discard and collapse editor)
+  const handleCancelEdit = useCallback(() => {
+    // Restore original template data
+    if (template) {
+      const converted = templateSnapshotToTemplate(
+        template,
+        String(templateId)
+      );
+      setEditableTemplate(converted);
+    }
+    editorTransition({ type: 'CANCEL_EDIT' });
+  }, [template, templateId, editorTransition]);
+
+  // Handle more menu
+  const handleMoreMenuOpen = useCallback((event: React.MouseEvent<HTMLElement>) => {
+    setMoreMenuAnchor(event.currentTarget);
+  }, []);
+
+  const handleMoreMenuClose = useCallback(() => {
+    setMoreMenuAnchor(null);
+  }, []);
+
+  const handleEditClick = useCallback(() => {
+    handleMoreMenuClose();
+    setEditDialog(true);
+  }, [handleMoreMenuClose]);
+
+  const handleDeleteClick = useCallback(() => {
+    handleMoreMenuClose();
+    setDeleteDialog(true);
+  }, [handleMoreMenuClose]);
 
   // 加载状态
   if (loading) {
@@ -385,32 +548,187 @@ export function TemplateLibraryDetail() {
                 <Box
                   sx={{
                     display: 'flex',
-                    gap: 1,
-                    flexWrap: 'wrap',
+                    flexDirection: { xs: 'column', md: 'row' },
+                    gap: { xs: 1.5, md: 1.5 },
                     mt: 'auto',
+                    flexShrink: 0,
+                    alignItems: { xs: 'stretch', md: 'center' },
                   }}
                 >
                   <Button
-                    variant="outlined"
-                    startIcon={<Edit size={18} />}
-                    onClick={() => setEditDialog(true)}
-                    data-testid="edit-button"
+                    variant="contained"
+                    color="primary"
+                    size="large"
+                    fullWidth={isMobile}
+                    disabled={isGenerating}
+                    startIcon={isGenerating ? <CircularProgress size={18} /> : <Sparkles size={18} />}
+                    onClick={handleGenerateImage}
+                    data-testid="generate-image-button"
+                    sx={{
+                      minWidth: { xs: '100%', md: 120 },
+                      order: { xs: 1, md: 1 },
+                    }}
                   >
-                    编辑
+                    {isGenerating ? '生成中...' : '生成图片'}
                   </Button>
                   <Button
                     variant="outlined"
-                    color="error"
-                    startIcon={<Trash2 size={18} />}
-                    onClick={() => setDeleteDialog(true)}
-                    data-testid="delete-button"
+                    color="primary"
+                    size="large"
+                    fullWidth={isMobile}
+                    disabled={isGenerating}
+                    startIcon={<ChevronDown size={18} />}
+                    onClick={handleToggleEditor}
+                    data-testid="advanced-edit-button"
+                    sx={{
+                      minWidth: { xs: '100%', md: 120 },
+                      order: { xs: 2, md: 2 },
+                    }}
                   >
-                    删除
+                    高级编辑
                   </Button>
+                  <Box sx={{ ml: { md: 'auto' }, order: { xs: 3, md: 3 } }}>
+                    <IconButton
+                      size="small"
+                      onClick={handleMoreMenuOpen}
+                      disabled={isGenerating}
+                      data-testid="more-menu-button"
+                      sx={{ width: 36, height: 36 }}
+                    >
+                      <MoreVertical size={18} />
+                    </IconButton>
+                    <Menu
+                      anchorEl={moreMenuAnchor}
+                      open={moreMenuOpen}
+                      onClose={handleMoreMenuClose}
+                      anchorOrigin={{
+                        vertical: 'bottom',
+                        horizontal: 'right',
+                      }}
+                      transformOrigin={{
+                        vertical: 'top',
+                        horizontal: 'right',
+                      }}
+                      data-testid="more-menu"
+                    >
+                      <MenuItem
+                        onClick={handleEditClick}
+                        disabled={isGenerating}
+                        data-testid="edit-menu-item"
+                      >
+                        <Edit size={16} style={{ marginRight: 8 }} />
+                        编辑信息
+                      </MenuItem>
+                      <MenuItem
+                        onClick={handleDeleteClick}
+                        disabled={isGenerating}
+                        sx={{ color: 'error.main' }}
+                        data-testid="delete-menu-item"
+                      >
+                        <Trash2 size={16} style={{ marginRight: 8 }} />
+                        删除模板
+                      </MenuItem>
+                    </Menu>
+                  </Box>
                 </Box>
               </Box>
             </Box>
           </Card>
+        </Grid>
+
+        {/* Generation Status Alert */}
+        {generationStatus && (
+          <Grid item xs={12} sx={{ width: '100%', pl: '0 !important' }}>
+            <Alert
+              severity="info"
+              sx={{ mb: 3 }}
+              data-testid="generation-status"
+              icon={<CircularProgress size={20} />}
+            >
+              {generationStatus}
+            </Alert>
+          </Grid>
+        )}
+
+        {/* Core Parameters Summary */}
+        <Grid item xs={12} sx={{ width: '100%', pl: '0 !important' }}>
+          <Collapse in={!isEditorExpanded} timeout={300} unmountOnExit>
+            <TemplateSummaryDisplay
+              jsonFormat={editableTemplate?.jsonFormat || null}
+              data-testid="template-summary-display"
+            />
+          </Collapse>
+        </Grid>
+
+        {/* Advanced Editor (Collapsible) */}
+        <Grid item xs={12} sx={{ width: '100%', pl: '0 !important' }}>
+          <Collapse in={isEditorExpanded} timeout={300} unmountOnExit>
+            <Card
+              className="ia-glass-card ia-glass-card--static"
+              sx={{
+                ...glassCardSx,
+                p: 3,
+              }}
+              data-testid="advanced-editor"
+            >
+              <Typography
+                variant="h6"
+                sx={{
+                  mb: 2,
+                  color: 'var(--glass-text-white-heavy)',
+                  fontWeight: 600,
+                }}
+              >
+                高级编辑器
+              </Typography>
+
+              <Box
+                sx={{
+                  p: 2,
+                  borderRadius: 1,
+                  backgroundColor: 'var(--glass-bg-dark-light)',
+                  border: '1px solid var(--glass-border-white-light)',
+                  minHeight: 200,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  flexDirection: 'column',
+                  gap: 2,
+                }}
+              >
+                <Typography
+                  variant="body2"
+                  sx={{
+                    color: 'var(--glass-text-gray-medium)',
+                    fontStyle: 'italic',
+                    textAlign: 'center',
+                  }}
+                >
+                  编辑器功能正在开发中
+                  <br />
+                  即将支持：修改模板参数后重新生成图片
+                </Typography>
+                <Alert severity="info" sx={{ maxWidth: 400 }}>
+                  当前版本：直接使用"生成图片"按钮，基于现有模板生成新图片
+                </Alert>
+              </Box>
+
+              <Stack
+                direction="row"
+                spacing={2}
+                sx={{ mt: 3, justifyContent: 'flex-end' }}
+              >
+                <Button
+                  variant="outlined"
+                  onClick={handleCancelEdit}
+                  disabled={isGenerating}
+                  data-testid="close-editor-button"
+                >
+                  关闭编辑器
+                </Button>
+              </Stack>
+            </Card>
+          </Collapse>
         </Grid>
 
         {/* 详情内容 */}
@@ -511,58 +829,6 @@ export function TemplateLibraryDetail() {
               )}
             </Card>
           )}
-
-          {/* 模版快照数据 */}
-          <Card className="ia-glass-card ia-glass-card--static" sx={{ ...glassCardSx, p: 3, mb: 3 }}>
-            <Typography
-              variant="h6"
-              sx={{
-                mb: 2,
-                color: 'var(--glass-text-white-heavy)',
-                fontWeight: 600,
-              }}
-            >
-              模版数据
-            </Typography>
-
-            <Box
-              sx={{
-                backgroundColor: 'var(--glass-bg-dark-light)',
-                p: 2,
-                borderRadius: 1,
-                maxHeight: 300,
-                overflow: 'auto',
-                border: '1px solid var(--glass-border-white-light)',
-              }}
-              data-testid="template-snapshot"
-            >
-              <Typography
-                variant="body2"
-                component="pre"
-                sx={{
-                  color: 'var(--glass-text-gray-medium)',
-                  fontFamily: 'monospace',
-                  fontSize: '0.75rem',
-                  whiteSpace: 'pre-wrap',
-                  wordBreak: 'break-word',
-                }}
-              >
-                {JSON.stringify(template.templateSnapshot, null, 2)}
-              </Typography>
-            </Box>
-
-            {/* 模型信息 */}
-            {template.templateSnapshot.modelId && (
-              <Box sx={{ mt: 2 }} data-testid="template-model">
-                <Typography
-                  variant="caption"
-                  sx={{ color: 'var(--glass-text-gray-heavy)' }}
-                >
-                  分析模型：{template.templateSnapshot.modelId}
-                </Typography>
-              </Box>
-            )}
-          </Card>
 
           {/* 生成历史 */}
           {template.generations && template.generations.length > 0 && (
