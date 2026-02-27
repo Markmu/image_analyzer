@@ -142,12 +142,12 @@ describe('TemplateSummaryDisplay', () => {
       render(<TemplateSummaryDisplay jsonFormat={completeJsonFormat} />);
 
       // Check that field labels from FIELD_CONFIGS are displayed
-      expect(screen.getByText('主体描述')).toBeInTheDocument();
+      expect(screen.getByText('[subject]')).toBeInTheDocument();
       expect(screen.getByText('风格描述')).toBeInTheDocument();
       expect(screen.getByText('构图信息')).toBeInTheDocument();
       expect(screen.getByText('色彩方案')).toBeInTheDocument();
       expect(screen.getByText('光线设置')).toBeInTheDocument();
-      expect(screen.getByText('其他细节')).toBeInTheDocument();
+      expect(screen.getByText('[additional]')).toBeInTheDocument();
     });
 
     it('should have data-testid attributes for testing', () => {
@@ -234,7 +234,7 @@ describe('TemplateSummaryDisplay', () => {
       expect(heading.tagName).toBe('H6'); // MUI h6 is appropriate for section headings
 
       // Field labels use Typography with variant="caption" - verify text content exists
-      expect(screen.getByText('主体描述')).toBeInTheDocument();
+      expect(screen.getByText('[subject]')).toBeInTheDocument();
       expect(screen.getByText('风格描述')).toBeInTheDocument();
 
       // Check for caption class in the DOM

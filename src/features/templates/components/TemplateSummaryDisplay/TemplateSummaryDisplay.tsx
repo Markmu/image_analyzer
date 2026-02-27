@@ -47,6 +47,10 @@ function FieldSummaryItem({ label, value, color }: FieldSummaryItemProps) {
       sx={{
         mb: 2,
         '&:last-child': { mb: 0 },
+        display: 'flex',
+        alignItems: 'flex-start',
+        gap: 1.5,
+        minWidth: 0,
       }}
     >
       <Typography
@@ -55,10 +59,12 @@ function FieldSummaryItem({ label, value, color }: FieldSummaryItemProps) {
           color: GLASS_TEXT_COLORS.grayMedium,
           fontWeight: 500,
           display: 'block',
-          mb: 0.5,
           textTransform: 'uppercase',
           letterSpacing: '0.5px',
           fontSize: '0.7rem',
+          flex: '0 0 72px',
+          minWidth: 72,
+          pt: '2px',
         }}
       >
         {label}
@@ -68,6 +74,10 @@ function FieldSummaryItem({ label, value, color }: FieldSummaryItemProps) {
         sx={{
           color: GLASS_TEXT_COLORS.whiteMedium,
           lineHeight: 1.6,
+          flex: 1,
+          minWidth: 0,
+          whiteSpace: 'pre-wrap',
+          overflowWrap: 'anywhere',
           wordBreak: 'break-word',
         }}
       >
@@ -241,6 +251,12 @@ export function TemplateSummaryDisplay({
       <Grid container spacing={3}>
         {fieldEntries.map(([key, config]) => {
           const value = jsonFormat[config.key as TemplateFieldKey];
+          const displayLabel =
+            config.key === 'subject'
+              ? '[subject]'
+              : config.key === 'additional'
+                ? '[additional]'
+                : config.label;
 
           // Skip empty fields
           if (!value || !value.trim()) {
@@ -257,7 +273,7 @@ export function TemplateSummaryDisplay({
               data-testid={`template-summary-field-${config.key}`}
             >
               <FieldSummaryItem
-                label={config.label}
+                label={displayLabel}
                 value={value}
               />
             </Grid>

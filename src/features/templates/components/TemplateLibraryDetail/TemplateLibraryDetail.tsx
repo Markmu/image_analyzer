@@ -47,6 +47,7 @@ import {
   CheckCircle,
   Sparkles,
   ChevronDown,
+  ChevronUp,
   Ban,
   MoreVertical,
 } from 'lucide-react';
@@ -320,12 +321,22 @@ export function TemplateLibraryDetail() {
 
   // Handle toggle editor (backup current template before opening)
   const handleToggleEditor = useCallback(() => {
-    // Backup current template before editing
+    // Toggle off: discard unsaved changes and collapse editor
+    if (isEditorExpanded) {
+      if (templateBeforeEdit) {
+        setEditableTemplate(templateBeforeEdit);
+        setTemplateBeforeEdit(null);
+      }
+      editorTransition({ type: 'CANCEL_EDIT' });
+      return;
+    }
+
+    // Toggle on: backup current template before editing
     if (editableTemplate) {
       setTemplateBeforeEdit({ ...editableTemplate });
     }
     editorTransition({ type: 'OPEN_EDITOR' });
-  }, [editableTemplate, editorTransition]);
+  }, [isEditorExpanded, templateBeforeEdit, editableTemplate, editorTransition]);
 
   // Handle confirm edit (save changes and collapse editor)
   const handleConfirmEdit = useCallback(() => {
@@ -590,7 +601,7 @@ export function TemplateLibraryDetail() {
                     size="large"
                     fullWidth={isMobile}
                     disabled={isGenerating}
-                    startIcon={<ChevronDown size={18} />}
+                    startIcon={isEditorExpanded ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
                     onClick={handleToggleEditor}
                     data-testid="advanced-edit-button"
                     sx={{
