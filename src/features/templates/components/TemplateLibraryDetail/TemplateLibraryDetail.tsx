@@ -86,6 +86,7 @@ export function TemplateLibraryDetail() {
     isGenerating,
     isError: isEditorError,
     error: editorError,
+    isSuccess: isGenerationSuccess,
   } = useEditorStateMachine();
 
   // Generation status message
@@ -100,6 +101,11 @@ export function TemplateLibraryDetail() {
   // More menu state
   const [moreMenuAnchor, setMoreMenuAnchor] = useState<null | HTMLElement>(null);
   const moreMenuOpen = Boolean(moreMenuAnchor);
+
+  // Constants for API calls
+  const API_TIMEOUT = 30000; // 30 seconds
+  const MAX_RETRIES = 1;
+  const REFRESH_DELAY_MS = 5000; // 5 seconds - wait for webhook to process
 
   // 获取模版详情
   const fetchTemplateDetail = useCallback(async () => {
@@ -241,9 +247,6 @@ export function TemplateLibraryDetail() {
     setGenerationStatus('正在生成图片...');
     setError(null);
 
-    const API_TIMEOUT = 30000; // 30 seconds
-    const MAX_RETRIES = 1;
-
     const attemptGenerate = async (attempt: number): Promise<boolean> => {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), API_TIMEOUT);
@@ -282,7 +285,7 @@ export function TemplateLibraryDetail() {
             void fetchTemplateDetail();
             setGenerationStatus(null);
             editorTransition({ type: 'GENERATE_SUCCESS' });
-          }, 5000);
+          }, REFRESH_DELAY_MS);
           return true;
         } else {
           throw new Error(result.error || '生成图片失败');
@@ -656,6 +659,20 @@ export function TemplateLibraryDetail() {
               icon={<CircularProgress size={20} />}
             >
               {generationStatus}
+            </Alert>
+          </Grid>
+        )}
+
+        {/* Generation Success Alert */}
+        {isGenerationSuccess && !generationStatus && (
+          <Grid item xs={12} sx={{ width: '100%', pl: '0 !important' }}>
+            <Alert
+              severity="success"
+              sx={{ mb: 3 }}
+              data-testid="generation-success"
+              onClose={() => editorTransition({ type: 'OPEN_EDITOR' })}
+            >
+              图片生成已开始！新图片将自动出现在生成历史中。
             </Alert>
           </Grid>
         )}
