@@ -56,6 +56,7 @@ import type { TemplateWithHistory } from '../../types/library';
 import type { Template } from '../../types/template';
 import { DeleteConfirmDialog } from '../DeleteConfirmDialog';
 import { TemplateSummaryDisplay } from '../TemplateSummaryDisplay';
+import { TemplateEditor } from '../TemplateEditor/TemplateEditor';
 import { templateSnapshotToTemplate } from '../../lib/template-snapshot-converter';
 import { useEditorStateMachine, type EditorEvent } from '../../lib/use-editor-state-machine';
 import { GLASS_CARD_SX, GLASS_TEXT_COLORS, GLASS_BORDER_COLORS } from '../../styles';
@@ -92,6 +93,9 @@ export function TemplateLibraryDetail() {
 
   // Editable template data
   const [editableTemplate, setEditableTemplate] = useState<Template | null>(null);
+
+  // Backup template before editing (for cancel/restore)
+  const [templateBeforeEdit, setTemplateBeforeEdit] = useState<Template | null>(null);
 
   // More menu state
   const [moreMenuAnchor, setMoreMenuAnchor] = useState<null | HTMLElement>(null);
@@ -311,23 +315,36 @@ export function TemplateLibraryDetail() {
     }
   }, [templateId, isGenerating, template, fetchTemplateDetail, editorTransition]);
 
-  // Handle toggle editor
+  // Handle toggle editor (backup current template before opening)
   const handleToggleEditor = useCallback(() => {
+    // Backup current template before editing
+    if (editableTemplate) {
+      setTemplateBeforeEdit({ ...editableTemplate });
+    }
     editorTransition({ type: 'OPEN_EDITOR' });
+  }, [editableTemplate, editorTransition]);
+
+  // Handle confirm edit (save changes and collapse editor)
+  const handleConfirmEdit = useCallback(() => {
+    // Changes are already saved in editableTemplate state via TemplateEditor onChange
+    // Just collapse the editor and update summary
+    editorTransition({ type: 'CONFIRM_EDIT' });
   }, [editorTransition]);
 
   // Handle cancel edit (discard and collapse editor)
   const handleCancelEdit = useCallback(() => {
-    // Restore original template data
-    if (template) {
-      const converted = templateSnapshotToTemplate(
-        template,
-        String(templateId)
-      );
-      setEditableTemplate(converted);
+    // Restore original template data from backup
+    if (templateBeforeEdit) {
+      setEditableTemplate(templateBeforeEdit);
+      setTemplateBeforeEdit(null);
     }
     editorTransition({ type: 'CANCEL_EDIT' });
-  }, [template, templateId, editorTransition]);
+  }, [templateBeforeEdit, editorTransition]);
+
+  // Handle template change from editor
+  const handleTemplateChange = useCallback((updatedTemplate: Template) => {
+    setEditableTemplate(updatedTemplate);
+  }, []);
 
   // Handle more menu
   const handleMoreMenuOpen = useCallback((event: React.MouseEvent<HTMLElement>) => {
@@ -660,66 +677,73 @@ export function TemplateLibraryDetail() {
               className="ia-glass-card ia-glass-card--static"
               sx={{
                 ...GLASS_CARD_SX,
-                p: 3,
+                p: 0,
+                overflow: 'visible',
               }}
               data-testid="advanced-editor"
             >
-              <Typography
-                variant="h6"
-                sx={{
-                  mb: 2,
-                  color: 'var(--glass-text-white-heavy)',
-                  fontWeight: 600,
-                }}
-              >
-                高级编辑器
-              </Typography>
-
-              <Box
-                sx={{
-                  p: 2,
-                  borderRadius: 1,
-                  backgroundColor: 'var(--glass-bg-dark-light)',
-                  border: '1px solid var(--glass-border-white-light)',
-                  minHeight: 200,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  flexDirection: 'column',
-                  gap: 2,
-                }}
-              >
-                <Typography
-                  variant="body2"
+              {editableTemplate ? (
+                <>
+                  <TemplateEditor
+                    template={editableTemplate}
+                    onChange={handleTemplateChange}
+                    showSaveButton={false}
+                    showOptimizeButton={false}
+                    readOnly={false}
+                    data-testid="template-editor-in-detail"
+                  />
+                  <Box
+                    sx={{
+                      px: 3,
+                      pb: 3,
+                      pt: 0,
+                    }}
+                  >
+                    <Stack
+                      direction="row"
+                      spacing={2}
+                      sx={{ justifyContent: 'flex-end' }}
+                    >
+                      <Button
+                        variant="outlined"
+                        onClick={handleCancelEdit}
+                        disabled={isGenerating}
+                        data-testid="cancel-edit-button"
+                      >
+                        取消
+                      </Button>
+                      <Button
+                        variant="contained"
+                        onClick={handleConfirmEdit}
+                        disabled={isGenerating}
+                        color="primary"
+                        data-testid="confirm-edit-button"
+                      >
+                        确认修改
+                      </Button>
+                    </Stack>
+                  </Box>
+                </>
+              ) : (
+                <Box
                   sx={{
-                    color: 'var(--glass-text-gray-medium)',
-                    fontStyle: 'italic',
-                    textAlign: 'center',
+                    p: 3,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    minHeight: 200,
                   }}
                 >
-                  编辑器功能正在开发中
-                  <br />
-                  即将支持：修改模板参数后重新生成图片
-                </Typography>
-                <Alert severity="info" sx={{ maxWidth: 400 }}>
-                  当前版本：直接使用"生成图片"按钮，基于现有模板生成新图片
-                </Alert>
-              </Box>
-
-              <Stack
-                direction="row"
-                spacing={2}
-                sx={{ mt: 3, justifyContent: 'flex-end' }}
-              >
-                <Button
-                  variant="outlined"
-                  onClick={handleCancelEdit}
-                  disabled={isGenerating}
-                  data-testid="close-editor-button"
-                >
-                  关闭编辑器
-                </Button>
-              </Stack>
+                  <Typography
+                    variant="body2"
+                    sx={{
+                      color: 'var(--glass-text-gray-medium)',
+                    }}
+                  >
+                    加载编辑器...
+                  </Typography>
+                </Box>
+              )}
             </Card>
           </Collapse>
         </Grid>
