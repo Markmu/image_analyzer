@@ -272,6 +272,26 @@ describe('ValidationStatus Component', () => {
       expect(onChangeImage).toHaveBeenCalledTimes(1);
     });
 
+    it('should provide retry action for validation error state', () => {
+      const onChangeImage = vi.fn();
+      const result: ValidationResult = {
+        valid: false,
+        errors: [
+          {
+            code: 'INVALID_FORMAT',
+            message: '格式不支持',
+          },
+        ],
+        warnings: [],
+      };
+
+      render(<ValidationStatus result={result} onChangeImage={onChangeImage} />);
+
+      const retryButton = screen.getByTestId('reupload-btn');
+      fireEvent.click(retryButton);
+      expect(onChangeImage).toHaveBeenCalledTimes(1);
+    });
+
     it('should not render continue button when onContinueAnyway not provided', () => {
       const result: ValidationResult = {
         valid: true,

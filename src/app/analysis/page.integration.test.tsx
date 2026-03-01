@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import AnalysisPage from './page';
 
@@ -37,7 +37,52 @@ vi.mock('@/components/shared/TermsDialog', () => ({
 }));
 
 vi.mock('@/features/analysis/components/WorkspaceColumns', () => ({
-  LeftColumn: () => <div data-testid="left-column" />,
+  LeftColumn: ({
+    onUploadSuccess,
+    onAutoStartAnalysis,
+  }: {
+    onUploadSuccess: (image: {
+      imageId: string;
+      filePath: string;
+      fileSize: number;
+      fileFormat: string;
+      width: number;
+      height: number;
+      url: string;
+    }) => void;
+    onAutoStartAnalysis: (image: {
+      imageId: string;
+      filePath: string;
+      fileSize: number;
+      fileFormat: string;
+      width: number;
+      height: number;
+      url: string;
+    }) => void;
+  }) => {
+    const image = {
+      imageId: 'uploaded-image-1',
+      filePath: 'images/test/uploaded.jpg',
+      fileSize: 1024,
+      fileFormat: 'JPEG',
+      width: 800,
+      height: 600,
+      url: 'https://example.com/uploaded.jpg',
+    };
+
+    return (
+      <button
+        type="button"
+        data-testid="left-column"
+        onClick={() => {
+          onUploadSuccess(image);
+          onAutoStartAnalysis(image);
+        }}
+      >
+        trigger upload
+      </button>
+    );
+  },
   MiddleColumn: () => <div data-testid="middle-column" />,
   RightColumn: ({ templateContent }: { templateContent: string }) => (
     <div data-testid="right-template-content">{templateContent}</div>
@@ -89,6 +134,16 @@ describe('AnalysisPage Integration', () => {
               },
               analysisResult: null,
             },
+          }),
+        } as Response;
+      }
+
+      if (url.includes('/api/analysis')) {
+        return {
+          ok: true,
+          json: async () => ({
+            success: true,
+            data: { analysisId: 123, status: 'processing' },
           }),
         } as Response;
       }
@@ -159,6 +214,24 @@ describe('AnalysisPage Integration', () => {
       const content = screen.getByTestId('right-template-content');
       expect(content.textContent).toContain('请创作一张[沙发]图片。');
       expect(content.textContent).toContain('风格方向：现代简约。');
+    });
+  });
+
+  it('should auto-start analysis after upload success', async () => {
+    mockUseSearchParams.mockReturnValue(new URLSearchParams());
+
+    render(<AnalysisPage />);
+    fireEvent.click(screen.getByTestId('left-column'));
+
+    await waitFor(() => {
+      expect(global.fetch).toHaveBeenCalledWith('/api/analysis', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          imageId: 'uploaded-image-1',
+          modelId: undefined,
+        }),
+      });
     });
   });
 });

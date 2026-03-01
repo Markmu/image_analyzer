@@ -1,9 +1,9 @@
 'use client';
 
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useRef, useState } from 'react';
 import { useDropzone } from 'react-dropzone';
 import axios, { CancelTokenSource } from 'axios';
-import { Box, Typography, LinearProgress, Button } from '@mui/material';
+import { Box, Typography, LinearProgress, Button, useMediaQuery, useTheme } from '@mui/material';
 import { Upload } from 'lucide-react';
 import type { ImageData, UploadStatus } from './types';
 import { validateImageUpload, type ValidationResult } from '@/lib/utils/image-validation';
@@ -38,11 +38,15 @@ const getUploadError = (err: unknown): { message: string; code?: string } => {
 };
 
 export function ImageUploader({ onUploadSuccess, onUploadError, onAutoStartAnalysis }: ImageUploaderProps) {
+  const theme = useTheme();
+  const isMobileLayout = useMediaQuery(theme.breakpoints.down('md'));
   const [uploadStatus, setUploadStatus] = useState<UploadStatus>('idle');
   const [uploadProgress, setUploadProgress] = useState(0);
   const [validationResult, setValidationResult] = useState<ValidationResult | null>(null);
   const [cancelTokenSource, setCancelTokenSource] = useState<CancelTokenSource | null>(null);
   const [pendingFile, setPendingFile] = useState<File | null>(null);
+  const mobileGalleryInputRef = useRef<HTMLInputElement | null>(null);
+  const mobileCameraInputRef = useRef<HTMLInputElement | null>(null);
 
   const validateFile = useCallback(async (file: File): Promise<ValidationResult> => {
     const result = await validateImageUpload(file);
@@ -168,12 +172,27 @@ export function ImageUploader({ onUploadSuccess, onUploadError, onAutoStartAnaly
     disabled: uploadStatus === 'uploading',
   });
 
+  const handleMobileInputChange = useCallback(
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      const file = event.target.files?.[0];
+      if (file) {
+        void uploadFile(file);
+      }
+      // Clear the value so selecting the same file still triggers onChange.
+      event.target.value = '';
+    },
+    [uploadFile]
+  );
+
   return (
     <Box sx={{ width: '100%' }}>
       <FirstTimeGuide />
 
       <Box
-        {...getRootProps()}
+        {...getRootProps({
+          role: 'button',
+          'aria-label': '上传图片',
+        })}
         className={`ia-glass-card ia-glass-card--clickable ${isDragActive ? 'ia-glass-card--active' : ''}`}
         sx={{
           border: '2px dashed',
@@ -215,6 +234,59 @@ export function ImageUploader({ onUploadSuccess, onUploadError, onAutoStartAnaly
         </Typography>
       </Box>
 
+      {isMobileLayout && (
+        <Box
+          sx={{
+            mt: 2,
+            display: 'flex',
+            gap: 1.5,
+            flexWrap: 'wrap',
+          }}
+        >
+          <input
+            ref={mobileGalleryInputRef}
+            type="file"
+            accept="image/jpeg,image/png,image/webp"
+            onChange={handleMobileInputChange}
+            style={{ display: 'none' }}
+            data-testid="mobile-gallery-input"
+          />
+          <input
+            ref={mobileCameraInputRef}
+            type="file"
+            accept="image/jpeg,image/png,image/webp"
+            capture="environment"
+            onChange={handleMobileInputChange}
+            style={{ display: 'none' }}
+            data-testid="mobile-camera-input"
+          />
+          <Button
+            variant="outlined"
+            onClick={() => mobileGalleryInputRef.current?.click()}
+            disabled={uploadStatus === 'uploading'}
+            sx={{
+              minWidth: 44,
+              minHeight: 44,
+            }}
+            data-testid="mobile-gallery-upload-btn"
+          >
+            从相册选择
+          </Button>
+          <Button
+            variant="outlined"
+            onClick={() => mobileCameraInputRef.current?.click()}
+            disabled={uploadStatus === 'uploading'}
+            sx={{
+              minWidth: 44,
+              minHeight: 44,
+            }}
+            data-testid="mobile-camera-upload-btn"
+          >
+            拍照上传
+          </Button>
+        </Box>
+      )}
+
       {uploadStatus === 'uploading' && (
         <Box sx={{ mt: 3 }}>
           <LinearProgress
@@ -242,6 +314,8 @@ export function ImageUploader({ onUploadSuccess, onUploadError, onAutoStartAnaly
                 mt: 2,
                 borderColor: '#cbd5e1',
                 color: 'text.primary',
+                minWidth: 44,
+                minHeight: 44,
                 '&:hover': {
                   borderColor: '#94a3b8',
                   backgroundColor: '#f8fafc',
@@ -260,6 +334,7 @@ export function ImageUploader({ onUploadSuccess, onUploadError, onAutoStartAnaly
           result={validationResult}
           onContinueAnyway={handleContinueAnyway}
           onChangeImage={handleChangeImage}
+          isMobile={isMobileLayout}
         />
       )}
     </Box>

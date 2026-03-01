@@ -472,10 +472,11 @@ export default function AnalysisPage() {
         window.clearTimeout(autoStartTimerRef.current);
       }
 
+      // Defer to the next macrotask so upload-success state commits before analysis bootstraps.
       autoStartTimerRef.current = window.setTimeout(() => {
         void handleStartAnalysis(imageData);
         autoStartTimerRef.current = null;
-      }, 500);
+      }, 0);
     },
     [handleStartAnalysis]
   );

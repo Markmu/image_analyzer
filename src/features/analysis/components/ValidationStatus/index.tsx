@@ -23,7 +23,7 @@ export function ValidationStatus({ result, onContinueAnyway, onChangeImage, isMo
 
   // Errors block upload
   if (result.errors.length > 0) {
-    return <ValidationError errors={result.errors} isMobile={isMobile} />;
+    return <ValidationError errors={result.errors} isMobile={isMobile} onChangeImage={onChangeImage} />;
   }
 
   // Warnings allow user to decide
@@ -61,13 +61,14 @@ export function ValidationStatus({ result, onContinueAnyway, onChangeImage, isMo
 interface ValidationErrorProps {
   errors: ValidationError[];
   isMobile?: boolean;
+  onChangeImage?: () => void;
 }
 
 /**
  * Validation Error Component
  * Displays error messages with optional details
  */
-function ValidationError({ errors, isMobile = false }: ValidationErrorProps) {
+function ValidationError({ errors, isMobile = false, onChangeImage }: ValidationErrorProps) {
   const [expanded, setExpanded] = React.useState(false);
 
   return (
@@ -131,6 +132,23 @@ function ValidationError({ errors, isMobile = false }: ValidationErrorProps) {
           </ListItem>
         ))}
       </List>
+      {onChangeImage && (
+        <Box sx={{ mt: 2 }}>
+          <Button
+            variant="outlined"
+            onClick={onChangeImage}
+            sx={{
+              borderColor: '#cbd5e1',
+              color: 'text.primary',
+              minWidth: 44,
+              minHeight: 44,
+            }}
+            data-testid="reupload-btn"
+          >
+            重新上传
+          </Button>
+        </Box>
+      )}
     </Alert>
   );
 }
