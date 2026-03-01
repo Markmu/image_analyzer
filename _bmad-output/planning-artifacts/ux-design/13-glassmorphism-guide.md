@@ -1,281 +1,183 @@
 # Glassmorphism 实施指南
 
-> **项目：** image_analyzer UX 设计规范
-> **版本：** v1.1
-> **最后更新：** 2026-02-17
+> **项目：** image_analyzer UX 设计规范  
+> **版本：** v2.0  
+> **最后更新：** 2026-03-01
 
 ---
 
-## Glassmorphism 实施指南
+## Source of Truth
 
-为确保开发严格遵循 Glassmorphism 视觉风格，提供详细的实施规范和代码示例。
+本指南从属于以下 design-system 文档：
 
-### Glassmorphism 核心原则
+- `design-system/image-analyzer/MASTER.md`
+- `design-system/COLOR_SCHEME.md`
+- `design-system/glassmorphism-guidelines.md`
+- `design-system/IMPLEMENTATION_GUIDE.md`
 
-**Glassmorphism（玻璃态）设计的四大要素：**
+如果本文件与以上文档冲突，以 `design-system` 为准。
 
-1. **透明度（Transparency）** - 背景半透明
-2. **模糊（Blur）** - 背景内容模糊
-3. **边界（Border）** - 微妙的边框
-4. **层次（Depth）** - 多层叠加的深度感
+---
 
-### 标准 Glassmorphism 卡片样式
+## 设计目标
 
-#### 基础卡片（必须严格遵循）
+Glassmorphism 在本项目中的作用不是“炫”，而是：
+
+- 形成稳定的深色工作台层次
+- 让不同层级的任务信息清晰分组
+- 让选中态、当前态、可操作态更易感知
+
+---
+
+## Standard Card
+
+### 标准实现
 
 ```css
-/* ✅ 正确的 Glassmorphism 卡片 */
-.glass-card {
-  /* 1. 半透明背景 - 必须 */
-  background: rgba(15, 23, 42, 0.6);
-
-  /* 2. 背景模糊 - 必须 */
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px); /* Safari 支持 */
-
-  /* 3. 微妙边框 - 必须 */
-  border: 1px solid rgba(255, 255, 255, 0.1);
-
-  /* 4. 圆角 - 必须 */
-  border-radius: 12px;
-
-  /* 5. 阴影 - 必须 */
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
-
-  /* 6. 过渡动画 - 推荐 */
-  transition: all 0.2s ease;
+.ia-glass-card {
+  background: var(--glass-bg-dark);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  border: 1px solid var(--glass-border);
+  border-radius: var(--glass-radius);
+  box-shadow: var(--glass-shadow);
+  transition: var(--glass-transition);
 }
 
-/* 悬停效果 */
-.glass-card:hover {
-  background: rgba(15, 23, 42, 0.7);
-  border-color: rgba(255, 255, 255, 0.15);
+.ia-glass-card:hover {
+  background: var(--glass-bg-dark-hover);
+  border-color: var(--glass-border-hover);
   transform: translateY(-2px);
-  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.2);
+  box-shadow: var(--glass-shadow-hover);
 }
 ```
 
-#### 常见错误示例（开发必须避免）
+### 激活态
 
 ```css
-/* ❌ 错误 1: 背景完全不透明 */
-.wrong-card-1 {
-  background: #1E293B; /* 缺少透明度 */
-  backdrop-filter: blur(12px);
-}
-
-/* ❌ 错误 2: 没有模糊效果 */
-.wrong-card-2 {
-  background: rgba(15, 23, 42, 0.6);
-  /* 缺少 backdrop-filter */
-}
-
-/* ❌ 错误 3: 边框太明显 */
-.wrong-card-3 {
-  background: rgba(15, 23, 42, 0.6);
-  backdrop-filter: blur(12px);
-  border: 2px solid #22C55E; /* 颜色太强，破坏玻璃感 */
-}
-
-/* ❌ 错误 4: 模糊程度不足 */
-.wrong-card-4 {
-  background: rgba(15, 23, 42, 0.6);
-  backdrop-filter: blur(4px); /* 模糊太少 */
+.ia-glass-card--active {
+  background: var(--glass-bg-active);
+  border-color: var(--glass-border-active);
+  box-shadow: var(--glass-shadow-active);
 }
 ```
 
-### 不同组件的 Glassmorphism 应用
+注意：激活态使用蓝色体系，不使用旧版绿色高亮。
 
-#### 1. 分析结果卡片
+---
 
-```css
-.dimension-card {
-  /* 标准 Glassmorphism */
-  background: rgba(30, 41, 59, 0.6);
-  backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 12px;
-  padding: 20px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
-}
+## Required Variants
 
-/* 高亮状态（选中/激活） */
-.dimension-card.active {
-  background: rgba(34, 197, 94, 0.15);
-  border-color: rgba(34, 197, 94, 0.3);
-  box-shadow:
-    0 4px 20px rgba(0, 0, 0, 0.15),
-    0 0 20px rgba(34, 197, 94, 0.2); /* 绿色光晕 */
-}
-```
+### `.ia-glass-card--clickable`
 
-#### 2. 模态框/对话框
+- 适用于上传区、可点击结果卡片、可选面板
+- 必须带 `cursor: pointer`
 
-```css
-.modal-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.7);
-  backdrop-filter: blur(4px); /* 轻微模糊背景 */
-}
+### `.ia-glass-card--static`
 
-.modal-content {
-  /* 更强的 Glassmorphism */
-  background: rgba(30, 41, 59, 0.85);
-  backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 16px;
-  box-shadow:
-    0 20px 40px rgba(0, 0, 0, 0.3),
-    inset 0 1px 0 rgba(255, 255, 255, 0.1); /* 内部高光 */
-}
-```
+- 适用于只读说明块、摘要块
+- 禁用 hover 上浮
 
-#### 3. 按钮样式
+### `.ia-glass-card--heavy`
 
-```css
-/* 主要按钮 - 绿色 CTA */
-.btn-primary {
-  background: rgba(34, 197, 94, 0.9);
-  backdrop-filter: blur(8px);
-  border: 1px solid rgba(34, 197, 94, 0.3);
-  border-radius: 8px;
-  color: white;
-  padding: 12px 24px;
-  box-shadow: 0 4px 12px rgba(34, 197, 94, 0.2);
-  transition: all 0.2s ease;
-}
+- 适用于模态框、重点浮层
+- 使用 `--glass-blur-heavy`
 
-.btn-primary:hover {
-  background: rgba(34, 197, 94, 1);
-  box-shadow:
-    0 6px 16px rgba(34, 197, 94, 0.3),
-    0 0 20px rgba(34, 197, 94, 0.3); /* 发光效果 */
-}
+### `.ia-glass-card--lg`
 
-/* 次要按钮 - 边框样式 */
-.btn-secondary {
-  background: rgba(15, 23, 42, 0.3);
-  backdrop-filter: blur(8px);
-  border: 1px solid rgba(34, 197, 94, 0.5);
-  border-radius: 8px;
-  color: #22C55E;
-  padding: 12px 24px;
-}
-```
+- 适用于主结果卡、工作台核心区域
 
-#### 4. 上传区域
+---
+
+## Upload Zone Pattern
 
 ```css
 .upload-zone {
-  border: 2px dashed rgba(255, 255, 255, 0.2);
-  border-radius: 12px;
-  background: rgba(15, 23, 42, 0.3);
-  backdrop-filter: blur(8px);
-  padding: 48px 24px;
-  transition: all 0.2s ease;
+  background: var(--glass-bg-dark-light);
+  border: 2px dashed var(--glass-border);
+  border-radius: var(--glass-radius-lg);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  transition: var(--glass-transition);
 }
 
-/* 拖拽悬停状态 */
 .upload-zone.dragover {
-  border-color: rgba(34, 197, 94, 0.6);
-  background: rgba(34, 197, 94, 0.1);
-  box-shadow:
-    inset 0 0 40px rgba(34, 197, 94, 0.1),
-    0 0 20px rgba(34, 197, 94, 0.2);
+  border-color: var(--glass-border-active);
+  background: var(--glass-bg-active);
+  box-shadow: var(--glass-shadow-active);
 }
 ```
 
-### MUI + Tailwind 实现示例
+规则：
 
-#### 使用 MUI styled API
-
-```tsx
-import { styled } from '@mui/material/styles';
-import { Card } from '@mui/material';
-
-const GlassCard = styled(Card)(({ theme }) => ({
-  background: 'rgba(15, 23, 42, 0.6)',
-  backdropFilter: 'blur(12px)',
-  WebkitBackdropFilter: 'blur(12px)',
-  border: '1px solid rgba(255, 255, 255, 0.1)',
-  borderRadius: '12px',
-  boxShadow: '0 4px 20px rgba(0, 0, 0, 0.15)',
-  transition: 'all 0.2s ease',
-  '&:hover': {
-    background: 'rgba(15, 23, 42, 0.7)',
-    transform: 'translateY(-2px)',
-    boxShadow: '0 6px 24px rgba(0, 0, 0, 0.2)',
-  },
-}));
-```
-
-#### 使用 Tailwind CSS
-
-```tsx
-<div className="
-  bg-slate-900/60
-  backdrop-blur-xl
-  border
-  border-white/10
-  rounded-xl
-  shadow-lg
-  transition-all
-  duration-200
-  hover:bg-slate-900/70
-  hover:-translate-y-0.5
-  hover:shadow-xl
-">
-  {/* 卡片内容 */}
-</div>
-```
-
-**Tailwind 类名解释：**
-- `bg-slate-900/60` → `rgba(15, 23, 42, 0.6)` 背景透明度 60%
-- `backdrop-blur-xl` → `backdrop-filter: blur(24px)` 强模糊
-- `border-white/10` → `border-color: rgba(255, 255, 255, 0.1)` 微妙边框
-
-### 开发检查清单
-
-**每个 Glassmorphism 组件必须验证：**
-
-- [ ] 背景使用半透明颜色（`rgba` 或 `/60` 透明度）
-- [ ] 添加 `backdrop-filter: blur(12px)` 和 `-webkit-backdrop-filter`
-- [ ] 边框颜色使用 `rgba(255, 255, 255, 0.1)` 或 `border-white/10`
-- [ ] 圆角统一使用 `12px` 或 `rounded-xl`
-- [ ] 阴影使用 `box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15)`
-- [ ] 悬停状态有平滑过渡（`transition: all 0.2s ease`）
-- [ ] 在深色背景上测试可见性
-- [ ] Safari 浏览器测试（需要 `-webkit-backdrop-filter`）
-
-**视觉审查要点：**
-
-| 检查项 | 标准值 | 验证方法 |
-|--------|--------|----------|
-| 背景透明度 | 60% (0.6) | Chrome DevTools |
-| 模糊程度 | 12-20px | CSS 检查 |
-| 边框不透明度 | 10% | 取色器验证 |
-| 圆角大小 | 12px | 测量工具 |
-| 阴影深度 | 4px/20px | 视觉检查 |
-
-### 常见问题 FAQ
-
-**Q1: 为什么我的 Glassmorphism 看起来像纯色背景？**
-A: 检查背景透明度是否设置为 0.6，并确保有背景内容可见。
-
-**Q2: 在 Safari 上模糊效果不生效？**
-A: 必须添加 `-webkit-backdrop-filter: blur(12px)` 前缀。
-
-**Q3: 边框太明显破坏玻璃感？**
-A: 使用 `rgba(255, 255, 255, 0.1)` 而非实际颜色，边框应该非常微妙。
-
-**Q4: 多层 Glassmorphism 叠加怎么做？**
-A: 每层使用不同的透明度，外层 0.6，内层 0.4，模拟景深效果。
+- 拖拽激活用蓝色边框和蓝色光晕
+- 不再使用绿色虚线或绿色背景强调
 
 ---
 
-## 📚 相关文档
+## Prompt Panel Pattern
 
-- [核心流程优化方案](./12-core-flow-optimization.md) - 查看 Glassmorphism 在上传流程中的应用
-- [图标系统规范](./14-icon-system.md) - 了解如何与图标系统结合使用
+Prompt 面板是当前产品最重要的 Glass 容器之一：
+
+- 应默认是静态可读的
+- 切换 Adapter / intensity 时保持稳定
+- 当前选中输出可用蓝色边界或顶部指示，而不是整块过度发光
+
+---
+
+## Modal Pattern
+
+```css
+.glass-modal {
+  background: var(--glass-bg-dark-heavy);
+  backdrop-filter: blur(var(--glass-blur-heavy));
+  -webkit-backdrop-filter: blur(var(--glass-blur-heavy));
+  border: 1px solid var(--glass-border-white-medium);
+  border-radius: var(--glass-radius-lg);
+  box-shadow: var(--glass-shadow-hover);
+}
+```
+
+要求：
+
+- 模态框优先用于回放详情、公开投影详情、导出预览
+- 避免在普通结果流里堆叠多个 heavy blur 容器
+
+---
+
+## Performance Rules
+
+- 移动端使用较低 blur 值
+- 避免 Glassmorphism 容器嵌套过深
+- 动画只使用 `transform` / `opacity`
+- 不使用会触发明显重排的 hover 效果
+
+---
+
+## Common Mistakes
+
+- 用硬编码 `rgba(...)` 替代已有 token
+- 用绿色作为激活色
+- 没有 `-webkit-backdrop-filter`
+- 所有卡片都加 hover 上浮
+- 在文本密集区域使用过重 blur 导致可读性下降
+
+---
+
+## Review Checklist
+
+- [ ] 所有 Glass 卡片使用统一 token
+- [ ] 激活态为蓝色体系
+- [ ] 上传区 dragover 为蓝色高亮
+- [ ] 可点击卡片具备 `cursor-pointer`
+- [ ] 模态框使用 heavy blur，普通卡片不用
+- [ ] iOS / Safari 下模糊效果可用
+
+---
+
+## 相关文档
+
+- [设计系统基础](./05-design-system.md)
+- [视觉设计基础](./07-visual-foundation.md)
+- [图标系统规范](./14-icon-system.md)
 - [返回总览](./README.md)

@@ -1,118 +1,130 @@
 # Responsive Design & Accessibility
 
-> **项目：** image_analyzer UX 设计规范
-> **版本：** v1.1
-> **最后更新：** 2026-02-17
+> **项目：** image_analyzer UX 设计规范  
+> **版本：** v2.0  
+> **最后更新：** 2026-03-01
 
 ---
 
-### Responsive Strategy
+## Responsive Strategy
 
-**响应式设计策略：**
+新版响应式策略围绕**同一任务事实在不同屏幕下的不同排布**，而不是“移动端看简化版，桌面端看完整版”。
 
-image_analyzer 采用**移动优先**的响应式设计策略，确保在所有设备上提供最佳体验。
+### 核心原则
 
-| 设备类型 | 断点 | 布局策略 |
-|----------|------|----------|
-| **移动端** | < 768px | 单列布局，底部导航 |
-| **平板端** | 768px - 1024px | 两列布局，侧边导航 |
-| **桌面端** | ≥ 1024px | 三列布局，顶部导航 |
+- 各端看到的是同一任务结果
+- 小屏折叠的是层级，不是真相
+- 主操作在任何尺寸都应靠前
+- 任务状态永远优先于装饰性内容
 
-**移动端策略：**
-- 最小触摸目标：44x44px
-- 底部固定操作栏（FAB）
-- 简化专业术语，只显示风格标签
-- 引导用户"在桌面端查看详细分析"
+---
 
-**平板端策略：**
-- 两列自适应布局
-- 保留主要交互功能
-- 支持横向/纵向模式
+## Breakpoints
 
-**桌面端策略：**
-- 三列完整布局
-- 鼠标悬停交互
-- 完整快捷键支持
-- 批量操作功能
-
-### Breakpoint Strategy
-
-**断点定义：**
-
-```css
-/* 移动优先断点 */
---breakpoint-xs: 0;        /* < 576px */
---breakpoint-sm: 576px;    /* ≥ 576px */
---breakpoint-md: 768px;    /* ≥ 768px */
---breakpoint-lg: 992px;    /* ≥ 992px */
---breakpoint-xl: 1200px;   /* ≥ 1200px */
---breakpoint-2xl: 1400px;  /* ≥ 1400px */
-```
-
-**布局响应式规则：**
-
-```css
-/* 移动端：单列 */
-.main-layout {
-  grid-template-columns: 1fr;
-}
-
-/* 平板端：两列 */
-@media (min-width: 768px) {
-  .main-layout {
-    grid-template-columns: 100px 1fr;
-  }
-}
-
-/* 桌面端：三列 */
-@media (min-width: 1024px) {
-  .main-layout {
-    grid-template-columns: 120px 1fr 1fr;
-  }
-}
-```
-
-### Accessibility Strategy
-
-**无障碍合规级别：**
-
-image_analyzer 目标为 **WCAG 2.1 AA** 级别合规。
-
-**关键无障碍要求：**
-
-| 要求 | 标准 | 实现方式 |
+| 断点 | 宽度 | 布局策略 |
 |------|------|----------|
-| **色彩对比度** | 4.5:1 (正文) | 使用 Slate 50 on Slate 900 |
-| **键盘导航** | 所有交互可访问 | Tab 顺序 + 焦点状态 |
-| **屏幕阅读器** | 语义化 HTML | ARIA 标签 + 正确标题层级 |
-| **触摸目标** | 最小 44x44px | 所有按钮满足最小尺寸 |
-| **动画** | 尊重减弱动画偏好 | `prefers-reduced-motion` |
+| Mobile | `< 768px` | 单列堆叠 |
+| Tablet | `768px - 1023px` | 上下双层或 2 列折叠 |
+| Desktop | `>= 1024px` | 三面板工作台 |
 
-**色彩对比度验证：**
+### 默认顺序
+
+无论什么设备，内容顺序都应保持：
+
+1. 任务头部
+2. 阶段进度
+3. 当前 Prompt 与主操作
+4. QA verdict
+5. 风格概览
+6. 变量与锁定常量
+7. 深层结构与回放
+
+---
+
+## Mobile Rules
+
+- 首屏优先显示复制、导出、保存
+- Prompt 区不应被折叠到用户找不到
+- 回放与公开投影预览默认折叠
+- 不再使用“请到桌面端查看详细分析”作为默认设计策略
+
+---
+
+## Tablet Rules
+
+- 左侧输入和任务区可放到顶部
+- 结果区与输出区上下堆叠
+- 保持切换器和主操作靠近 Prompt 面板
+
+---
+
+## Desktop Rules
+
+- 三面板结构稳定
+- 右侧输出区宽度要足够阅读长 Prompt
+- 中部优先展示风格理解和 QA，而不是 JSON 明细
+
+---
+
+## Accessibility Target
+
+目标标准：**WCAG 2.1 AA**
+
+### 必需项
+
+- 正文对比度 >= 4.5:1
+- 大文本/粗体 >= 3:1
+- 所有交互元素可键盘访问
+- 焦点样式可见
+- 触摸目标 >= 44x44px
+- 动效尊重 `prefers-reduced-motion`
+
+---
+
+## Color and Contrast
+
+推荐使用已验证配色：
 
 ```css
-/* 通过验证的对比度组合 */
-.text-primary { color: #F8FAFC; background: #0F172A; } /* 15.2:1 AAA */
-.text-secondary { color: #94A3B8; background: #0F172A; } /* 4.8:1 AA */
-.accent-green { color: #22C55E; background: #0F172A; } /* 4.8:1 AA */
+.text-primary {
+  color: #F8FAFC;
+  background: #0B0B10;
+}
+
+.text-secondary {
+  color: #94A3B8;
+  background: #0B0B10;
+}
+
+.text-action {
+  color: #3B82F6;
+  background: #0B0B10;
+}
+
+.text-accent {
+  color: #06B6D4;
+  background: #0B0B10;
+}
 ```
 
-**键盘导航规范：**
+禁止继续把绿色作为全局主色对比度示例。
+
+---
+
+## Keyboard and Focus
 
 ```css
-/* 焦点状态 */
 *:focus-visible {
-  outline: 2px solid #22C55E;
+  outline: 2px solid var(--primary);
   outline-offset: 2px;
 }
 
-/* 跳过链接 */
 .skip-link {
   position: absolute;
   top: -40px;
   left: 0;
-  background: #22C55E;
-  color: white;
+  background: var(--primary);
+  color: var(--foreground);
   padding: 8px 16px;
   z-index: 100;
 }
@@ -122,138 +134,67 @@ image_analyzer 目标为 **WCAG 2.1 AA** 级别合规。
 }
 ```
 
-**ARIA 属性使用：**
+规则：
+
+- 纯图标按钮必须有 `aria-label`
+- 面板折叠必须有 `aria-expanded`
+- 当前阶段和 verdict 建议使用 `aria-live`
+
+---
+
+## Screen Reader Semantics
+
+### 推荐语义层级
+
+- 页面标题：任务标识 / 结果标题
+- 二级标题：阶段进度、当前输出、QA、风格概览
+- 三级标题：锁定常量、变量、issues、fixes
+
+### 推荐模式
 
 ```tsx
-// 模态框
-<Dialog
-  role="dialog"
-  aria-modal="true"
-  aria-labelledby="modal-title"
->
-  <h2 id="modal-title">查看大图</h2>
-  <img src={src} alt="参考图片" />
-</Dialog>
-
-// 加载状态
-<div aria-busy="true" aria-live="polite">
-  正在分析图片...
-</div>
-
-// 展开折叠
-<button
-  aria-expanded={isExpanded}
-  aria-controls="dimension-details"
->
-  查看详情
-</button>
-<div id="dimension-details" hidden={!isExpanded}>
-  {/* 详细内容 */}
-</div>
-```
-
-### Testing Strategy
-
-**响应式测试策略：**
-
-| 测试类型 | 测试内容 | 工具/方法 |
-|----------|----------|-----------|
-| **设备测试** | iOS/Android 真实设备 | BrowserStack |
-| **浏览器测试** | Chrome/Firefox/Safari/Edge | 跨浏览器验证 |
-| **屏幕阅读器** | VoiceOver/NVDA/JAWS | 实际测试验证 |
-| **键盘导航** | Tab/Enter/Esc 导航 | 无鼠标测试 |
-| **色彩无障碍** | 色盲模拟 | Color Oracle |
-
-**无障碍测试清单：**
-
-- [ ] 所有图片有 alt 文本
-- [ ] 所有表单输入有标签
-- [ ] 颜色不是唯一指示器
-- [ ] 焦点状态可见
-- [ ] 跳过链接可用
-- [ ] 动画可减弱
-- [ ] 触摸目标 ≥ 44x44px
-- [ ] 对比度 ≥ 4.5:1
-
-### Implementation Guidelines
-
-**响应式开发规范：**
-
-```tsx
-// 移动优先媒体查询
-import { useTheme } from '@mui/material/styles';
-import useMediaQuery from '@mui/material/useMediaQuery';
-
-function ResponsiveComponent() {
-  const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
-  const isTablet = useMediaQuery(theme.breakpoints.between('md', 'lg'));
-
-  return (
-    <div>
-      {isMobile ? <MobileLayout /> : <DesktopLayout />}
-    </div>
-  );
-}
-```
-
-**相对单位使用：**
-
-```css
-/* 使用 rem 而非固定 px */
-.button {
-  padding: 0.75rem 1.5rem;  /* 12px 24px */
-  font-size: 1rem;          /* 16px */
-}
-
-/* 使用 % 或 vw/vh */
-.container {
-  width: 100%;
-  max-width: 1400px;
-  padding: 0 2vw;
-}
-```
-
-**Design System 集成：**
-
-```tsx
-// 使用 MUI 主题系统
-import { createTheme, ThemeProvider } from '@mui/material/styles';
-
-const theme = createTheme({
-  palette: {
-    primary: {
-      main: '#22C55E',
-      dark: '#16A34A',
-    },
-    background: {
-      default: '#0F172A',
-      paper: '#1E293B',
-    },
-  },
-  typography: {
-    fontFamily: 'Open Sans, PingFang SC, sans-serif',
-    h1: {
-      fontFamily: 'Poppins, PingFang SC, sans-serif',
-      fontWeight: 700,
-    },
-  },
-  components: {
-    MuiButton: {
-      styleOverrides: {
-        root: {
-          borderRadius: 8,
-          textTransform: 'none',
-        },
-      },
-    },
-  },
-});
+<section aria-labelledby="qa-heading">
+  <h2 id="qa-heading">质量校验</h2>
+  <div aria-live="polite">当前状态：warn</div>
+</section>
 ```
 
 ---
 
-## 📚 相关文档
+## Motion Accessibility
 
-- [上一个章节](./10-ux-consistency.md)
+```css
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+```
+
+长任务页面尤其不能依赖动画来传达状态变化。
+
+---
+
+## Accessibility Checklist
+
+- [ ] 任务状态可被屏幕阅读器读取
+- [ ] QA verdict 可被屏幕阅读器读取
+- [ ] 所有 IconButton 都有 `aria-label`
+- [ ] 所有可展开区块正确暴露展开状态
+- [ ] 所有主操作在移动端也满足 44x44px
+- [ ] 焦点不会被玻璃态样式吞掉
+- [ ] 对比度遵循 `design-system/COLOR_SCHEME.md`
+
+---
+
+## 相关文档
+
+- [视觉设计基础](./07-visual-foundation.md)
+- [UX 一致性模式](./10-ux-consistency.md)
+- [工作台布局设计规范](./15-workspace-layout.md)
 - [返回总览](./README.md)

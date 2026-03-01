@@ -1,313 +1,193 @@
 # Visual Design Foundation
 
-> **项目：** image_analyzer UX 设计规范
-> **版本：** v1.1
-> **最后更新：** 2026-02-17
+> **项目：** image_analyzer UX 设计规范  
+> **版本：** v2.0  
+> **最后更新：** 2026-03-01
 
 ---
 
-基于 Glassmorphism 视觉风格和质量第一的设计原则，image_analyzer 采用深色专业色系与科技绿信任信号的组合。
+## Visual Direction
 
-### Color System
+视觉基线采用 **Space Tech / Aerospace** 风格：
 
-#### 语义色彩映射
+- 深空黑底
+- 科技蓝主色
+- 天蓝色高亮
+- 银灰辅助信息
+- 深色玻璃态分层
 
-**核心色板（基于 Tailwind CSS）：**
+这套语言更适合“专业分析工作台 + 结构化结果查看”的产品气质，也和仓库内已落地的 CSS 变量系统一致。
 
-| 语义角色 | 颜色名称 | Hex 值 | Tailwind 类 | 用途 |
-|---------|---------|--------|-----------|------|
-| **Primary** | Slate 900 | `#0F172A` | `bg-slate-900` | 深色模式背景 |
-| **Primary** | Slate 800 | `#1E293B` | `text-slate-800`, `bg-slate-800` | 主标题、重要背景 |
-| **Primary** | Slate 700 | `#334155` | `text-slate-700`, `bg-slate-700` | 次要按钮、卡片背景 |
-| **Text** | Slate 50 | `#F8FAFC` | `text-slate-50` | 主要文本（深色模式） |
-| **Text** | Slate 900 | `#0F172A` | `text-slate-900` | 主要文本（浅色模式） |
-| **Success/CTA** | Green 500 | `#22C55E` | `text-green-500`, `bg-green-500` | 成功状态、质量指标 |
-| **Success/CTA** | Green 600 | `#16A34A` | `text-green-600`, `bg-green-600` | 成功按钮悬停 |
-| **Border** | Slate 200 | `#E2E8F0` | `border-slate-200` | 浅色模式边框 |
-| **Border** | Slate 700 | `#334155` | `border-slate-700` | 深色模式边框 |
-| **Muted** | Slate 400 | `#94A3B8` | `text-slate-400` | 次要文本、禁用状态 |
+---
 
-**渐变色彩：**
+## Color System
 
-| 用途 | 色彩定义 | CSS |
-|------|---------|-----|
-| **品牌渐变** | 深蓝到紫 | `linear-gradient(135deg, #1E293B 0%, #4F46E5 100%)` |
-| **玻璃态光泽** | 白色透明 | `linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%)` |
-| **质量指标发光** | 绿色光晕 | `box-shadow: 0 0 20px rgba(34, 197, 94, 0.3)` |
+### Core Palette
 
-**无障碍对比度：**
+| 语义角色 | Hex | Token | 用途 |
+|---------|-----|------|------|
+| Background | `#0B0B10` | `--background` | 页面底色 |
+| Foreground | `#F8FAFC` | `--foreground` | 主要文字 |
+| Primary | `#3B82F6` | `--primary` | CTA、激活、链接 |
+| Secondary | `#94A3B8` | `--secondary` | 次要信息 |
+| Accent | `#06B6D4` | `--accent` | 高亮、强调 |
+| Success | `#2563EB` | `--success` | 通过、成功完成 |
+| Warning | `#F59E0B` | `--warning` | 风险提示 |
+| Error | `#F43F5E` | `--error` | 错误、失败 |
 
-| 前景 | 背景 | 对比度 | WCAG 等级 |
-|------|------|--------|----------|
-| Slate 50 (#F8FAFC) | Slate 900 (#0F172A) | 15.2:1 | AAA |
-| Slate 900 (#0F172A) | Slate 50 (#F8FAFC) | 15.2:1 | AAA |
-| Green 500 (#22C55E) | Slate 900 (#0F172A) | 4.8:1 | AA |
-| Slate 400 (#94A3B8) | Slate 900 (#0F172A) | 3.2:1 | AA (大文本) |
+### Contrast Notes
 
-**专业视图色彩策略：**
+| 组合 | 对比度 | 级别 |
+|------|--------|------|
+| `#F8FAFC` on `#0B0B10` | 16.1:1 | AAA |
+| `#94A3B8` on `#0B0B10` | 7.2:1 | AAA |
+| `#3B82F6` on `#0B0B10` | 4.8:1 | AA |
+| `#06B6D4` on `#0B0B10` | 5.1:1 | AA |
 
-```css
-/* 专业视图 - 高对比度 */
-:root {
-  --bg-primary: #0F172A;       /* 深色背景 */
-  --bg-secondary: #1E293B;     /* 卡片背景 */
-  --text-primary: #F8FAFC;     /* 浅色文字 */
-  --text-secondary: #CBD5E1;   /* 次要文字 */
-  --accent-tech: #22C55E;      /* 科技绿 */
-  --border-sharp: #334155;     /* 锐利边框 */
-  --shadow-sharp: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
-}
-```
+### Status Usage
 
-### Typography System
+- `pass` / 已完成：深蓝成功色
+- `warn`：琥珀
+- `fail`：玫瑰红
+- 当前选择 / 当前聚焦：主蓝 + 青色辅助
 
-#### 字体家族
+---
 
-**主要字体：**
+## Typography
 
-| 用途 | 字体家族 | 权重 | 字号 | 行高 | 字母间距 |
-|------|---------|------|------|------|---------|
-| **H1 - 页面标题** | Poppins | 700 | 2.5rem (40px) | 1.2 | -0.02em |
-| **H2 - 节标题** | Poppins | 600 | 2rem (32px) | 1.3 | -0.01em |
-| **H3 - 子节标题** | Poppins | 600 | 1.5rem (24px) | 1.4 | normal |
-| **H4 - 卡片标题** | Poppins | 600 | 1.25rem (20px) | 1.5 | normal |
-| **Body - 大** | Open Sans | 500 | 1.125rem (18px) | 1.5 | normal |
-| **Body - 默认** | Open Sans | 400 | 1rem (16px) | 1.5 | normal |
-| **Body - 小** | Open Sans | 400 | 0.875rem (14px) | 1.5 | normal |
-| **Caption** | Open Sans | 400 | 0.75rem (12px) | 1.4 | 0.01em |
-| **专业术语** | JetBrains Mono | 400 | 0.875rem (14px) | 1.5 | normal |
+### Primary Type System
 
-**中文字体回退：**
+依据 `design-system/image-analyzer/MASTER.md`，统一使用 **Inter**：
 
-```css
-/* 标题 */
-font-family: 'Poppins', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+| 用途 | 字号 | 权重 | 行高 |
+|------|------|------|------|
+| H1 | 40px | 600 | 1.2 |
+| H2 | 32px | 600 | 1.25 |
+| H3 | 24px | 600 | 1.3 |
+| H4 | 20px | 600 | 1.4 |
+| Body | 16px | 400 | 1.5 |
+| Small | 14px | 400 | 1.5 |
+| Caption | 12px | 400 | 1.4 |
 
-/* 正文 */
-font-family: 'Open Sans', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+### Tone Guidance
 
-/* 专业术语 */
-font-family: 'JetBrains Mono', 'PingFang SC', 'Microsoft YaHei', monospace;
-```
+- 标题偏克制、理性、系统化
+- 正文尽量短句，避免营销口号感
+- 技术对象名可使用等宽字体或代码样式强调
 
-#### 字体层级示例
+---
 
-```html
-<!-- H1 页面标题 -->
-<h1 class="text-4xl font-bold tracking-tight">
-  image_analyzer
-</h1>
+## Spacing
 
-<!-- H2 节标题 -->
-<h2 class="text-3xl font-semibold">
-  风格分析结果
-</h2>
-
-<!-- Body -->
-<p class="text-base">
-  上传图片开始分析风格
-</p>
-
-<!-- 专业术语 -->
-<code class="font-mono text-sm">
-  --ar 16:9 --stylize 250
-</code>
-```
-
-**可读性最佳实践：**
-- 正文最大行长度：75 字符（约 600px）
-- 段落间距：1.5 倍行高
-- 标题与正文间距：0.75em（标题下方）
-
-### Spacing & Layout Foundation
-
-#### 间距系统（基于 8px 网格）
-
-**间距刻度：**
+### Token Scale
 
 | Token | 值 | 用途 |
-|-------|-----|------|
-| `spacing-xs` | 4px | 紧密元素间距、图标内边距 |
-| `spacing-sm` | 8px | 小元素间距、标签内边距 |
-| `spacing-md` | 16px | 默认元素间距、卡片内边距 |
-| `spacing-lg` | 24px | 大元素间距、章节间距 |
-| `spacing-xl` | 32px | 大区块间距、页面边距 |
-| `spacing-2xl` | 48px | 页面章节间距 |
-| `spacing-3xl` | 64px | 页面顶部/底部边距 |
+|------|----|------|
+| `--space-xs` | 4px | 紧密元素 |
+| `--space-sm` | 8px | 图标与标签间距 |
+| `--space-md` | 16px | 常规 padding |
+| `--space-lg` | 24px | 卡片区块间距 |
+| `--space-xl` | 32px | 面板间距 |
+| `--space-2xl` | 48px | 大章节留白 |
+| `--space-3xl` | 64px | 顶部/底部大留白 |
 
-**组件内边距：**
+### Layout Rhythm
 
-| 组件类型 | 垂直内边距 | 水平内边距 |
-|---------|-----------|-----------|
-| 按钮（小） | 6px | 12px |
-| 按钮（默认） | 8px | 16px |
-| 按钮（大） | 12px | 24px |
-| 卡片 | 24px | 24px |
-| 模态框 | 24px | 24px |
-| 输入框 | 10px | 12px |
-
-#### 布局网格
-
-**容器宽度：**
-
-| 断点 | 最大宽度 | 内边距 | 用途 |
-|------|---------|--------|------|
-| xs (< 576px) | 100% | 16px | 移动端 |
-| sm (≥ 576px) | 540px | 24px | 大屏手机 |
-| md (≥ 768px) | 720px | 24px | 平板 |
-| lg (≥ 992px) | 960px | 32px | 小屏桌面 |
-| xl (≥ 1200px) | 1140px | 32px | 大屏桌面 |
-| xxl (≥ 1400px) | 1320px | 40px | 超大屏桌面 |
-
-**网格系统（MUI Grid）：**
-
-| 属性 | 桌面端 | 平板端 | 移动端 |
-|------|--------|--------|--------|
-| 列数 | 12 | 8 | 4 |
-| 列间距 | 24px | 16px | 8px |
-| 容器边距 | 32px | 24px | 16px |
-| 断点 | ≥ 992px | ≥ 768px | < 768px |
-
-**常用布局模式：**
-
-```jsx
-{/* 三列布局：参考图片 | 分析结果 | 可编辑模版 */}
-<Grid container spacing={2}>
-  <Grid item xs={12} md={4}> {/* 参考图片 */} </Grid>
-  <Grid item xs={12} md={4}> {/* 分析结果 */} </Grid>
-  <Grid item xs={12} md={4}> {/* 可编辑模版 */} </Grid>
-</Grid>
-
-{/* 四维度分析卡片 */}
-<Grid container spacing={2}>
-  <Grid item xs={6} md={3}> {/* 光影 */} </Grid>
-  <Grid item xs={6} md={3}> {/* 构图 */} </Grid>
-  <Grid item xs={6} md={3}> {/* 色彩 */} </Grid>
-  <Grid item xs={6} md={3}> {/* 艺术风格 */} </Grid>
-</Grid>
-```
-
-#### 层次系统（Z-Index）
-
-| 层级 | Z-Index | 用途 |
-|------|---------|------|
-| 基础层 | 0 | 页面背景、普通内容 |
-| 上浮层 | 10 | 下拉菜单、工具提示 |
-| 卡片层 | 20 | 分析结果卡片、模态框背景 |
-| 模态层 | 50 | 模态框、对话框 |
-| 通知层 | 100 | Toast 通知、 Snackbar |
-| 覆盖层 | 999 | 全屏加载、重要提醒 |
-
-### Accessibility Considerations
-
-#### 无障碍色彩原则
-
-**对比度要求（WCAG AA）：**
-- 正文文本：最小 4.5:1
-- 大文本（18px+ 或 14px 粗体）：最小 3:1
-- 图标和图形：最小 3:1
-
-**色彩不是唯一指示器：**
-- 表单字段使用图标 + 标签 + 边框颜色
-- 错误状态：红色边框 + 错误图标 + 错误文字
-- 成功状态：绿色边框 + 勾选图标 + 成功文字
-- 链接：颜色 + 下划线（悬停时）
-
-**键盘导航：**
-- 所有交互元素可键盘访问
-- Tab 顺序符合视觉顺序
-- 焦点状态可见（2px 蓝色边框）
-- Skip Links 跳过导航
-
-#### 运动无障碍
-
-**尊重 `prefers-reduced-motion`：**
-
-```css
-@media (prefers-reduced-motion: reduce) {
-  /* 禁用所有动画 */
-  * {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-  }
-}
-```
-
-**默认动画时长：**
-- 微交互（按钮悬停）：150-200ms
-- 标准交互（模态框展开）：200-300ms
-- 复杂动画（页面加载）：300-500ms
-
-#### 屏幕阅读器支持
-
-**语义化 HTML：**
-- 使用正确的标题层级（h1 → h2 → h3）
-- 表单元素使用 `<label>` 或 `aria-label`
-- 按钮使用 `<button>` 而非 `<div>`
-- 图片使用 `alt` 文本描述
-
-**ARIA 属性：**
-- 模态框：`role="dialog" aria-modal="true"`
-- 加载状态：`aria-busy="true" aria-live="polite"`
-- 错误消息：`role="alert" aria-live="assertive"`
-- 展开折叠：`aria-expanded="true/false"`
-
-#### 触摸目标尺寸
-
-**最小触摸目标：44x44px（WCAG AAA）**
-
-| 交互元素 | 最小尺寸 | 推荐尺寸 |
-|---------|---------|---------|
-| 按钮 | 44x44px | 48x48px |
-| 链接（行内） | 44x44px | - |
-| 复选框 | 24x24px（容器 44x44px） | - |
-| 单选框 | 24x24px（容器 44x44px） | - |
-| 图标按钮 | 44x44px | 48x48px |
-
-### Design Tokens
-
-**CSS 变量定义：**
-
-```css
-:root {
-  /* 色彩 */
-  --color-bg-primary: #0F172A;
-  --color-bg-secondary: #1E293B;
-  --color-text-primary: #F8FAFC;
-  --color-text-secondary: #94A3B8;
-  --color-accent: #22C55E;
-
-  /* 间距 */
-  --spacing-xs: 4px;
-  --spacing-sm: 8px;
-  --spacing-md: 16px;
-  --spacing-lg: 24px;
-  --spacing-xl: 32px;
-
-  /* 圆角 */
-  --radius-sm: 4px;
-  --radius-md: 8px;
-  --radius-lg: 12px;
-  --radius-full: 9999px;
-
-  /* 阴影 */
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
-  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
-  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
-  --shadow-glow: 0 0 20px rgba(34, 197, 94, 0.3);
-
-  /* 过渡 */
-  --transition-fast: 150ms ease;
-  --transition-base: 200ms ease;
-  --transition-slow: 300ms ease;
-}
-```
+- 工作台主面板优先使用 `24px` 间距
+- 面板内组件垂直节奏建议 `16px`
+- 说明文本与输入组件之间不要小于 `8px`
 
 ---
 
-## 📚 相关文档
+## Surfaces and Depth
 
-- [上一个章节](./06-defining-experience.md)
-- [下一个章节](./08-design-direction.md)
+### Standard Surface
+
+```css
+background: var(--glass-bg-dark);
+border: 1px solid var(--glass-border);
+backdrop-filter: blur(var(--glass-blur));
+box-shadow: var(--glass-shadow);
+border-radius: var(--glass-radius);
+```
+
+### Active Surface
+
+```css
+background: var(--glass-bg-active);
+border-color: var(--glass-border-active);
+box-shadow: var(--glass-shadow-active);
+```
+
+### Depth Rules
+
+- 页面最多使用 3 层明显视觉深度
+- 模态框使用 `--heavy` 模糊，不要在普通卡片滥用
+- hover 只做轻度上浮或边框提亮，避免“漂浮过头”
+
+---
+
+## Layout Structure
+
+### Desktop
+
+- 推荐工作台宽度：`1280px - 1440px`
+- 面板化布局：任务/输入、分析结果、输出操作
+- 保证首屏看到任务状态、结果摘要和主操作
+
+### Tablet
+
+- 两列或 1.5 列折叠布局
+- 允许右侧操作区下沉
+- 保留相同信息层级，不删除关键事实
+
+### Mobile
+
+- 单列堆叠
+- 任务头部固定在前
+- 复制/导出操作保持高优先级
+- 深层分析与回放信息默认折叠
+
+---
+
+## Motion
+
+### Timing
+
+- Hover：150ms - 200ms
+- Collapse / panel switch：200ms - 300ms
+- Page reveal：300ms 左右
+
+### Principles
+
+- 动效用于帮助理解状态变化，不用于制造“AI 魔法感”
+- 阶段切换以文本变化 + 轻动效为主
+- 必须支持 `prefers-reduced-motion`
+
+---
+
+## Accessibility
+
+- 所有关键文案对比度符合 WCAG AA
+- 链接和按钮不只依赖颜色表达状态
+- 焦点样式必须明显
+- 图标必须配文字或 `aria-label`
+- 结果区块需要语义标题，方便屏幕阅读器快速跳转
+
+---
+
+## Visual Anti-Patterns
+
+- 不再使用绿色作为全局 CTA 主色
+- 不再使用与 design-system 冲突的局部配色
+- 不再使用“质量指标发光卡片”作为主要信任机制
+- 不再把炫技动画放在核心任务状态之上
+
+---
+
+## 相关文档
+
+- [设计系统基础](./05-design-system.md)
+- [组件策略](./09-component-strategy.md)
+- [工作台布局设计规范](./15-workspace-layout.md)
 - [返回总览](./README.md)

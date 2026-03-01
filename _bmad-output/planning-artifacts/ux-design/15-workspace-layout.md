@@ -1,566 +1,221 @@
 # 工作台布局设计规范
 
-> **项目：** image_analyzer UX 设计规范
-> **版本：** v1.2
-> **最后更新：** 2026-02-19
+> **项目：** image_analyzer UX 设计规范  
+> **版本：** v2.0  
+> **最后更新：** 2026-03-01
 
 ---
 
 ## 概述
 
-本文档定义 Analysis 页面的工作台式布局设计，实现统一专业视图的核心体验目标。
+Analysis 页面应被设计为一个**任务中心工作台**，而不是传统“左图右结果”的分析详情页。
 
-### 设计原则
+布局目标：
 
-**核心目标：**
-- ✅ 统一专业视图：所有功能在一个页面内完成
-- ✅ 固定信息架构：三列同时可见，无需页面跳转
-- ✅ 零摩擦交互：拖拽即开始，进度实时更新
-- ✅ 信息按需展开：通过折叠控制复杂度
-
----
-
-## 桌面端三列布局
-
-### 布局结构
-
-```
-┌─────────────────────────────────────────────────────────────────────┐
-│                        Analysis 工作台                               │
-│                   (统一专业视图 · 信息分层)                           │
-└─────────────────────────────────────────────────────────────────────┘
-┌──────────────┬────────────────────────┬──────────────────┐
-│  左列 (25%)  │     中列 (45%)         │   右列 (30%)     │
-│              │                        │                  │
-│  参考图片    │     分析结果            │   可编辑模版     │
-│  (固定)      │     (动态更新)          │   (动态更新)     │
-│              │                        │                  │
-│  ┌────────┐  │  ┌──────────────────┐  │  ┌────────────┐ │
-│  │ 图片   │  │  │ 整体置信度       │  │  │ 一键复制   │ │
-│  │ 预览   │  │  │ ─────────────── │  │  │ ────────── │ │
-│  │        │  │  │ 风格标签         │  │  │ 模版内容   │ │
-│  └────────┘  │  │ ─────────────── │  │  │            │ │
-│              │  │ 四维度卡片       │  │  │ [复制按钮] │ │
-│  上传区域    │  │  • 光影          │  │  └────────────┘ │
-│  (可折叠)    │  │  • 构图          │  │                  │
-│              │  │  • 色彩          │  │  变量替换       │
-│  文件信息    │  │  • 艺术风格      │  │  (可折叠)       │
-│  模型选择    │  │ ─────────────── │  │                  │
-│              │  │ [展开详细分析 ▼] │  │  质量指标       │
-│              │  └──────────────────┘  │  (可折叠)       │
-│              │                        │                  │
-│              │  分析中：进度条        │  社交证明       │
-│              │  完成后：结果展示      │  (可折叠)       │
-│              │                        │                  │
-└──────────────┴────────────────────────┴──────────────────┘
-```
-
-### 列宽定义
-
-| 列 | 宽度比例 | Grid 配置 | 说明 |
-|----|---------|----------|------|
-| 左列 | 25% | `xs={12} md={3}` | 参考图片 + 上传区 |
-| 中列 | 45% | `xs={12} md={6}` | 分析结果（主要区域） |
-| 右列 | 30% | `xs={12} md={3}` | 模版编辑 + 操作 |
-
-### 响应式策略
-
-**桌面端 (≥960px)：**
-- 三列布局
-- 所有列同时可见
-- 水平空间充分利用
-
-**平板端 (600px-959px)：**
-- 两列布局：左列 40% + 右侧 60%（中列+右列堆叠）
-- 或单列布局，垂直堆叠
-
-**移动端 (<600px)：**
-- 单列垂直布局
-- 左列 → 中列 → 右列
-- 固定顺序：参考图 → 结果 → 模版
+- 让用户始终知道任务状态
+- 让主操作始终靠近结果
+- 让结构化细节按层级逐步展开
+- 让支持与公开投影能力有明确容器，但不打断主流程
 
 ---
 
-## 左列：参考图片区
+## 桌面端布局
 
-### 组件构成
+### 推荐三面板结构
 
-```tsx
-<Box className="left-column">
-  {/* 图片预览区 */}
-  <Card className="ia-glass-card">
-    {imageData ? (
-      <ImagePreview
-        src={imageData.url}
-        alt="参考图片"
-        width={300}
-        height={300}
-      />
-    ) : (
-      <ImageUploader />
-    )}
-  </Card>
-
-  {/* 文件信息（上传后显示） */}
-  {imageData && (
-    <FileInfo
-      fileName={imageData.fileName}
-      fileSize={imageData.fileSize}
-      dimensions={`${imageData.width}x${imageData.height}`}
-    />
-  )}
-
-  {/* 模型选择（可折叠） */}
-  {imageData && (
-    <CollapsibleSection
-      title="分析配置"
-      defaultExpanded={false}
-    >
-      <ModelSelector
-        models={models}
-        selectedModel={selectedModelId}
-        onChange={setSelectedModelId}
-      />
-    </CollapsibleSection>
-  )}
-</Box>
+```text
+┌──────────────────────────────────────────────────────────────────┐
+│ Analysis Task Header                                             │
+│ status / stage / task meta / primary actions                     │
+└──────────────────────────────────────────────────────────────────┘
+┌───────────────┬──────────────────────────────┬───────────────────┐
+│ 左侧面板      │ 中央面板                     │ 右侧面板          │
+│ 输入与任务概览│ 结构化结果与 QA              │ Prompt 与动作      │
+├───────────────┼──────────────────────────────┼───────────────────┤
+│ 参考图        │ 风格概览                     │ Adapter 切换       │
+│ 文件信息      │ 锁定风格常量                 │ intensity 切换     │
+│ 任务元数据    │ 变量槽位摘要                 │ Prompt 内容        │
+│ 阶段进度       │ QA verdict / issues summary │ negative / params  │
+│ 重试入口       │ 回放入口 / 公开预览入口      │ 复制 / 导出 / 保存  │
+└───────────────┴──────────────────────────────┴───────────────────┘
 ```
 
-### 状态变化
+### 宽度建议
 
-**状态 1：空闲 (idle)**
-- 显示上传区域
-- 虚线边框，拖拽高亮
+| 面板 | 比例 | 说明 |
+|------|------|------|
+| 左侧 | 24% | 输入、任务、进度 |
+| 中央 | 40% | 理解结果与 QA |
+| 右侧 | 36% | 输出、操作、导出 |
 
-**状态 2：已上传 (ready)**
-- 显示图片预览
-- 显示文件信息
-- 显示模型选择（可折叠）
-
-**状态 3：分析中 (analyzing)**
-- 图片预览保持
-- 模型选择折叠
-- 显示"分析中"徽章
-
-**状态 4：已完成 (completed)**
-- 图片预览保持
-- 显示"更换图片"按钮（小按钮）
+右侧比旧方案更重要，因为新版主价值是“把结果带走使用”。
 
 ---
 
-## 中列：分析结果区
+## 面板职责
 
-### 组件构成
+### 左侧面板：任务与输入
 
-```tsx
-<Box className="middle-column">
-  {/* 空状态 */}
-  {!imageData && (
-    <EmptyState
-      icon={<Brain />}
-      title="开始分析"
-      description="上传图片后，分析结果将在此显示"
-    />
-  )}
+用于回答三个问题：
 
-  {/* 进度状态 */}
-  {status === 'analyzing' && (
-    <ProgressDisplay
-      type="analysis"
-      showStageIndicator={true}
-      showTermScroller={true}
-    />
-  )}
+1. 我上传的是哪张图？
+2. 这个任务现在处于什么状态？
+3. 如果失败了，我下一步该做什么？
 
-  {/* 结果状态 */}
-  {status === 'completed' && analysisData && (
-    <Box>
-      {/* 整体置信度 */}
-      <OverallConfidence
-        value={analysisData.overallConfidence}
-      />
+**包含：**
 
-      {/* 风格标签 */}
-      <StyleTags
-        tags={analysisData.styleTags}
-      />
+- 参考图预览
+- 文件与基础元数据
+- 当前任务状态
+- 阶段进度条
+- 创建时间 / 更新时间
+- 重试入口
 
-      {/* 四维度分析（默认展开前两个） */}
-      <DimensionsGrid>
-        {Object.entries(analysisData.dimensions).map(([key, dim]) => (
-          <DimensionCard
-            key={key}
-            dimensionType={key}
-            dimension={dim}
-            defaultExpanded={['lighting', 'composition'].includes(key)}
-          />
-        ))}
-      </DimensionsGrid>
+### 中央面板：结构化理解层
 
-      {/* 详细分析（可折叠） */}
-      <CollapsibleSection
-        title="详细分析"
-        defaultExpanded={false}
-      >
-        <DetailedAnalysis data={analysisData} />
-      </CollapsibleSection>
-    </Box>
-  )}
-</Box>
-```
+用于回答三个问题：
 
-### 信息层级
+1. 这张图的风格到底是什么？
+2. 哪些特征是风格核心？
+3. 现在这个结果是否可靠？
 
-**层级 1：核心信息（默认可见）**
-- 整体置信度
-- 风格标签
-- 一键复制按钮（从右列）
-- 前两个维度卡片（光影、构图）
+**包含：**
 
-**层级 2：增强信息（按需展开）**
-- 后两个维度卡片（色彩、艺术风格）
-- 详细分析
+- 风格概览
+- 锁定风格常量
+- 变量槽位摘要
+- QA verdict
+- QA issues / fixes 摘要
+- 深层结构块折叠区
 
-**层级 3：深度信息（二次展开）**
-- 每个维度内的术语解释
-- 参数来源说明
+### 右侧面板：输出与操作层
+
+用于回答三个问题：
+
+1. 我现在要复制哪个版本？
+2. 切换格式或强度后有什么变化？
+3. 怎么导出到外部工作流？
+
+**包含：**
+
+- Adapter 切换器
+- intensity 切换器
+- Prompt 输出面板
+- negative prompt / parameter suggestions
+- 复制、导出、保存
 
 ---
 
-## 右列：可编辑模版区
+## 页面头部
 
-### 组件构成
+### Header 必须固定的事实
 
-```tsx
-<Box className="right-column">
-  {/* 空状态 */}
-  {!analysisData && (
-    <EmptyState
-      icon={<Copy />}
-      title="模版编辑器"
-      description="分析完成后，可在此编辑和复制模版"
-    />
-  )}
+- 任务标题或任务标识
+- 当前状态
+- 当前阶段
+- 主操作
 
-  {/* 模版内容 */}
-  {analysisData && (
-    <Box>
-      {/* 一键复制（突出显示） */}
-      <Card className="ia-glass-card ia-glass-card--active">
-        <Box sx={{ p: 2 }}>
-          <Typography variant="h6" gutterBottom>
-            模版已生成 ✓
-          </Typography>
-          <Button
-            variant="contained"
-            fullWidth
-            onClick={handleCopy}
-            startIcon={<Copy />}
-          >
-            一键复制到剪贴板
-          </Button>
-        </Box>
-      </Card>
+### 主操作优先级
 
-      {/* 模版预览（可折叠） */}
-      <CollapsibleSection
-        title="模版内容"
-        defaultExpanded={true}
-      >
-        <TemplatePreview
-          template={analysisData.template}
-          language="midjourney"
-        />
-      </CollapsibleSection>
+1. 复制当前输出
+2. 导出
+3. 保存模板
+4. 重试
 
-      {/* 变量替换（可折叠） */}
-      <CollapsibleSection
-        title="变量替换"
-        defaultExpanded={false}
-      >
-        <VariableReplacer
-          template={analysisData.template}
-          onPreview={handlePreview}
-        />
-      </CollapsibleSection>
-
-      {/* 质量指标（可折叠） */}
-      <CollapsibleSection
-        title="质量指标"
-        defaultExpanded={true}
-      >
-        <QualityBadge
-          usageCount={analysisData.usageCount}
-          successRate={analysisData.successRate}
-          rating={analysisData.rating}
-        />
-      </CollapsibleSection>
-
-      {/* 社交证明（可折叠） */}
-      <CollapsibleSection
-        title="使用此模版生成的图片"
-        defaultExpanded={false}
-      >
-        <SocialProofGallery
-          images={analysisData.showcaseImages}
-        />
-      </CollapsibleSection>
-
-      {/* 用户反馈 */}
-      <Card className="ia-glass-card" sx={{ mt: 2 }}>
-        <Box sx={{ p: 2 }}>
-          <Typography variant="body2" gutterBottom>
-            这个分析准确吗？
-          </Typography>
-          <FeedbackButtons onFeedback={handleFeedback} />
-        </Box>
-      </Card>
-    </Box>
-  )}
-</Box>
-```
-
-### 信息层级
-
-**层级 1：核心操作（默认可见）**
-- 一键复制按钮
-- 质量指标
-
-**层级 2：模版内容（默认展开）**
-- 模版预览
-- 参数完整性徽章
-
-**层级 3：高级功能（按需展开）**
-- 变量替换
-- 社交证明画廊
+头部不应被非关键统计或营销信息占据。
 
 ---
 
-## 交互流程
+## 折叠策略
 
-### 完整流程
+### 默认展开
 
-```mermaid
-stateDiagram-v2
-    [*] --> Idle: 初始加载
-    Idle --> Ready: 拖拽图片
-    Ready --> Analyzing: 自动开始分析
-    Analyzing --> Completed: 分析完成
-    Completed --> Ready: 更换图片
-    Completed --> [*]: 退出页面
-```
+- 当前任务状态
+- 当前推荐 Prompt
+- QA verdict
+- 风格概览
 
-### 关键交互点
+### 默认折叠
 
-**1. 拖拽上传（零摩擦）**
-- 用户拖拽图片到左列
-- 自动开始上传
-- 上传完成后自动开始分析（无需点击"开始分析"）
-
-**2. 进度反馈（实时）**
-- 中列显示进度条
-- 显示当前阶段："正在识别光影技巧..."
-- 显示预计剩余时间
-
-**3. 结果展示（原地展开）**
-- 分析完成后，中列和右列原地更新
-- 无需页面跳转
-- 左列图片预览保持可见
-
-**4. 模版复制（一键操作）**
-- 右列突出显示"一键复制"按钮
-- 点击后显示"已复制"提示
-- 支持快捷键 Ctrl+C
+- QA issues 详情
+- fixes 详情
+- 回放阶段记录
+- 公开结果页投影预览
 
 ---
 
-## 组件状态管理
+## 平板与移动端
 
-### 全局状态
+### 平板
 
-```tsx
-interface WorkspaceState {
-  // 左列状态
-  image: {
-    data: ImageData | null;
-    status: 'idle' | 'uploading' | 'ready';
-  };
+- 左侧面板上移到顶部
+- 中央与右侧上下堆叠
+- 复制和导出固定在靠前位置
 
-  // 中列状态
-  analysis: {
-    data: AnalysisData | null;
-    status: 'idle' | 'analyzing' | 'completed' | 'error';
-    progress: number;
-    stage: string;
-  };
+### 移动端
 
-  // 右列状态
-  template: {
-    content: string | null;
-    copied: boolean;
-    variables: Record<string, string>;
-  };
+顺序建议：
 
-  // 全局配置
-  config: {
-    selectedModel: string;
-    autoStart: boolean;
-  };
-}
-```
+1. 任务头部
+2. 阶段进度
+3. 当前 Prompt
+4. 复制 / 导出 / 保存
+5. QA verdict
+6. 风格概览
+7. 变量槽位
+8. 深层结构信息
 
-### 状态同步
-
-- 左列上传完成 → 自动触发中列分析
-- 中列分析完成 → 自动更新右列模版
-- 右列模版更新 → 左列保持图片预览
+移动端不再使用“引导去桌面端看详细分析”的策略，除非某能力在当前阶段确实未实现。
 
 ---
 
-## 可折叠组件规范
+## Public Projection Placement
 
-### CollapsibleSection 组件
+公开结果页预览不应和主结果混排。  
+建议放在中部或底部的次级面板中，作为：
 
-```tsx
-interface CollapsibleSectionProps {
-  title: string;
-  defaultExpanded: boolean;
-  children: React.ReactNode;
-  onToggle?: (expanded: boolean) => void;
-}
+- 对 SEO 内容承载的预览
+- 对 allowlist 边界的提醒
+- 对内容与工具一致性的验证
 
-// 使用示例
-<CollapsibleSection
-  title="详细分析"
-  defaultExpanded={false}
-  onToggle={(expanded) => {
-    // 记录用户偏好
-    localStorage.setItem('detail-expanded', String(expanded));
-  }}
->
-  <DetailedAnalysis />
-</CollapsibleSection>
-```
+预览区应明确标识：
 
-### 折叠策略
-
-**默认展开的区块：**
-- 整体置信度
-- 风格标签
-- 一键复制
-- 质量指标
-- 前两个维度卡片（光影、构图）
-
-**默认折叠的区块：**
-- 模型选择
-- 后两个维度卡片（色彩、艺术风格）
-- 详细分析
-- 变量替换
-- 社交证明画廊
-
-**用户偏好记忆：**
-- 使用 `localStorage` 记住用户的展开/折叠偏好
-- 下次访问时恢复用户的选择
+- 这是公开视图
+- 不包含内部 QA 细节
+- 不包含回放与调试字段
 
 ---
 
-## 移动端适配
+## Support Replay Placement
 
-### 单列垂直布局
+回放能力不应抢占普通用户视线。  
+建议放在：
 
-```
-┌──────────────────┐
-│   参考图片       │
-│   (左列)         │
-│                  │
-│   上传/预览      │
-└──────────────────┘
-         ↓
-┌──────────────────┐
-│   分析结果       │
-│   (中列)         │
-│                  │
-│   置信度         │
-│   标签           │
-│   四维度         │
-└──────────────────┘
-         ↓
-┌──────────────────┐
-│   可编辑模版     │
-│   (右列)         │
-│                  │
-│   一键复制       │
-│   模版内容       │
-│   质量指标       │
-└──────────────────┘
-```
+- 中央面板底部折叠区
+- 或右侧抽屉 / 二级标签页
 
-### 移动端简化
+并且按阶段组织：
 
-**隐藏的功能：**
-- 社交证明画廊（引导到桌面端查看）
-- 变量替换（引导到桌面端使用）
-- 详细分析（只显示四维度摘要）
-
-**保留的功能：**
-- 上传图片
-- 查看置信度
-- 查看风格标签
-- 一键复制模版
-- 查看质量指标
-
-**提示文案：**
-- "在桌面端查看详细分析和变量替换功能"
+- Forensic
+- Fingerprint
+- Compiler
+- QA
 
 ---
 
-## 开发实施检查清单
+## 布局验收标准
 
-### 布局实施
-
-- [ ] 创建三列响应式布局（Grid 组件）
-- [ ] 实现左列：图片预览 + 上传区
-- [ ] 实现中列：进度 + 结果区
-- [ ] 实现右列：模版编辑 + 操作区
-- [ ] 验证桌面端三列布局
-- [ ] 验证移动端单列布局
-
-### 交互实施
-
-- [ ] 拖拽上传触发自动分析
-- [ ] 进度条在中列实时更新
-- [ ] 结果在中列原地展开
-- [ ] 模版在右列自动生成
-- [ ] 左列图片预览保持可见
-
-### 组件开发
-
-- [ ] CollapsibleSection 组件
-- [ ] ImagePreview 组件
-- [ ] EmptyState 组件
-- [ ] TemplatePreview 组件
-- [ ] VariableReplacer 组件
-
-### 状态管理
-
-- [ ] WorkspaceState 全局状态
-- [ ] 列间状态同步
-- [ ] 用户偏好记忆（localStorage）
-- [ ] 错误处理和回退
-
-### 测试验收
-
-- [ ] 桌面端 Chrome/Safari/Firefox
-- [ ] 移动端 iOS/Android
-- [ ] 状态切换流畅性
-- [ ] 折叠/展开动画
-- [ ] 快捷键支持（Ctrl+C）
+- [ ] 桌面端首屏可同时看到任务状态、结果摘要和主操作
+- [ ] 右侧面板足够宽，Prompt 不会在默认状态下难以阅读
+- [ ] 中央面板优先呈现风格理解，而不是低层级 JSON
+- [ ] 移动端不丢失任务状态与主操作
+- [ ] 公开投影与回放能力均有明确位置，但不打断主链路
 
 ---
 
-## 📚 相关文档
+## 相关文档
 
-- [核心流程优化](./12-core-flow-optimization.md)
+- [核心流程优化方案](./12-core-flow-optimization.md)
 - [组件策略](./09-component-strategy.md)
-- [UX 模式分析](./04-ux-patterns.md)
+- [视觉设计基础](./07-visual-foundation.md)
 - [返回总览](./README.md)
