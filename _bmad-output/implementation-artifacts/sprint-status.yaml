@@ -1,8 +1,8 @@
-# generated: 2026-02-27
+# generated: 2026-03-02
 # project: image_analyzer
 # project_key: NOKEY
 # tracking_system: file-system
-# story_location: {project-root}/_bmad-output/implementation-artifacts
+# story_location: /Users/muchao/code/image_analyzer/_bmad-output/implementation-artifacts
 
 # STATUS DEFINITIONS:
 # ==================
@@ -33,44 +33,47 @@
 # - SM typically creates next story after previous one is 'done' to incorporate learnings
 # - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
 
-generated: 2026-02-27
+generated: 2026-03-02
 project: image_analyzer
 project_key: NOKEY
 tracking_system: file-system
-story_location: "{project-root}/_bmad-output/implementation-artifacts"
+story_location: "/Users/muchao/code/image_analyzer/_bmad-output/implementation-artifacts"
 
 development_status:
   epic-1: in-progress
-  1-1-单图上传与任务初始化: done
-  1-2-客观描述引擎输出: backlog
-  1-3-任务状态可见与异常恢复: backlog
+  1-1-上传参考图并创建分析任务: done
+  1-2-轮询任务状态并展示可恢复进度反馈: ready-for-dev
+  1-3-生成完整结构化客观描述结果: ready-for-dev
   epic-1-retrospective: optional
 
-  epic-2: backlog
-  2-1-风格指纹核心提取: backlog
-  2-2-常量锁定与变量槽位管理: backlog
-  2-3-复现稳定性与风格保真解释: backlog
+  epic-2: in-progress
+  2-1-提取风格指纹并区分常量与变量: ready-for-dev
+  2-2-提供标准变量槽位并支持安全替换: ready-for-dev
+  2-3-生成风格保真解释并保留复现对比关键输出: ready-for-dev
   epic-2-retrospective: optional
 
-  epic-3: backlog
-  3-1-通用模板与负向提示词编译: backlog
-  3-2-多适配器与强度分档输出: backlog
-  3-3-参数建议与结果导出: backlog
+  epic-3: in-progress
+  3-1-生成通用模板与-negative-prompt: ready-for-dev
+  3-2-生成三类适配表达: ready-for-dev
+  3-3-为每类适配表达提供强度档位与参数建议: ready-for-dev
+  3-4-选择-复制并导出候选结果: ready-for-dev
   epic-3-retrospective: optional
 
-  epic-4: backlog
-  4-1-字段完整性与-json-合法性校验: backlog
-  4-2-语义冲突与可复现性规则检测: backlog
-  4-3-修复建议与重试闭环: backlog
+  epic-4: in-progress
+  4-1-校验-json-契约完整性与关键字段缺失: ready-for-dev
+  4-2-检测语义冲突与可复现性问题并生成修复建议: ready-for-dev
+  4-3-展示-qa-结果并支持用户发起修复重试: ready-for-dev
   epic-4-retrospective: optional
 
-  epic-5: backlog
-  5-1-统一结果交付与阶段化回放: backlog
-  5-2-模板保存复用与历史重载: backlog
-  5-3-链路检索与质量趋势观测: backlog
+  epic-5: in-progress
+  5-0-组装最终分析结果并返回统一-json-契约: ready-for-dev
+  5-1-保存模板并重载历史任务结果: ready-for-dev
+  5-2-保存阶段快照和版本信息以支持任务回放: ready-for-dev
+  5-3-检索任务链路并支撑支持排障: ready-for-dev
+  5-4-聚合模板复用与版本质量趋势指标: ready-for-dev
   epic-5-retrospective: optional
 
-  epic-6: backlog
-  6-1-seo-友好的分析结果呈现页: backlog
-  6-2-内容页与工具结果一致性同步: backlog
+  epic-6: in-progress
+  6-1-生成公开结果投影并执行字段白名单控制: ready-for-dev
+  6-2-渲染可索引内容页并提供工具回流入口: ready-for-dev
   epic-6-retrospective: optional
