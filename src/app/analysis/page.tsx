@@ -25,6 +25,8 @@ import {
   buildTemplateSnapshotFromAnalysis,
   normalizeTemplateSnapshot,
 } from '@/lib/analysis/template-snapshot';
+import { useAnalysisStatus } from '@/features/analysis/hooks/useAnalysisStatus';
+import type { TaskStatus } from '@/lib/analysis-ir/status-schema';
 
 type ImageStatus = 'idle' | 'ready';
 type AnalysisStatus = 'idle' | 'analyzing' | 'completed' | 'error';
@@ -116,13 +118,78 @@ export default function AnalysisPage() {
   const [selectedModelId, setSelectedModelId] = useState<string>('');
   const [modelsLoading, setModelsLoading] = useState(false);
 
-  const stopPollingRef = useRef(false);
   const autoStartTimerRef = useRef<number | null>(null);
   const copyResetTimerRef = useRef<number | null>(null);
   const appliedTemplateParamRef = useRef<string | null>(null);
   const appliedHistoryIdParamRef = useRef<string | null>(null);
 
   const { setAnalysisStage, setAnalysisProgress, resetAnalysis } = useProgressStore();
+
+  // 使用 TanStack Query 进行状态轮询
+  const statusQuery = useAnalysisStatus(analysisState.id, {
+    pollInterval: 2000,
+    onStatusChange: (status, currentStage) => {
+      // 映射任务状态到前端展示阶段
+      if (status === 'running' && currentStage) {
+        setAnalysisStage(
+          currentStage === 'prompt_compiler' || currentStage === 'qa_critic'
+            ? 'generating'
+            : 'analyzing'
+        );
+      } else if (status === 'queued') {
+        setAnalysisStage('idle');
+      }
+    },
+    onError: (error) => {
+      setAnalysisState((prev) => ({
+        ...prev,
+        status: 'error',
+        error: error.message,
+      }));
+      setAnalysisStage('error');
+    },
+  });
+
+  // 同步进度到 store
+  useEffect(() => {
+    if (statusQuery.progress !== undefined) {
+      setAnalysisProgress(statusQuery.progress);
+    }
+  }, [statusQuery.progress, setAnalysisProgress]);
+
+  // 当任务完成时，获取最终结果
+  useEffect(() => {
+    if (statusQuery.status === 'completed' && analysisState.id) {
+      const fetchFinalResult = async () => {
+        try {
+          const response = await fetch(`/api/analysis/${analysisState.id}`);
+          const data = await response.json();
+
+          if (!response.ok) {
+            throw new Error(data.error?.message || '获取分析结果失败');
+          }
+
+          setAnalysisState((prev) => ({
+            ...prev,
+            status: 'completed',
+            data: data,
+            id: analysisState.id,
+          }));
+          setAnalysisStage('completed');
+        } catch (error) {
+          const message = error instanceof Error ? error.message : '获取分析结果失败';
+          setAnalysisState((prev) => ({
+            ...prev,
+            status: 'error',
+            error: message,
+          }));
+          setAnalysisStage('error');
+        }
+      };
+
+      void fetchFinalResult();
+    }
+  }, [statusQuery.status, analysisState.id, setAnalysisStage]);
 
   useEffect(() => {
     if (!isAuthenticated) return;
@@ -250,7 +317,6 @@ export default function AnalysisPage() {
         }
 
         if (restoredAnalysisData) {
-          stopPollingRef.current = true;
           setAnalysisState({
             status: 'completed',
             data: restoredAnalysisData,
@@ -349,79 +415,11 @@ export default function AnalysisPage() {
     };
   }, [analysisState.status, handleCopyTemplate, renderedTemplate]);
 
-  const pollAnalysisStatus = useCallback(
-    async (analysisId: number) => {
-      const maxAttempts = 120;
-      const interval = 1000;
-
-      for (let attempt = 0; attempt < maxAttempts; attempt += 1) {
-        if (stopPollingRef.current) {
-          return;
-        }
-
-        try {
-          const response = await fetch(`/api/analysis/${analysisId}/status`);
-          const data = await response.json();
-
-          if (!data.success) {
-            throw new Error(data.error?.message || '获取分析状态失败');
-          }
-
-          const { status, progress, result } = data.data;
-          const analysisResultId =
-            typeof data.data.analysisResultId === 'number' ? data.data.analysisResultId : null;
-
-          setAnalysisProgress(progress || 0);
-          setAnalysisStage(status === 'generating' ? 'generating' : 'analyzing');
-
-          if (status === 'completed') {
-            setAnalysisState((prev) => ({
-              ...prev,
-              status: 'completed',
-              data: result,
-              id: analysisResultId ?? prev.id,
-            }));
-            setAnalysisStage('completed');
-            return;
-          }
-
-          if (status === 'failed') {
-            throw new Error('分析失败');
-          }
-
-          await new Promise((resolve) => setTimeout(resolve, interval));
-        } catch (error) {
-          if (stopPollingRef.current) {
-            return;
-          }
-
-          const message = error instanceof Error ? error.message : '分析失败';
-          setAnalysisState((prev) => ({
-            ...prev,
-            status: 'error',
-            error: message,
-          }));
-          setAnalysisStage('error');
-          return;
-        }
-      }
-
-      setAnalysisState((prev) => ({
-        ...prev,
-        status: 'error',
-        error: '分析超时，请稍后重试',
-      }));
-      setAnalysisStage('error');
-    },
-    [setAnalysisProgress, setAnalysisStage]
-  );
-
   const handleStartAnalysis = useCallback(
     async (imageDataOverride?: ImageData) => {
       const activeImage = imageDataOverride || imageState.data;
       if (!activeImage || analysisState.status === 'analyzing') return;
 
-      stopPollingRef.current = false;
       setAnalysisState((prev) => ({
         ...prev,
         status: 'analyzing',
@@ -452,7 +450,7 @@ export default function AnalysisPage() {
 
         const analysisId = data.data.analysisId;
         setAnalysisState((prev) => ({ ...prev, id: analysisId }));
-        void pollAnalysisStatus(analysisId);
+        // useAnalysisStatus hook 会自动开始轮询
       } catch (error) {
         const message = error instanceof Error ? error.message : '分析失败';
         setAnalysisState((prev) => ({
@@ -463,7 +461,7 @@ export default function AnalysisPage() {
         setAnalysisStage('error');
       }
     },
-    [analysisState.status, imageState.data, pollAnalysisStatus, selectedModelId, setAnalysisProgress, setAnalysisStage]
+    [analysisState.status, imageState.data, selectedModelId, setAnalysisProgress, setAnalysisStage]
   );
 
   const handleAutoStartAnalysis = useCallback(
@@ -518,7 +516,6 @@ export default function AnalysisPage() {
       autoStartTimerRef.current = null;
     }
 
-    stopPollingRef.current = true;
     setAnalysisState((prev) => ({
       ...prev,
       status: imageState.data ? 'idle' : 'error',
@@ -534,7 +531,6 @@ export default function AnalysisPage() {
       autoStartTimerRef.current = null;
     }
 
-    stopPollingRef.current = true;
     setImageState({ status: 'idle', data: null });
     setAnalysisState({ status: 'idle', data: null, id: null, error: null });
     setTemplateState({ content: '', copied: false, variables: {} });

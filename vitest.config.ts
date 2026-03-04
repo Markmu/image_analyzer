@@ -9,9 +9,20 @@ export default defineConfig({
     environment: 'jsdom',
     // Single source of truth for unit/integration tests
     setupFiles: ['./tests/setup/vitest.setup.ts'],
+    // Load environment variables from .env.local for integration tests
+    env: {
+      // Try to load from .env.local if it exists
+      DATABASE_URL: process.env.DATABASE_URL || '',
+      NEXTAUTH_URL: process.env.NEXTAUTH_URL || 'http://localhost:3000',
+      NEXTAUTH_SECRET: process.env.NEXTAUTH_SECRET || 'test-secret',
+      GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID || 'test-client-id',
+      GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET || 'test-client-secret',
+    },
     include: [
       'tests/unit/**/*.test.{ts,tsx}',
       'tests/unit/**/*.spec.{ts,tsx}',
+      'tests/integration/**/*.test.{ts,tsx}',
+      'tests/fixtures/**/*.test.{ts,tsx}',
       'src/features/**/*.test.{ts,tsx}',
       'src/**/*.test.{ts,tsx}',
     ],

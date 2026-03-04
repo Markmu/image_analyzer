@@ -42,7 +42,7 @@ story_location: "/Users/muchao/code/image_analyzer/_bmad-output/implementation-a
 development_status:
   epic-1: in-progress
   1-1-上传参考图并创建分析任务: done
-  1-2-轮询任务状态并展示可恢复进度反馈: ready-for-dev
+  1-2-轮询任务状态并展示可恢复进度反馈: done
   1-3-生成完整结构化客观描述结果: ready-for-dev
   epic-1-retrospective: optional
 

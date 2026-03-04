@@ -2,260 +2,76 @@
  * 分析状态查询 API
  * GET /api/analysis/[id]/status
  *
- * 返回分析任务的当前状态和进度
- * 如果分析完成，返回完整的结果数据
+ * 返回分析任务的轻量状态视图（不包含完整结果）
+ * 完整结果应通过 GET /api/analysis/[id] 获取
+ *
+ * 参考: Story 1.2 - 轮询任务状态并展示可恢复进度反馈
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { getDb } from '@/lib/db';
-import { analysisResults, batchAnalysisResults, batchAnalysisImages, images } from '@/lib/db/schema';
-import { eq, and, desc, isNotNull } from 'drizzle-orm';
 import { auth } from '@/lib/auth';
-import type { AnalysisStage } from '@/lib/utils/time-estimation';
-
-// 模拟的分析任务存储（实际应用中应该使用数据库或 Redis）
-const analysisTasks = new Map<string, {
-  status: AnalysisStage;
-  progress: number;
-  currentTerm?: string;
-  queuePosition?: number | null;
-  startTime: number;
-  result?: any;
-}>();
+import { getTaskStatusView, StatusServiceError } from '@/lib/analysis-tasks/status-service';
+import type { TaskStatusErrorResponse } from '@/lib/analysis-ir/status-schema';
 
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id: analysisId } = await params;
+    const { id: taskId } = await params;
 
-    if (!analysisId) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: {
-            code: 'INVALID_REQUEST',
-            message: '分析 ID 不能为空',
-          },
+    if (!taskId) {
+      const errorResponse: TaskStatusErrorResponse = {
+        success: false,
+        error: {
+          code: 'INVALID_REQUEST',
+          message: '任务 ID 不能为空',
         },
-        { status: 400 }
-      );
+      };
+      return NextResponse.json(errorResponse, { status: 400 });
     }
 
-    // 检查是否是数字 ID（真实数据库记录）
-    const numericId = parseInt(analysisId, 10);
-    if (!isNaN(numericId)) {
-      const db = getDb();
+    // 验证用户身份
+    const session = await auth();
 
-      // 首先查询批量分析记录表（异步任务）
-      const batchResults = await db
-        .select()
-        .from(batchAnalysisResults)
-        .where(eq(batchAnalysisResults.id, numericId))
-        .limit(1);
-
-      if (batchResults.length > 0) {
-        const batch = batchResults[0];
-
-        // 如果是已完成的任务，尝试获取分析结果
-        if (batch.status === 'completed' || batch.status === 'partial') {
-          const batchImageList = await db
-            .select()
-            .from(batchAnalysisImages)
-            .where(
-              and(
-                eq(batchAnalysisImages.batchId, batch.id),
-                isNotNull(batchAnalysisImages.analysisResultId)
-              )
-            )
-            .orderBy(desc(batchAnalysisImages.completedAt))
-            .limit(1);
-
-          if (batchImageList.length > 0 && batchImageList[0].analysisResultId) {
-            const [result] = await db
-              .select()
-              .from(analysisResults)
-              .where(
-                and(
-                  eq(analysisResults.id, batchImageList[0].analysisResultId),
-                  eq(analysisResults.userId, batch.userId)
-                )
-              )
-              .limit(1);
-
-            if (!result) {
-              return NextResponse.json(
-                {
-                  success: false,
-                  error: {
-                    code: 'NOT_FOUND',
-                    message: '分析结果不存在',
-                  },
-                },
-                { status: 404 }
-              );
-            }
-
-            return NextResponse.json({
-              success: true,
-              data: {
-                id: batch.id,
-                analysisResultId: result.id,
-                status: batch.status,
-                progress: {
-                  completed: batch.completedImages,
-                  total: batch.totalImages,
-                  failed: batch.failedImages,
-                },
-                result: result.analysisData,
-                confidenceScore: result.confidenceScore,
-                createdAt: batch.createdAt,
-                completedAt: batch.completedAt,
-                queuePosition: batch.queuePosition,
-                estimatedWaitTime: batch.estimatedWaitTime,
-                isQueued: batch.isQueued,
-              },
-            });
-          }
-        }
-
-        // 返回任务状态
-        return NextResponse.json({
-          success: true,
-          data: {
-            id: batch.id,
-            status: batch.status,
-            progress: {
-              completed: batch.completedImages,
-              total: batch.totalImages,
-              failed: batch.failedImages,
-            },
-            result: null,
-            createdAt: batch.createdAt,
-            completedAt: batch.completedAt,
-            queuePosition: batch.queuePosition,
-            estimatedWaitTime: batch.estimatedWaitTime,
-            isQueued: batch.isQueued,
-          },
-        });
-      }
-
-      // 查询已完成的标准分析结果
-      const results = await db
-        .select()
-        .from(analysisResults)
-        .where(eq(analysisResults.id, numericId))
-        .limit(1);
-
-      if (results.length > 0) {
-        const result = results[0];
-        return NextResponse.json({
-          success: true,
-          data: {
-            id: result.id,
-            analysisResultId: result.id,
-            status: 'completed',
-            progress: {
-              completed: 1,
-              total: 1,
-              failed: 0,
-            },
-            result: result.analysisData,
-            confidenceScore: result.confidenceScore,
-            feedback: result.feedback,
-            createdAt: result.createdAt,
-          },
-        });
-      }
-    }
-
-    // 获取分析任务状态（用于进度跟踪）
-    const task = analysisTasks.get(analysisId);
-
-    if (!task) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: {
-            code: 'NOT_FOUND',
-            message: '分析任务不存在',
-          },
-        },
-        { status: 404 }
-      );
-    }
-
-    // 计算预计剩余时间
-    const elapsed = Date.now() - task.startTime;
-    const estimatedTime = Math.max(0, 60 - elapsed / 1000); // 假设总时长 60 秒
+    // 获取任务状态视图（包含权限校验）
+    const statusView = await getTaskStatusView(taskId, session);
 
     return NextResponse.json({
       success: true,
-      data: {
-        analysisId,
-        status: task.status,
-        progress: task.progress,
-        currentTerm: task.currentTerm,
-        queuePosition: task.queuePosition,
-        estimatedTime,
-        result: task.result,
-      },
+      data: statusView,
     });
   } catch (error) {
     console.error('获取分析状态失败:', error);
 
-    return NextResponse.json(
-      {
+    // 处理服务层特定错误
+    if (error instanceof StatusServiceError) {
+      const errorResponse: TaskStatusErrorResponse = {
         success: false,
         error: {
-          code: 'INTERNAL_ERROR',
-          message: '获取分析状态失败',
+          code: error.code,
+          message: error.message,
         },
+      };
+
+      // 根据错误代码返回适当的 HTTP 状态码
+      const httpStatus = {
+        UNAUTHORIZED: 401,
+        FORBIDDEN: 403,
+        NOT_FOUND: 404,
+      }[error.code] || 500;
+
+      return NextResponse.json(errorResponse, { status: httpStatus });
+    }
+
+    // 通用错误处理
+    const errorResponse: TaskStatusErrorResponse = {
+      success: false,
+      error: {
+        code: 'INTERNAL_ERROR',
+        message: '获取分析状态失败',
       },
-      { status: 500 }
-    );
+    };
+    return NextResponse.json(errorResponse, { status: 500 });
   }
 }
-
-/**
- * 创建新的分析任务（用于测试）
- * 实际应用中应该由分析 API 调用创建
- */
-export const createAnalysisTask = (
-  analysisId: string,
-  data: {
-    status: AnalysisStage;
-    progress: number;
-    currentTerm?: string;
-    queuePosition?: number | null;
-  }
-) => {
-  analysisTasks.set(analysisId, {
-    ...data,
-    startTime: Date.now(),
-  });
-};
-
-/**
- * 更新分析任务状态（用于测试）
- * 实际应用中应该由分析工作流更新
- */
-export const updateAnalysisTask = (
-  analysisId: string,
-  data: Partial<{
-    status: AnalysisStage;
-    progress: number;
-    currentTerm: string;
-    queuePosition: number | null;
-    result: any;
-  }>
-) => {
-  const task = analysisTasks.get(analysisId);
-  if (task) {
-    analysisTasks.set(analysisId, { ...task, ...data });
-  }
-};
-
-// 导出用于测试
-export { analysisTasks };

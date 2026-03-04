@@ -1,0 +1,117 @@
+name: 集成测试
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  # 集成测试（需要数据库）
+  integration-tests:
+    name: 集成测试
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📥 Checkout 代码
+        uses: actions/checkout@v4
+
+      - name: 🟢 设置 Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: 📦 安装依赖
+        run: npm ci
+
+      - name: 🗄️ 推送数据库 Schema
+        run: npm run db:push
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+
+      - name: 🧪 运行集成测试
+        run: npm run test:integration
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+
+      - name: 📊 上传测试报告
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: integration-test-report
+          path: coverage/
+          retention-days: 7
+
+  # 单元测试（不需要数据库）
+  unit-tests:
+    name: 单元测试
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📥 Checkout 代码
+        uses: actions/checkout@v4
+
+      - name: 🟢 设置 Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: 📦 安装依赖
+        run: npm ci
+
+      - name: 🧪 运行单元测试
+        run: npm run test:unit
+
+      - name: 📊 上传测试覆盖率
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: unit-test-coverage
+          path: coverage/
+          retention-days: 7
+
+  # E2E 测试（Playwright）
+  e2e-tests:
+    name: E2E 测试
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: 📥 Checkout 代码
+        uses: actions/checkout@v4
+
+      - name: 🟢 设置 Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: 📦 安装依赖
+        run: npm ci
+
+      - name: 🎭 安装 Playwright 浏览器
+        run: npm run test:e2e:install
+
+      - name: 🏗️ 构建应用
+        run: npm run build
+
+      - name: 🧪 运行 E2E 测试
+        run: npm run test:e2e
+
+      - name: 📊 上传测试报告
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-test-report
+          path: playwright-report/
+          retention-days: 7
+
+      - name: 🎬 上传测试视频
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-test-videos
+          path: test-results/
+          retention-days: 3
