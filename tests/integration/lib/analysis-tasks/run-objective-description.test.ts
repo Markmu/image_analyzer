@@ -25,14 +25,18 @@ vi.mock('@/lib/providers/analysis/replicate', () => ({
   replicate: mockReplicate,
 }));
 
-// Mock database
-vi.mock('@/lib/db', () => ({
-  db: {
+// Mock database - must define mock inline to avoid hoisting issues
+vi.mock('@/lib/db', () => {
+  const mockDb = {
     insert: vi.fn(),
     select: vi.fn(),
     update: vi.fn(),
-  },
-}));
+  };
+  return {
+    db: mockDb,
+    getDb: vi.fn(() => mockDb),
+  };
+});
 
 // Mock auth
 vi.mock('@/lib/auth', () => ({
