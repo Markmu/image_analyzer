@@ -34,6 +34,9 @@ export function getDb(): PostgresJsDatabase<typeof schema> {
 // 导出 schema
 export { schema };
 
+// 导出 db 实例（用于直接导入）
+export const db = getDb();
+
 // 优雅关闭连接
 export async function closeDbConnection(): Promise<void> {
   if (_client) {
