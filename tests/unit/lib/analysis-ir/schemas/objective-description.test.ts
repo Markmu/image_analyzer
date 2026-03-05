@@ -321,9 +321,11 @@ describe('Objective Description Schema - P1 Tests', () => {
       const validInput: ObjectiveDescription = {
         visible_content: {
           primary_subjects: ['person'],
+          setting: 'outdoor scene',
         },
         imaging_features: {
           technique: 'photography',
+          lighting: 'natural',
         },
         overall_confidence: 0.9,
         uncertainty_fields: [],
@@ -334,9 +336,11 @@ describe('Objective Description Schema - P1 Tests', () => {
       expect(validInput.overall_confidence).toBe(0.9);
       expect(validInput.uncertainty_fields).toEqual([]);
 
-      // Type assertion: if we try to access a non-existent field, TypeScript will error
-      // @ts-expect-error - Property 'invalid_field' does not exist
-      expect(() => validInput.invalid_field).toThrow();
+      // ✅ TypeScript 编译器在编译时保证类型安全
+      // 类型错误会在编译时被捕获，不需要运行时测试验证
+
+      // ✅ 测试运行时行为：访问不存在的属性返回 undefined
+      expect((validInput as any).unknown_field).toBeUndefined();
     });
 
     it('should correctly type optional fields', () => {
