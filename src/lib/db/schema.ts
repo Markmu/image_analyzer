@@ -536,3 +536,66 @@ export const analysisHistory = pgTable('analysis_history', {
   analysisResultIdIdx: index('analysis_history_analysis_result_id_idx').on(table.analysisResultId),
   createdAtIdx: index('analysis_history_created_at_idx').on(table.createdAt),
 }));
+
+// ============================================================================
+// 分析任务表 (analysis_tasks) - Story 1.3: 任务中心化数据模型
+// ============================================================================
+export const analysisTasks = pgTable('analysis_tasks', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  publicId: varchar('public_id', { length: 64 }).notNull().unique(),
+  userId: varchar('user_id', { length: 255 }).notNull().references(() => user.id, { onDelete: 'cascade' }),
+  imageId: varchar('image_id', { length: 64 }).notNull().references(() => images.id, { onDelete: 'cascade' }),
+  status: varchar('status', { length: 32 }).notNull(), // 'queued' | 'running' | 'completed' | 'failed' | 'partial' | 'canceled'
+  currentStage: varchar('current_stage', { length: 64 }), // 'forensic_describer' | 'style_fingerprinter' | 'prompt_compiler' | 'qa_critic' | null
+  targetModel: varchar('target_model', { length: 100 }),
+  provider: varchar('provider', { length: 50 }),
+  schemaVersion: varchar('schema_version', { length: 32 }).notNull().default('1.0.0'),
+  promptVersion: varchar('prompt_version', { length: 32 }),
+  requestPayload: jsonb('request_payload'),
+  resultPayload: jsonb('result_payload'),
+  resultSummary: jsonb('result_summary'),
+  latestQaVerdict: varchar('latest_qa_verdict', { length: 16 }), // 'pass' | 'warn' | 'fail'
+  latestErrorCode: varchar('latest_error_code', { length: 64 }),
+  latestErrorMessage: text('latest_error_message'),
+  attemptCount: integer('attempt_count').notNull().default(1),
+  isPublic: boolean('is_public').notNull().default(false),
+  publicPublishedAt: timestamp('public_published_at'),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+  startedAt: timestamp('started_at'),
+  completedAt: timestamp('completed_at'),
+  updatedAt: timestamp('updated_at').notNull().defaultNow(),
+}, (table) => ({
+  userIdIdx: index('analysis_tasks_user_id_idx').on(table.userId, table.createdAt),
+  statusIdx: index('analysis_tasks_status_idx').on(table.status, table.createdAt),
+  schemaVersionIdx: index('analysis_tasks_schema_version_idx').on(table.schemaVersion),
+  promptVersionIdx: index('analysis_tasks_prompt_version_idx').on(table.promptVersion),
+  isPublicIdx: index('analysis_tasks_is_public_idx').on(table.isPublic, table.publicPublishedAt),
+  providerModelIdx: index('analysis_tasks_provider_model_idx').on(table.provider, table.targetModel),
+}));
+
+// ============================================================================
+// 分析阶段快照表 (analysis_stage_snapshots) - Story 1.3: 阶段快照持久化
+// ============================================================================
+export const analysisStageSnapshots = pgTable('analysis_stage_snapshots', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  taskId: uuid('task_id').notNull().references(() => analysisTasks.id, { onDelete: 'cascade' }),
+  stageName: varchar('stage_name', { length: 64 }).notNull(),
+  attemptNo: integer('attempt_no').notNull(),
+  stageStatus: varchar('stage_status', { length: 32 }).notNull(), // 'queued' | 'running' | 'completed' | 'failed' | 'skipped'
+  provider: varchar('provider', { length: 50 }),
+  modelId: varchar('model_id', { length: 100 }),
+  schemaVersion: varchar('schema_version', { length: 32 }).notNull(),
+  promptVersion: varchar('prompt_version', { length: 32 }),
+  inputPayload: jsonb('input_payload'),
+  outputPayload: jsonb('output_payload'),
+  errorPayload: jsonb('error_payload'),
+  metricsPayload: jsonb('metrics_payload'),
+  startedAt: timestamp('started_at'),
+  completedAt: timestamp('completed_at'),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+}, (table) => ({
+  taskIdIdx: index('analysis_stage_snapshots_task_id_idx').on(table.taskId, table.createdAt),
+  taskStageAttemptUniqueIdx: uniqueIndex('analysis_stage_snapshots_task_stage_attempt_unique_idx').on(table.taskId, table.stageName, table.attemptNo),
+  stageStatusIdx: index('analysis_stage_snapshots_stage_status_idx').on(table.stageStatus, table.createdAt),
+  providerModelIdx: index('analysis_stage_snapshots_provider_model_idx').on(table.provider, table.modelId),
+}));
